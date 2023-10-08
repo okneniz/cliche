@@ -1,439 +1,640 @@
 package regular
 
 import (
+	"errors"
+
 	c "github.com/okneniz/parsec/common"
+	s "github.com/okneniz/parsec/strings"
 )
 
-type key interface {
-	comparable
-	~rune | ~byte
+type node interface {
+	// Key() rune
+	// Push(node)
+	// Scan()
+	// ToSlice()
+	// ToMap()
+	// Leafs()
 }
 
-type node[T key] interface {
-	Push(node[T])
-	Scan()
-	ToSlice()
-	ToMap()
-	Leafs()
+type root struct {
+	children map[string]node
 }
 
-type root[T key] struct {
-	children []node[T]
+type group struct {
+	variants [][]node
+	leaf bool
+	children map[string]node
 }
 
-type group[T key] struct {
-	variant []node[T]
-	children []node[T]
+type namedGroup struct {
+	name string
+	variants [][]node
+	leaf bool
+	children map[string]node
+}
+
+type notCapturedGroup struct {
+	variants [][]node
+	leaf bool
+	children map[string]node
+}
+
+type char struct {
+	value rune
+	leaf bool
+	children map[string]node
+}
+
+type dot struct {
+	leaf bool
+	children map[string]node
+}
+
+type digit struct {
+	leaf bool
+	children map[string]node
+}
+
+type nonDigit struct {
+	leaf bool
+	children map[string]node
+}
+
+type word struct {
+	leaf bool
+	children map[string]node
+}
+
+type nonWord struct {
+	leaf bool
+	children map[string]node
+}
+
+type space struct {
+	leaf bool
+	children map[string]node
+}
+
+type nonSpace struct {
+	leaf bool
+	children map[string]node
+}
+
+type startOfLine struct {
+	leaf bool
+	children map[string]node
+}
+
+type endOfLine struct {
+	leaf bool
+	children map[string]node
+}
+
+type startOfString struct {
+	leaf bool
+	children map[string]node
+}
+
+type endOfString struct {
+	leaf bool
+	children map[string]node
+}
+
+type rangeNode struct {
+	from rune
+	to rune
+	children map[string]node
 	leaf bool
 }
 
-type namedGroup[T key] struct {
-	name []T
-	variant []node[T]
-	children []node[T]
+type quantifier struct {
+	from int
+	to *int
+	more bool
+	expression node
 	leaf bool
+	children map[string]node
 }
 
-type notCapturedGroup[T key] struct {
-	variant []node[T]
-	children []node[T]
+type positiveSet struct {
+	value []node
 	leaf bool
+	children map[string]node
 }
 
-type any[T key] struct {
-	children []node[T]
+type negativeSet struct {
+	value []node
 	leaf bool
+	children map[string]node
 }
 
-type digit[T key] struct {
-	children []node[T]
-	leaf bool
+var (
+	defaultParser = parseRegexp()
+)
+
+type Expression interface {
+	// Match(string) (bool, error)
 }
 
-type nonDigit[T key] struct {
-	children []node[T]
-	leaf bool
-}
+func Parse(data string) (Expression, error) {
+	buf := s.Buffer([]rune(data))
 
-type word[T key] struct {
-	children []node[T]
-	leaf bool
-}
-
-type nonWord[T key] struct {
-	children []node[T]
-	leaf bool
-}
-
-type space[T key] struct {
-	children []node[T]
-	leaf bool
-}
-
-type nonSpace[T key] struct {
-	children []node[T]
-	leaf bool
-}
-
-type startOfLine[T key] struct {
-	children []node[T]
-	leaf bool
-}
-
-type endOfLine[T key] struct {
-	children []node[T]
-	leaf bool
-}
-
-type startOfString[T key] struct {
-	children []node[T]
-	leaf bool
-}
-
-type endOfString[T key] struct {
-	children []node[T]
-	leaf bool
-}
-
-type rangeNode[T key] struct {
-	from T
-	to T
-	children []node[T]
-	leaf bool
-}
-
-type quantifier[T key] struct {
-	count uint
-	expression node[T]
-	children []node[T]
-	leaf bool
-}
-
-type many[T key] struct {
-	expression node[T]
-	children []node[T]
-	leaf bool
-}
-
-type some[T key] struct {
-	expression node[T]
-	children []node[T]
-	leaf bool
-}
-
-type optional[T key] struct {
-	expression node[T]
-	children []node[T]
-	leaf bool
-}
-
-type positiveSet[T key] struct {
-	set []node[T]
-	children []node[T]
-	leaf bool
-}
-
-type negativeSet[T key] struct {
-	set []node[T]
-	children []node[T]
-	leaf bool
-}
-
-func Parse[T key]() (*node[T], error) {
-
-	return nil, nil
-}
-
-func parseAny[T key, P any]() c.Combinator[T, P, node[T]] {
-	any := c.Eq[T, P]('.')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := any(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := any[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
+	expression, err := defaultParser(buf)
+	if err != nil {
+		return nil, err
 	}
+
+	return expression, nil
 }
 
-func parseDigit[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', 'd')
+type parser = c.Combinator[rune, s.Position, node]
+type expressionParser = c.Combinator[rune, s.Position, []node]
+type buffer = c.Buffer[rune, s.Position]
 
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
+var none = struct{}{}
 
-		x := digit[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseNonDigit[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', 'D')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := nonDigit[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseWord[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', 'w')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := word[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseNonWord[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', 'w')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := nonWord[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseSpace[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', 's')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := space[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseNonSpace[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', 'S')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := nonSpace[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseStartOfLine[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', '^')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := startOfLine[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseEndOfLine[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', '$')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := endOfLine[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseStartOfString[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', 'A')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := startOfString[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseEndOfString[T key, P any]() c.Combinator[T, P, node[T]] {
-	parse := c.SequenceOf[T, P]('\\', 'z')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := endOfString[T]{
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseGroup[T key, P any](
-	expression c.Combinator[T, P, node[T]],
-) {
-	sep := c.Eq[T, P]('|')
-	union := c.SepBy1[T, P](0, expression, sep)
-	before := c.Eq[T, P]('(')
-	after := c.Eq[T, P](')')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := before(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		variants, err := union(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = after(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := group[T]{
-			variants: variants,
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseNotCapturedGroup[T key, P any](
-	expression c.Combinator[T, P, node[T]],
-) {
-	sep := c.Eq[T, P]('|')
-	union := c.SepBy1[T, P](0, expression, sep)
-	before := c.SequenceOf[T, P]('(', '?', ':')
-	after := c.Eq[T, P](')')
-
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := before(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		variants, err := union(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = after(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := notCapturedGroup[T]{
-			variants: variants,
-			leaf: buf.IsEOF(),
-		}
-
-		return x, nil
-	}
-}
-
-func parseNamedGroup[T key, P any](
-	expression c.Combinator[T, P, node[T]],
-) {
-	sep := c.Eq[T, P]('|')
-	union := c.SepBy1[T, P](0, expression, sep)
-	before := c.SequenceOf[T, P]('(', '?', '"')
-	after := c.Eq[T, P](')')
-
-	groupName := c.Between[T, P](
-		c.SequenceOf[T, P]('<', '?'),
-		c.Many[T, P](0, c.NoneOf[T, P]('>')),
-		c.Eq[T, P]('>'),
+func parseRegexp(except ...rune) expressionParser {
+	var (
+		regexp expressionParser
+		groups parser
 	)
 
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		_, err := before(buf)
+	if len(except) == 0 {
+		groups = choice(
+			parseNotCapturedGroup(regexp),
+			parseNamedGroup(regexp),
+			parseGroup(regexp),
+		)
+	} else {
+		nestedRegexp := parseRegexp(append(except, ')', '|')...)
+
+		groups = choice(
+			parseNotCapturedGroup(nestedRegexp),
+			parseNamedGroup(nestedRegexp),
+			parseGroup(nestedRegexp),
+		)
+	}
+
+	characters := choice(
+		parseInvalidQuantifier(),
+		parseEscapedMetacharacters(),
+		parseDot(),
+		parseDigit(),
+		parseNonDigit(),
+		parseWord(),
+		parseNonWord(),
+		parseSpace(),
+		parseNonSpace(),
+		parseStartOfLine(),
+		parseEndOfLine(),
+		parseStartOfString(),
+		parseEndOfString(),
+		parseCharacter(except...),
+	)
+
+	setsCombinatrors := choice( // where dot?
+		parseRange(append(except, ']')...),
+		parseEscapedMetacharacters(),
+		parseDigit(),
+		parseNonDigit(),
+		parseWord(),
+		parseNonWord(),
+		parseSpace(),
+		parseNonSpace(),
+		parseStartOfLine(),
+		parseEndOfLine(),
+		parseStartOfString(),
+		parseEndOfString(),
+		parseCharacter(except...),
+	)
+
+	sets := choice(
+		parsePositiveSet(setsCombinatrors),
+		parseNegativeSet(setsCombinatrors),
+	)
+
+	parse := s.Some(
+		0,
+		parseOptionalQuantifier(
+			choice(
+				sets,
+				groups,
+				characters,
+			),
+		),
+	)
+
+	return parse
+}
+
+func choice(parsers ...parser) parser {
+	attempts := make([]parser, len(parsers))
+
+	for i, parse := range parsers {
+		attempts[i] = c.Try(parse)
+	}
+
+	return c.Choice(attempts...)
+}
+
+var (
+	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
+)
+
+func parseEscapedMetacharacters() parser {
+	chars := ".?+*^$[]{}()"
+	parsers := make([]parser, len(chars))
+
+	for i, c := range chars {
+		parsers[i] = parseEscapedMetacharacter(c)
+	}
+
+	return choice(parsers...)
+}
+
+func parseEscapedMetacharacter(value rune) parser {
+	str := string([]rune{'\\', value})
+	parse := SkipString(str)
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		name, err := groupName(buf)
+		x := char{
+			value: value,
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseInvalidQuantifier() parser {
+	invalidChars := map[rune]struct{}{
+		'?': {},
+		'*': {},
+		'+': {},
+	}
+
+	return func(buf buffer) (node, error) {
+		x, err := buf.Read(true)
 		if err != nil {
 			return nil, err
 		}
 
+		if _, exists := invalidChars[x]; exists {
+			return nil, InvalidQuantifierError
+		}
+
+		return nil, c.NothingMatched
+	}
+}
+
+func parseOptionalQuantifier(expression parser) parser {
+	digit := c.Try(s.Unsigned[int]())
+	lookup := s.Satisfy(false, c.Anything[rune])
+	skip := s.Any()
+
+	parseQuantifier := c.Try(
+		c.MapAs(
+			map[rune]c.Combinator[rune, s.Position, quantifier]{
+				'?': func(buf buffer) (quantifier, error) {
+					q := quantifier{}
+
+					_, err := skip(buf)
+					if err != nil {
+						return q, err
+					}
+
+					to := 1
+					q.from = 0
+					q.to = &to
+					q.more = false
+
+					return q, nil
+				},
+				'+': func(buf buffer) (quantifier, error) {
+					q := quantifier{}
+
+					_, err := skip(buf)
+					if err != nil {
+						return q, err
+					}
+
+					q.from = 1
+					q.more = true
+
+					return q, nil
+				},
+				'*': func(buf buffer) (quantifier, error) {
+					q := quantifier{}
+
+					_, err := skip(buf)
+					if err != nil {
+						return q, err
+					}
+
+					q.from = 0
+					q.more = true
+
+					return q, nil
+				},
+				'{': s.Braces(func(buf buffer) (quantifier, error) {
+					q := quantifier{}
+
+					from, err := digit(buf)
+					if err != nil {
+						return q, err
+					}
+
+					q.from = from
+
+					x, err := lookup(buf)
+					if err != nil {
+						return q, nil
+					}
+					if x != ',' {
+						return q, nil
+					}
+					_, err = skip(buf)
+					if err != nil {
+						return q, err
+					}
+
+					q.more = true
+
+					to, err := digit(buf)
+					if err != nil {
+						return q, err
+					}
+
+					q.to = &to
+
+					return q,  nil
+				},
+				),
+			},
+			lookup,
+		),
+	)
+
+	return func(buf buffer) (node, error) {
+		x, err := expression(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		q, err := parseQuantifier(buf)
+		if err != nil {
+			return x, nil
+		}
+
+		q.expression = x
+		q.leaf = buf.IsEOF()
+
+		return q, nil
+	}
+}
+
+func SkipString(data string) c.Combinator[rune, s.Position, struct{}] {
+	return func(buffer c.Buffer[rune, s.Position]) (struct{}, error) {
+		l := len(data)
+		for _, x := range data {
+			r, err := buffer.Read(true)
+			if err != nil {
+				return none, err
+			}
+			if x != r {
+				return none, c.NothingMatched
+			}
+			l =- 1
+		}
+
+		if l != 0 {
+			return none, c.NothingMatched
+		}
+
+		return none, nil
+	}
+}
+
+func parseCharacter(except ...rune) parser {
+	char := s.NoneOf(except...)
+
+	return func(buf buffer) (node, error) {
+		_, err := char(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := dot{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseDot() parser {
+	parse := s.Eq('.')
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := dot{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseDigit() parser {
+	parse := SkipString("\\d")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := digit{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseNonDigit() parser {
+	parse := SkipString("\\D")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := nonDigit{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseWord() parser {
+	parse := SkipString("\\w")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := word{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseNonWord() parser {
+	parse := SkipString("\\w")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := nonWord{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseSpace() parser {
+	parse := SkipString("\\s")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := space{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseNonSpace() parser {
+	parse := SkipString("\\S")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := nonSpace{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseStartOfLine() parser {
+	parse := SkipString("\\^")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := startOfLine{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseEndOfLine() parser {
+	parse := SkipString("\\$")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := endOfLine{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseStartOfString() parser {
+	parse := SkipString("\\A")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := startOfString{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseEndOfString() parser {
+	parse := SkipString("\\z")
+
+	return func(buf buffer) (node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := endOfString{
+			leaf: buf.IsEOF(),
+		}
+
+		return x, nil
+	}
+}
+
+func parseGroup(expression expressionParser) parser {
+	sep := s.Eq('|')
+	union := s.Parens(s.SepBy1(0, expression, sep))
+
+	return func(buf buffer) (node, error) {
 		variants, err := union(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = after(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := namedGroup[T]{
-			name: name,
+		x := group{
 			variants: variants,
 			leaf: buf.IsEOF(),
 		}
@@ -442,23 +643,82 @@ func parseNamedGroup[T key, P any](
 	}
 }
 
-func parseNegativeSet[T key, P any](
-	expression c.Combinator[T, P, node[T]],
-) {
-	parse := c.Between[T, P](
-		c.SequenceOf[T, P]('[', '^'),
-		c.Many[T, P](expression),
-		c.Eq[T, P](']'),
+func parseNotCapturedGroup(expression expressionParser) parser {
+	sep := s.Eq('|')
+	union := s.SepBy1(0, expression, sep)
+	before := SkipString("?:")
+
+	return s.Parens(
+		func(buf buffer) (node, error) {
+			_, err := before(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			variants, err := union(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			x := notCapturedGroup{
+				variants: variants,
+				leaf: buf.IsEOF(),
+			}
+
+			return x, nil
+		},
+	)
+}
+
+func parseNamedGroup(expression expressionParser, except ...rune) parser {
+	sep := s.Eq('|')
+	union := s.SepBy1(1, expression, sep)
+	groupName := s.Angles(
+		s.Skip(
+			s.Eq('?'),
+			s.Many(0, s.NoneOf(append(except, '>')...)),
+		),
 	)
 
-	return func(buf c.Buffer[T, P]) (node[T], error) {
+	return s.Parens(
+		func(buf buffer) (node, error) {
+			name, err := groupName(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			variants, err := union(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			x := namedGroup{
+				name: string(name),
+				variants: variants,
+				leaf: buf.IsEOF(),
+			}
+
+			return x, nil
+		},
+	)
+}
+
+func parseNegativeSet(expression parser) parser {
+	parse := s.Squares(
+		s.Skip(
+			s.Eq('^'),
+			s.Some(1, expression),
+		),
+	)
+
+	return func(buf buffer) (node, error) {
 		set, err := parse(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		x := negativeSet[T]{
-			set: set,
+		x := negativeSet{
+			value: set,
 			leaf: buf.IsEOF(),
 		}
 
@@ -466,23 +726,17 @@ func parseNegativeSet[T key, P any](
 	}
 }
 
-func parsePositiveSet[T key, P any](
-	expression c.Combinator[T, P, node[T]],
-) {
-	parse := c.Between[T, P](
-		c.Eq[T, P]('['),
-		c.Many[T, P](expression),
-		c.Eq[T, P](']'),
-	)
+func parsePositiveSet(expression parser) parser {
+	parse := s.Squares(s.Some(1, expression))
 
-	return func(buf c.Buffer[T, P]) (node[T], error) {
+	return func(buf buffer) (node, error) {
 		set, err := parse(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		x := positiveSet[T]{
-			set: set,
+		x := positiveSet{
+			value: set,
 			leaf: buf.IsEOF(),
 		}
 
@@ -490,16 +744,12 @@ func parsePositiveSet[T key, P any](
 	}
 }
 
-func parseRange[T key, P any](
-	except []T,
-	expression c.Combinator[T, P, node[T]],
-) {
-	from := c.NoneOf[T, P](except...)
-	to := c.NoneOf[T, P](except...)
-	sep := c.Eq[T, P]('-')
+func parseRange(except ...rune) parser {
+	item := s.NoneOf(except...)
+	sep := s.Eq('-')
 
-	return func(buf c.Buffer[T, P]) (node[T], error) {
-		f, err := from(buf)
+	return func(buf buffer) (node, error) {
+		f, err := item(buf)
 		if err != nil {
 			return nil, err
 		}
@@ -509,15 +759,14 @@ func parseRange[T key, P any](
 			return nil, err
 		}
 
-		t, err := to(buf)
+		t, err := item(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		x := rangeNode[T]{
+		x := rangeNode{
 			from: f,
 			to: t,
-			leaf: buf.IsEOF(),
 		}
 
 		return x, nil
