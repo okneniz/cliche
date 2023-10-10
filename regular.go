@@ -128,15 +128,22 @@ type negativeSet struct {
 	children map[string]node
 }
 
-var (
-	defaultParser = parseRegexp()
-)
-
-type Expression interface {
+type Trie interface {
 	// Match(string) (bool, error)
 }
 
-func Parse(data string) (Expression, error) {
+type parser = c.Combinator[rune, s.Position, node]
+type expressionParser = c.Combinator[rune, s.Position, []node]
+type buffer = c.Buffer[rune, s.Position]
+
+var (
+	defaultParser = parseRegexp()
+	none = struct{}{}
+
+	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
+)
+
+func Parse(data string) (Trie, error) {
 	buf := s.Buffer([]rune(data))
 
 	expression, err := defaultParser(buf)
@@ -146,12 +153,6 @@ func Parse(data string) (Expression, error) {
 
 	return expression, nil
 }
-
-type parser = c.Combinator[rune, s.Position, node]
-type expressionParser = c.Combinator[rune, s.Position, []node]
-type buffer = c.Buffer[rune, s.Position]
-
-var none = struct{}{}
 
 func parseRegexp(except ...rune) expressionParser {
 	var (
@@ -236,10 +237,6 @@ func choice(parsers ...parser) parser {
 
 	return c.Choice(attempts...)
 }
-
-var (
-	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
-)
 
 func parseEscapedMetacharacters() parser {
 	chars := ".?+*^$[]{}()"
