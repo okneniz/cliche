@@ -52,11 +52,11 @@ func (t *trie) addExpression(exp expression) {
 // (fo|f)(o|oo)
 
 type group struct {
-	key string
-	end bool
-	value [][]node
+	key         string
+	end         bool
+	value       [][]node
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *group) getKey() string {
@@ -76,12 +76,12 @@ func (n *group) isEnd() bool {
 }
 
 type namedGroup struct {
-	key string
-	name string
-	value [][]node
-	end bool
+	key         string
+	name        string
+	value       [][]node
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *namedGroup) getKey() string {
@@ -101,11 +101,11 @@ func (n *namedGroup) isEnd() bool {
 }
 
 type notCapturedGroup struct {
-	key string
-	value [][]node
-	end bool
+	key         string
+	value       [][]node
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *notCapturedGroup) getKey() string {
@@ -125,11 +125,11 @@ func (n *notCapturedGroup) isEnd() bool {
 }
 
 type char struct {
-	key string
-	value rune
-	end bool
+	key         string
+	value       rune
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *char) getKey() string {
@@ -149,10 +149,10 @@ func (n *char) isEnd() bool {
 }
 
 type dot struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *dot) getKey() string {
@@ -172,10 +172,10 @@ func (n *dot) isEnd() bool {
 }
 
 type digit struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *digit) getKey() string {
@@ -195,10 +195,10 @@ func (n *digit) isEnd() bool {
 }
 
 type nonDigit struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *nonDigit) getKey() string {
@@ -218,10 +218,10 @@ func (n *nonDigit) isEnd() bool {
 }
 
 type word struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *word) getKey() string {
@@ -241,10 +241,10 @@ func (n *word) isEnd() bool {
 }
 
 type nonWord struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *nonWord) getKey() string {
@@ -264,10 +264,10 @@ func (n *nonWord) isEnd() bool {
 }
 
 type space struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *space) getKey() string {
@@ -287,10 +287,10 @@ func (n *space) isEnd() bool {
 }
 
 type nonSpace struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *nonSpace) getKey() string {
@@ -310,10 +310,10 @@ func (n *nonSpace) isEnd() bool {
 }
 
 type startOfLine struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *startOfLine) getKey() string {
@@ -333,10 +333,10 @@ func (n *startOfLine) isEnd() bool {
 }
 
 type endOfLine struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *endOfLine) getKey() string {
@@ -356,10 +356,10 @@ func (n *endOfLine) isEnd() bool {
 }
 
 type startOfString struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *startOfString) getKey() string {
@@ -379,10 +379,10 @@ func (n *startOfString) isEnd() bool {
 }
 
 type endOfString struct {
-	key string
-	end bool
+	key         string
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *endOfString) getKey() string {
@@ -402,12 +402,12 @@ func (n *endOfString) isEnd() bool {
 }
 
 type rangeNode struct {
-	key string
-	from rune
-	to rune
-	nested index
+	key         string
+	from        rune
+	to          rune
+	nested      index
 	expressions []string
-	end bool
+	end         bool
 }
 
 func (n *rangeNode) getKey() string {
@@ -427,14 +427,14 @@ func (n *rangeNode) isEnd() bool {
 }
 
 type quantifier struct {
-	key string
-	from int
-	to *int
-	more bool
-	value node
-	end bool
+	key         string
+	from        int
+	to          *int
+	more        bool
+	value       node
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *quantifier) getKey() string {
@@ -454,11 +454,11 @@ func (n *quantifier) isEnd() bool {
 }
 
 type positiveSet struct {
-	key string
-	value []node
-	end bool
+	key         string
+	value       []node
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *positiveSet) getKey() string {
@@ -478,11 +478,11 @@ func (n *positiveSet) isEnd() bool {
 }
 
 type negativeSet struct {
-	key string
-	value []node
-	end bool
+	key         string
+	value       []node
+	end         bool
 	expressions []string
-	nested index
+	nested      index
 }
 
 func (n *negativeSet) getKey() string {
@@ -502,8 +502,8 @@ func (n *negativeSet) isEnd() bool {
 }
 
 type buffer struct {
-	data         []rune
-	position     int
+	data     []rune
+	position int
 
 	// data string
 	// positions []int (stack of last positions)
@@ -570,7 +570,7 @@ type index map[string]node
 
 var (
 	defaultParser = parseRegexp()
-	none = struct{}{}
+	none          = struct{}{}
 
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
@@ -578,7 +578,12 @@ var (
 func New(exps ...string) (Trie, error) {
 	t := new(trie)
 	t.nodes = make(index, len(exps))
-	t.Add(exps...)
+
+	err := t.Add(exps...)
+	if err != nil {
+		return nil, err
+	}
+
 	return t, nil
 }
 
@@ -636,6 +641,8 @@ func parseRegexp(except ...rune) expressionParser {
 		parseEndOfString(),
 		parseCharacter(except...),
 	)
+
+	// TODO - improve parsing - use one parser for meta characters - avoid tries
 
 	sets := choice(
 		parsePositiveSet(setsCombinatrors),
@@ -739,13 +746,12 @@ func number() c.Combinator[rune, int, int] {
 	}
 }
 
-
 func parseEscapedMetacharacters() parser {
 	chars := ".?+*^$[]{}()"
 	parsers := make([]parser, len(chars))
 
 	for i, c := range chars {
-		parsers[i] = parseEscapedMetacharacter(c)
+		parsers[i] = parseEscapedMetacharacter(c) // todo - speed up it - use one parser without try
 	}
 
 	return choice(parsers...)
@@ -765,8 +771,7 @@ func parseEscapedMetacharacter(value rune) parser {
 
 		x := char{
 			value: value,
-			end: buf.IsEOF(),
-
+			end:   buf.IsEOF(),
 		}
 
 		return &x, nil
@@ -874,7 +879,7 @@ func parseOptionalQuantifier(expression parser) parser {
 
 					q.to = &to
 
-					return q,  nil
+					return q, nil
 				},
 				),
 			},
@@ -911,7 +916,7 @@ func SkipString(data string) c.Combinator[rune, int, struct{}] {
 			if x != r {
 				return none, c.NothingMatched
 			}
-			l =- 1
+			l = -1
 		}
 
 		if l != 0 {
@@ -1138,7 +1143,7 @@ func parseGroup(expression expressionParser) parser {
 
 		x := group{
 			value: variants,
-			end: buf.IsEOF(),
+			end:   buf.IsEOF(),
 		}
 
 		return &x, nil
@@ -1164,7 +1169,7 @@ func parseNotCapturedGroup(expression expressionParser) parser {
 
 			x := notCapturedGroup{
 				value: variants,
-				end: buf.IsEOF(),
+				end:   buf.IsEOF(),
 			}
 
 			return &x, nil
@@ -1195,9 +1200,9 @@ func parseNamedGroup(expression expressionParser, except ...rune) parser {
 			}
 
 			x := namedGroup{
-				name: string(name),
+				name:  string(name),
 				value: variants,
-				end: buf.IsEOF(),
+				end:   buf.IsEOF(),
 			}
 
 			return &x, nil
@@ -1221,7 +1226,7 @@ func parseNegativeSet(expression parser) parser {
 
 		x := negativeSet{
 			value: set,
-			end: buf.IsEOF(),
+			end:   buf.IsEOF(),
 		}
 
 		return &x, nil
@@ -1239,7 +1244,7 @@ func parsePositiveSet(expression parser) parser {
 
 		x := positiveSet{
 			value: set,
-			end: buf.IsEOF(),
+			end:   buf.IsEOF(),
 		}
 
 		return &x, nil
@@ -1268,7 +1273,7 @@ func parseRange(except ...rune) parser {
 
 		x := rangeNode{
 			from: f,
-			to: t,
+			to:   t,
 		}
 
 		return &x, nil
