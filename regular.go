@@ -2,7 +2,6 @@ package regular
 
 import (
 	"errors"
-	"fmt"
 
 	c "github.com/okneniz/parsec/common"
 )
@@ -799,24 +798,37 @@ func New(exps ...string) (Trie, error) {
 func parseRegexp(except ...rune) expressionParser {
 	var (
 		regexp expressionParser
+		nestedRegexp expressionParser
 		groups parser
 	)
 
-	if len(except) == 0 {
-		groups = choice(
-			parseNotCapturedGroup(regexp),
-			parseNamedGroup(regexp),
-			parseGroup(regexp),
-		)
-	} else {
-		nestedRegexp := parseRegexp(append(except, ')', '|')...)
+	union := func(buf c.Buffer[rune, int]) ([]expression, error) {
+		result := make([]expression, 0, 1)
 
-		groups = choice(
-			parseNotCapturedGroup(nestedRegexp),
-			parseNamedGroup(nestedRegexp),
-			parseGroup(nestedRegexp),
-		)
+		variant, err := nestedRegexp(buf)
+		if err != nil {
+			return result, nil
+		}
+
+		result = append(result, variant)
+
+		for !buf.IsEOF() {
+			variant, err = nestedRegexp(buf)
+			if err != nil {
+				break
+			}
+
+			result = append(result, variant)
+		}
+
+		return result, nil
 	}
+
+	groups = choice(
+		parseNotCapturedGroup(union),
+		parseNamedGroup(union),
+		parseGroup(union),
+	)
 
 	characters := choice(
 		parseInvalidQuantifier(),
@@ -858,7 +870,7 @@ func parseRegexp(except ...rune) expressionParser {
 		parseNegativeSet(setsCombinatrors),
 	)
 
-	parse := c.Some(
+	regexp = c.Some(
 		0,
 		parseOptionalQuantifier(
 			choice(
@@ -869,7 +881,15 @@ func parseRegexp(except ...rune) expressionParser {
 		),
 	)
 
-	return parse
+	if len(except) != 0 {
+		nestedRegexp = regexp
+	} else {
+		nestedRegexp = parseRegexp(append(except, ')', '|')...)
+	}
+
+	nestedRegexp = c.Try(nestedRegexp)
+
+	return regexp
 }
 
 func choice(parsers ...parser) parser {
@@ -1341,30 +1361,25 @@ func parseEndOfString() parser {
 	}
 }
 
-func parseGroup(expression expressionParser) parser {
-	sep := c.Eq[rune, int]('|')
-	union := parens(c.SepBy(0, expression, sep)) // TODO : change to SepBy1
+func parseGroup(union c.Combinator[rune, int, []expression]) parser {
+	return parens(
+		func(buf c.Buffer[rune, int]) (node, error) {
+			variants, err := union(buf)
+			if err != nil {
+				return nil, err
+			}
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		fmt.Printf( "wtf %v %v\n", buf, union)
+			x := group{
+				value: variants,
+				nested: make(index, 0),
+			}
 
-		variants, err := union(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := group{
-			value: variants,
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
+			return &x, nil
+		},
+	)
 }
 
-func parseNotCapturedGroup(expression expressionParser) parser {
-	sep := c.Eq[rune, int]('|')
-	union := c.SepBy1[rune, int](0, expression, sep)
+func parseNotCapturedGroup(union c.Combinator[rune, int, []expression]) parser {
 	before := SkipString("?:")
 
 	return parens(
@@ -1389,9 +1404,7 @@ func parseNotCapturedGroup(expression expressionParser) parser {
 	)
 }
 
-func parseNamedGroup(expression expressionParser, except ...rune) parser {
-	sep := c.Eq[rune, int]('|')
-	union := c.SepBy1[rune, int](1, expression, sep)
+func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune) parser {
 	groupName := angles(
 		c.Skip(
 			c.Eq[rune, int]('?'),
