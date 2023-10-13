@@ -171,7 +171,6 @@ func (n *notCapturedGroup) addExpression(str string) {
 	}
 }
 
-
 type char struct {
 	key         string
 	value       rune
@@ -205,7 +204,6 @@ func (n *char) addExpression(str string) {
 	}
 }
 
-
 type dot struct {
 	key         string
 	expressions dict
@@ -237,7 +235,6 @@ func (n *dot) addExpression(str string) {
 		n.expressions[str] = struct{}{}
 	}
 }
-
 
 type digit struct {
 	key         string
@@ -271,7 +268,6 @@ func (n *digit) addExpression(str string) {
 	}
 }
 
-
 type nonDigit struct {
 	key         string
 	expressions dict
@@ -303,7 +299,6 @@ func (n *nonDigit) addExpression(str string) {
 		n.expressions[str] = struct{}{}
 	}
 }
-
 
 type word struct {
 	key         string
@@ -337,7 +332,6 @@ func (n *word) addExpression(str string) {
 	}
 }
 
-
 type nonWord struct {
 	key         string
 	expressions dict
@@ -369,7 +363,6 @@ func (n *nonWord) addExpression(str string) {
 		n.expressions[str] = struct{}{}
 	}
 }
-
 
 type space struct {
 	key         string
@@ -403,7 +396,6 @@ func (n *space) addExpression(str string) {
 	}
 }
 
-
 type nonSpace struct {
 	key         string
 	expressions dict
@@ -435,7 +427,6 @@ func (n *nonSpace) addExpression(str string) {
 		n.expressions[str] = struct{}{}
 	}
 }
-
 
 type startOfLine struct {
 	key         string
@@ -469,7 +460,6 @@ func (n *startOfLine) addExpression(str string) {
 	}
 }
 
-
 type endOfLine struct {
 	key         string
 	expressions dict
@@ -501,7 +491,6 @@ func (n *endOfLine) addExpression(str string) {
 		n.expressions[str] = struct{}{}
 	}
 }
-
 
 type startOfString struct {
 	key         string
@@ -535,7 +524,6 @@ func (n *startOfString) addExpression(str string) {
 	}
 }
 
-
 type endOfString struct {
 	key         string
 	expressions dict
@@ -567,7 +555,6 @@ func (n *endOfString) addExpression(str string) {
 		n.expressions[str] = struct{}{}
 	}
 }
-
 
 type rangeNode struct {
 	key         string
@@ -602,7 +589,6 @@ func (n *rangeNode) addExpression(str string) {
 		n.expressions[str] = struct{}{}
 	}
 }
-
 
 type quantifier struct {
 	key         string
@@ -640,7 +626,6 @@ func (n *quantifier) addExpression(str string) {
 	}
 }
 
-
 type positiveSet struct {
 	key         string
 	value       []node
@@ -674,7 +659,6 @@ func (n *positiveSet) addExpression(str string) {
 	}
 }
 
-
 type negativeSet struct {
 	key         string
 	value       []node
@@ -707,7 +691,6 @@ func (n *negativeSet) addExpression(str string) {
 		n.expressions[str] = struct{}{}
 	}
 }
-
 
 type simpleBuffer struct {
 	data     []rune
@@ -797,9 +780,9 @@ func New(exps ...string) (Trie, error) {
 
 func parseRegexp(except ...rune) expressionParser {
 	var (
-		regexp expressionParser
+		regexp       expressionParser
 		nestedRegexp expressionParser
-		groups parser
+		groups       parser
 	)
 
 	union := func(buf c.Buffer[rune, int]) ([]expression, error) {
@@ -834,32 +817,14 @@ func parseRegexp(except ...rune) expressionParser {
 		parseInvalidQuantifier(),
 		parseEscapedMetacharacters(),
 		parseDot(),
-		parseDigit(),
-		parseNonDigit(),
-		parseWord(),
-		parseNonWord(),
-		parseSpace(),
-		parseNonSpace(),
-		parseStartOfLine(),
-		parseEndOfLine(),
-		parseStartOfString(),
-		parseEndOfString(),
+		parseMetaCharacters(),
 		parseCharacter(except...),
 	)
 
 	setsCombinatrors := choice( // where dot?
 		parseRange(append(except, ']')...),
 		parseEscapedMetacharacters(),
-		parseDigit(),
-		parseNonDigit(),
-		parseWord(),
-		parseNonWord(),
-		parseSpace(),
-		parseNonSpace(),
-		parseStartOfLine(),
-		parseEndOfLine(),
-		parseStartOfString(),
-		parseEndOfString(),
+		parseMetaCharacters(),
 		parseCharacter(except...),
 	)
 
@@ -996,10 +961,8 @@ func parseEscapedMetacharacter(value rune) parser {
 			return nil, err
 		}
 
-		buf.Position()
-
 		x := char{
-			value: value,
+			value:  value,
 			nested: make(index, 0),
 		}
 
@@ -1039,7 +1002,7 @@ func parseOptionalQuantifier(expression parser) parser {
 				'?': func(buf c.Buffer[rune, int]) (quantifier, error) {
 					q := quantifier{}
 
-					_, err := skip(buf)
+					_, err := skip(buf) // TODO : remove skip? and lookup?
 					if err != nil {
 						return q, err
 					}
@@ -1166,7 +1129,7 @@ func parseCharacter(except ...rune) parser {
 		}
 
 		x := char{
-			value: c,
+			value:  c,
 			nested: make(index, 0),
 		}
 
@@ -1191,174 +1154,85 @@ func parseDot() parser {
 	}
 }
 
-func parseDigit() parser {
-	parse := SkipString("\\d")
+func parseMetaCharacters() parser {
+	return c.Skip(
+		SkipString("\\"),
+		c.MapAs(
+			map[rune]c.Combinator[rune, int, node]{
+				'd': func(buf c.Buffer[rune, int]) (node, error) {
+					x := digit{
+						nested: make(index, 0),
+					}
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
+					return &x, nil
+				},
+				'D': func(buf c.Buffer[rune, int]) (node, error) {
+					x := nonDigit{
+						nested: make(index, 0),
+					}
 
-		x := digit{
-			nested: make(index, 0),
-		}
+					return &x, nil
+				},
+				'w': func(buf c.Buffer[rune, int]) (node, error) {
+					x := word{
+						nested: make(index, 0),
+					}
 
-		return &x, nil
-	}
-}
+					return &x, nil
+				},
+				'W': func(buf c.Buffer[rune, int]) (node, error) {
+					x := nonWord{
+						nested: make(index, 0),
+					}
 
-func parseNonDigit() parser {
-	parse := SkipString("\\D")
+					return &x, nil
+				},
+				's': func(buf c.Buffer[rune, int]) (node, error) {
+					x := space{
+						nested: make(index, 0),
+					}
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
+					return &x, nil
+				},
+				'S': func(buf c.Buffer[rune, int]) (node, error) {
+					x := nonSpace{
+						nested: make(index, 0),
+					}
 
-		x := nonDigit{
-			nested: make(index, 0),
-		}
+					return &x, nil
+				},
+				'^': func(buf c.Buffer[rune, int]) (node, error) {
+					x := startOfLine{
+						nested: make(index, 0),
+					}
 
-		return &x, nil
-	}
-}
+					return &x, nil
+				},
+				'$': func(buf c.Buffer[rune, int]) (node, error) {
+					x := endOfLine{
+						nested: make(index, 0),
+					}
 
-func parseWord() parser {
-	parse := SkipString("\\w")
+					return &x, nil
+				},
+				'A': func(buf c.Buffer[rune, int]) (node, error) {
+					x := startOfString{
+						nested: make(index, 0),
+					}
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
+					return &x, nil
+				},
+				'z': func(buf c.Buffer[rune, int]) (node, error) {
+					x := endOfString{
+						nested: make(index, 0),
+					}
 
-		x := word{
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseNonWord() parser {
-	parse := SkipString("\\w")
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := nonWord{
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseSpace() parser {
-	parse := SkipString("\\s")
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := space{
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseNonSpace() parser {
-	parse := SkipString("\\S")
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := nonSpace{
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseStartOfLine() parser {
-	parse := SkipString("\\^")
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := startOfLine{
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseEndOfLine() parser {
-	parse := SkipString("\\$")
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := endOfLine{
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseStartOfString() parser {
-	parse := SkipString("\\A")
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := startOfString{
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseEndOfString() parser {
-	parse := SkipString("\\z")
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := endOfString{
-			nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
+					return &x, nil
+				},
+			},
+			c.Any[rune, int](),
+		),
+	)
 }
 
 func parseGroup(union c.Combinator[rune, int, []expression]) parser {
@@ -1370,7 +1244,7 @@ func parseGroup(union c.Combinator[rune, int, []expression]) parser {
 			}
 
 			x := group{
-				value: variants,
+				value:  variants,
 				nested: make(index, 0),
 			}
 
@@ -1395,7 +1269,7 @@ func parseNotCapturedGroup(union c.Combinator[rune, int, []expression]) parser {
 			}
 
 			x := notCapturedGroup{
-				value: variants,
+				value:  variants,
 				nested: make(index, 0),
 			}
 
@@ -1425,8 +1299,8 @@ func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune
 			}
 
 			x := namedGroup{
-				name:  string(name),
-				value: variants,
+				name:   string(name),
+				value:  variants,
 				nested: make(index, 0),
 			}
 
@@ -1450,7 +1324,7 @@ func parseNegativeSet(expression parser) parser {
 		}
 
 		x := negativeSet{
-			value: set,
+			value:  set,
 			nested: make(index, 0),
 		}
 
@@ -1468,7 +1342,7 @@ func parsePositiveSet(expression parser) parser {
 		}
 
 		x := positiveSet{
-			value: set,
+			value:  set,
 			nested: make(index, 0),
 		}
 
@@ -1497,8 +1371,8 @@ func parseRange(except ...rune) parser {
 		}
 
 		x := rangeNode{
-			from: f,
-			to:   t,
+			from:   f,
+			to:     t,
 			nested: make(index, 0),
 		}
 
