@@ -53,7 +53,7 @@ func (t *trie) Add(strs ...string) error {
 }
 
 func (t *trie) MarshalJSON() ([]byte, error) {
-	return json.Marshal(t.nodes)
+	return json.MarshalIndent(t.nodes, " ", " ")
 }
 
 func (t *trie) String() string {
@@ -74,12 +74,12 @@ func (t *trie) addExpression(str string, exp expression) {
 
 		if prev, exists := ix[key]; exists {
 			ix = prev.getNestedNodes()
+			prev.addExpression(str)
 		} else {
+			n.addExpression(str)
 			ix[key] = n
 			ix = n.getNestedNodes()
 		}
-
-		fmt.Printf("add %s to %#v\n", key, ix)
 
 		if i == l {
 			ix[key].addExpression(str)
@@ -236,7 +236,7 @@ func (n *notCapturedGroup) addExpression(str string) {
 }
 
 type char struct {
-	Value       rune
+	Value       string
 	Expressions dict
 	Nested      index
 }
@@ -680,9 +680,7 @@ func (n *quantifier) getQuantifierKey() string {
 		b.WriteString(fmt.Sprintf("%d", *n.To))
 	}
 
-
 	b.WriteRune('}')
-
 
 	return b.String()
 }
@@ -830,7 +828,7 @@ func (b *simpleBuffer) Position() int {
 	return b.position
 }
 
-// IsEOF - true if buffer ended.
+// IsEOF - true if buffer ended
 func (b *simpleBuffer) IsEOF() bool {
 	return b.position >= len(b.data)
 }
@@ -886,6 +884,9 @@ func New(exps ...string) (Trie, error) {
 func parseRegexp(except ...rune) expressionParser {
 	var nestedRegexp expressionParser
 
+	sep := c.Eq[rune, int]('|')
+
+	// todo union without groups?
 	union := func(buf c.Buffer[rune, int]) ([]expression, error) {
 		result := make([]expression, 0, 1)
 
@@ -897,8 +898,17 @@ func parseRegexp(except ...rune) expressionParser {
 		result = append(result, variant)
 
 		for !buf.IsEOF() {
+			pos := buf.Position()
+
+			_, err = sep(buf)
+			if err != nil {
+				buf.Seek(pos)
+				break
+			}
+
 			variant, err = nestedRegexp(buf)
 			if err != nil {
+				buf.Seek(pos)
 				break
 			}
 
@@ -922,11 +932,12 @@ func parseRegexp(except ...rune) expressionParser {
 		parseCharacter(except...),
 	)
 
+	// is it possible for nested set?
 	setsCombinatrors := choice( // where dot?
 		parseRange(append(except, ']')...),
 		parseMetaCharacters(),
 		parseEscapedMetacharacters(),
-		parseCharacter(except...),
+		parseCharacter(append(except, ']')...),
 	)
 
 	sets := choice(
@@ -999,7 +1010,7 @@ func angles[T any](
 ) c.Combinator[rune, int, T] {
 	return between(
 		c.Eq[rune, int]('<'),
-		body,
+		Trace("angles", body),
 		c.Eq[rune, int]('>'),
 	)
 }
@@ -1009,7 +1020,7 @@ func squares[T any](
 ) c.Combinator[rune, int, T] {
 	return between(
 		c.Eq[rune, int]('['),
-		body,
+		Trace("squares", body),
 		c.Eq[rune, int](']'),
 	)
 }
@@ -1061,7 +1072,7 @@ func parseEscapedMetacharacter(value rune) parser {
 		}
 
 		x := char{
-			Value:  value,
+			Value:  str,
 			Nested: make(index, 0),
 		}
 
@@ -1207,7 +1218,7 @@ func SkipString(data string) c.Combinator[rune, int, struct{}] {
 			if x != r {
 				return none, c.NothingMatched
 			}
-			l = -1
+			l -= 1
 		}
 
 		if l != 0 {
@@ -1228,7 +1239,7 @@ func parseCharacter(except ...rune) parser {
 		}
 
 		x := char{
-			Value:  c,
+			Value:  string(c),
 			Nested: make(index, 0),
 		}
 
@@ -1253,7 +1264,33 @@ func parseDot() parser {
 	}
 }
 
+func Trace[T any, P any, S any](
+	m string,
+	parse c.Combinator[T, P, S],
+) c.Combinator[T, P, S] {
+	return func(buffer c.Buffer[T, P]) (S, error) {
+		fmt.Printf("%v\n", m)
+		fmt.Printf("%v\n", buffer)
+		fmt.Println("\tposition before:", buffer.Position())
+
+		result, err := parse(buffer)
+		fmt.Println("\tposition after:", buffer.Position())
+		if err != nil {
+			fmt.Println("\tnot parsed:", m, result, err)
+			return *new(S), err
+		}
+
+		fmt.Println("\tparsed:", fmt.Sprintf("%#v", result))
+		return result, err
+	}
+}
+
 func parseMetaCharacters() parser {
+	// logger := log.Default()
+	// logger.SetOutput(os.Stdout)
+
+	// logger.Printf("wtf %v", []rune("\\"))
+
 	return c.Skip(
 		SkipString("\\"),
 		c.MapAs(
@@ -1378,19 +1415,21 @@ func parseNotCapturedGroup(union c.Combinator[rune, int, []expression]) parser {
 }
 
 func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune) parser {
-	groupName :=c.Skip(
+	groupName := c.Skip(
 		c.Eq[rune, int]('?'),
 		angles(
-			c.Many(0, c.NoneOf[rune, int](append(except, '>')...)),
+			c.Some(1, c.NoneOf[rune, int](append(except, '>')...)),
 		),
 	)
 
 	return parens(
 		func(buf c.Buffer[rune, int]) (node, error) {
 			name, err := groupName(buf)
+			fmt.Println("wtf name", name, err, except, buf)
 			if err != nil {
 				return nil, err
 			}
+
 
 			variants, err := union(buf)
 			if err != nil {
@@ -1436,9 +1475,11 @@ func parsePositiveSet(expression parser) parser {
 
 	return func(buf c.Buffer[rune, int]) (node, error) {
 		set, err := parse(buf)
+		fmt.Println("wtf", set, err)
 		if err != nil {
 			return nil, err
 		}
+
 
 		x := positiveSet{
 			Value:  set,
@@ -1474,6 +1515,8 @@ func parseRange(except ...rune) parser {
 			To:     t,
 			Nested: make(index, 0),
 		}
+
+		fmt.Println("range", buf, x, buf.IsEOF(), ']')
 
 		return &x, nil
 	}
