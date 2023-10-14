@@ -91,17 +91,17 @@ func (t *trie) addExpression(str string, exp expression) {
 // (fo|f)(o|oo)
 
 type group struct {
-	value       []expression
-	expressions dict
-	nested      index
+	Value       []expression
+	Expressions dict
+	Nested      index
 }
 
 func (n *group) getKey() string {
-	subKeys := make([]string, len(n.value))
+	subKeys := make([]string, len(n.Value))
 
 	var b strings.Builder
 
-	for i, exp := range n.value {
+	for i, exp := range n.Value {
 		for _, n := range exp {
 			b.WriteString(n.getKey())
 		}
@@ -117,40 +117,40 @@ func (n *group) getKey() string {
 }
 
 func (n *group) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *group) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *group) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 func (n *group) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 type namedGroup struct {
-	name        string
-	value       []expression
-	expressions dict
-	nested      index
+	Name        string
+	Value       []expression
+	Expressions dict
+	Nested      index
 }
 
 func (n *namedGroup) getKey() string {
-	subKeys := make([]string, len(n.value))
+	subKeys := make([]string, len(n.Value))
 
 	var b strings.Builder
 
-	for i, exp := range n.value {
+	for i, exp := range n.Value {
 		for _, n := range exp {
 			b.WriteString(n.getKey())
 		}
@@ -162,43 +162,43 @@ func (n *namedGroup) getKey() string {
 	// TODO : may be sort? order is important?
 
 	x := strings.Join(subKeys, "|")
-	return fmt.Sprintf("(?<%s>%s)", n.name, x)
+	return fmt.Sprintf("(?<%s>%s)", n.Name, x)
 }
 
 func (n *namedGroup) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *namedGroup) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *namedGroup) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *namedGroup) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type notCapturedGroup struct {
-	value       []expression
-	expressions dict
-	nested      index
+	Value       []expression
+	Expressions dict
+	Nested      index
 }
 
 func (n *notCapturedGroup) getKey() string {
-	subKeys := make([]string, len(n.value))
+	subKeys := make([]string, len(n.Value))
 
 	var b strings.Builder
 
-	for i, exp := range n.value {
+	for i, exp := range n.Value {
 		for _, n := range exp {
 			b.WriteString(n.getKey())
 		}
@@ -214,62 +214,62 @@ func (n *notCapturedGroup) getKey() string {
 }
 
 func (n *notCapturedGroup) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *notCapturedGroup) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *notCapturedGroup) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *notCapturedGroup) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type char struct {
-	value       rune
-	expressions dict
-	nested      index
+	Value       rune
+	Expressions dict
+	Nested      index
 }
 
 func (n *char) getKey() string {
-	return string(n.value)
+	return string(n.Value)
 }
 
 func (n *char) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *char) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *char) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *char) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type dot struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *dot) getKey() string {
@@ -277,30 +277,30 @@ func (n *dot) getKey() string {
 }
 
 func (n *dot) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *dot) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *dot) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *dot) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type digit struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *digit) getKey() string {
@@ -308,30 +308,30 @@ func (n *digit) getKey() string {
 }
 
 func (n *digit) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *digit) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *digit) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *digit) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type nonDigit struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *nonDigit) getKey() string {
@@ -339,30 +339,30 @@ func (n *nonDigit) getKey() string {
 }
 
 func (n *nonDigit) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *nonDigit) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *nonDigit) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *nonDigit) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type word struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *word) getKey() string {
@@ -370,30 +370,30 @@ func (n *word) getKey() string {
 }
 
 func (n *word) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *word) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *word) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *word) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type nonWord struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *nonWord) getKey() string {
@@ -401,30 +401,30 @@ func (n *nonWord) getKey() string {
 }
 
 func (n *nonWord) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *nonWord) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *nonWord) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *nonWord) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type space struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *space) getKey() string {
@@ -432,30 +432,30 @@ func (n *space) getKey() string {
 }
 
 func (n *space) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *space) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *space) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *space) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type nonSpace struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *nonSpace) getKey() string {
@@ -463,30 +463,30 @@ func (n *nonSpace) getKey() string {
 }
 
 func (n *nonSpace) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *nonSpace) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *nonSpace) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *nonSpace) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type startOfLine struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *startOfLine) getKey() string {
@@ -494,30 +494,30 @@ func (n *startOfLine) getKey() string {
 }
 
 func (n *startOfLine) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *startOfLine) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *startOfLine) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *startOfLine) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type endOfLine struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *endOfLine) getKey() string {
@@ -525,30 +525,30 @@ func (n *endOfLine) getKey() string {
 }
 
 func (n *endOfLine) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *endOfLine) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *endOfLine) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *endOfLine) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type startOfString struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *startOfString) getKey() string {
@@ -556,30 +556,30 @@ func (n *startOfString) getKey() string {
 }
 
 func (n *startOfString) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *startOfString) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *startOfString) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *startOfString) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type endOfString struct {
-	expressions dict
-	nested      index
+	Expressions dict
+	Nested      index
 }
 
 func (n *endOfString) getKey() string {
@@ -587,97 +587,97 @@ func (n *endOfString) getKey() string {
 }
 
 func (n *endOfString) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *endOfString) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *endOfString) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *endOfString) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type rangeNode struct {
-	from        rune
-	to          rune
-	nested      index
-	expressions dict
+	From        rune
+	To          rune
+	Nested      index
+	Expressions dict
 }
 
 func (n *rangeNode) getKey() string {
-	return string([]rune{n.from, '-', n.to})
+	return string([]rune{n.From, '-', n.To})
 }
 
 func (n *rangeNode) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *rangeNode) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *rangeNode) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *rangeNode) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type quantifier struct {
-	from        int
-	to          *int
-	more        bool
-	value       node
-	expressions dict
-	nested      index
+	From        int
+	To          *int
+	More        bool
+	Value       node
+	Expressions dict
+	Nested      index
 }
 
 func (n *quantifier) getKey() string {
-	return n.value.getKey() + n.getQuantifierKey()
+	return n.Value.getKey() + n.getQuantifierKey()
 }
 
 func (n *quantifier) getQuantifierKey() string {
-	if n.from == 0 && n.to == nil && n.more {
+	if n.From == 0 && n.To == nil && n.More {
 		return "*"
 	}
 
-	if n.from == 1 && n.to == nil && n.more {
+	if n.From == 1 && n.To == nil && n.More {
 		return "+"
 	}
 
-	if n.from == 0 && n.to != nil && *n.to == 1 {
+	if n.From == 0 && n.To != nil && *n.To == 1 {
 		return "?"
 	}
 
 	var b strings.Builder
 
 	b.WriteRune('{')
-	b.WriteString(fmt.Sprintf("%d", n.from))
+	b.WriteString(fmt.Sprintf("%d", n.From))
 
-	if n.more {
+	if n.More {
 		b.WriteRune(',')
 	}
 
-	if n.to != nil {
-		b.WriteString(fmt.Sprintf("%d", *n.to))
+	if n.To != nil {
+		b.WriteString(fmt.Sprintf("%d", *n.To))
 	}
 
 
@@ -688,37 +688,37 @@ func (n *quantifier) getQuantifierKey() string {
 }
 
 func (n *quantifier) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *quantifier) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *quantifier) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *quantifier) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type positiveSet struct {
-	value       []node
-	expressions dict
-	nested      index
+	Value       []node
+	Expressions dict
+	Nested      index
 }
 
 func (n *positiveSet) getKey() string {
-	subKeys := make([]string, len(n.value))
+	subKeys := make([]string, len(n.Value))
 
-	for i, value := range n.value {
+	for i, value := range n.Value {
 		subKeys[i] = value.getKey()
 	}
 
@@ -732,37 +732,37 @@ func (n *positiveSet) getKey() string {
 }
 
 func (n *positiveSet) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *positiveSet) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *positiveSet) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *positiveSet) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
 type negativeSet struct {
-	value       []node
-	expressions dict
-	nested      index
+	Value       []node
+	Expressions dict
+	Nested      index
 }
 
 func (n *negativeSet) getKey() string {
-	subKeys := make([]string, len(n.value))
+	subKeys := make([]string, len(n.Value))
 
-	for i, value := range n.value {
+	for i, value := range n.Value {
 		subKeys[i] = value.getKey()
 	}
 
@@ -776,24 +776,24 @@ func (n *negativeSet) getKey() string {
 }
 
 func (n *negativeSet) getNestedNodes() index {
-	return n.nested
+	return n.Nested
 }
 
 func (n *negativeSet) getExpressions() dict {
-	return n.expressions
+	return n.Expressions
 }
 
 func (n *negativeSet) isEnd() bool {
-	return len(n.expressions) == 0
+	return len(n.Expressions) == 0
 }
 
 func (n *negativeSet) addExpression(str string) {
-	if n.expressions == nil {
-		n.expressions = make(dict)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
 	}
 
-	if _, exists := n.expressions[str]; !exists {
-		n.expressions[str] = struct{}{}
+	if _, exists := n.Expressions[str]; !exists {
+		n.Expressions[str] = struct{}{}
 	}
 }
 
@@ -1061,8 +1061,8 @@ func parseEscapedMetacharacter(value rune) parser {
 		}
 
 		x := char{
-			value:  value,
-			nested: make(index, 0),
+			Value:  value,
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
@@ -1107,9 +1107,9 @@ func parseOptionalQuantifier(expression parser) parser {
 					}
 
 					to := 1
-					q.from = 0
-					q.to = &to
-					q.more = false
+					q.From = 0
+					q.To = &to
+					q.More = false
 
 					return q, nil
 				},
@@ -1121,8 +1121,8 @@ func parseOptionalQuantifier(expression parser) parser {
 						return q, err
 					}
 
-					q.from = 1
-					q.more = true
+					q.From = 1
+					q.More = true
 
 					return q, nil
 				},
@@ -1134,8 +1134,8 @@ func parseOptionalQuantifier(expression parser) parser {
 						return q, err
 					}
 
-					q.from = 0
-					q.more = true
+					q.From = 0
+					q.More = true
 
 					return q, nil
 				},
@@ -1147,7 +1147,7 @@ func parseOptionalQuantifier(expression parser) parser {
 						return q, err
 					}
 
-					q.from = from
+					q.From = from
 
 					x, err := lookup(buf)
 					if err != nil {
@@ -1161,14 +1161,14 @@ func parseOptionalQuantifier(expression parser) parser {
 						return q, err
 					}
 
-					q.more = true
+					q.More = true
 
 					to, err := digit(buf)
 					if err != nil {
 						return q, err
 					}
 
-					q.to = &to
+					q.To = &to
 
 					return q, nil
 				},
@@ -1189,8 +1189,8 @@ func parseOptionalQuantifier(expression parser) parser {
 			return x, nil
 		}
 
-		q.value = x
-		q.nested = make(index, 0)
+		q.Value = x
+		q.Nested = make(index, 0)
 
 		return &q, nil
 	}
@@ -1228,8 +1228,8 @@ func parseCharacter(except ...rune) parser {
 		}
 
 		x := char{
-			value:  c,
-			nested: make(index, 0),
+			Value:  c,
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
@@ -1246,7 +1246,7 @@ func parseDot() parser {
 		}
 
 		x := dot{
-			nested: make(index, 0),
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
@@ -1260,70 +1260,70 @@ func parseMetaCharacters() parser {
 			map[rune]c.Combinator[rune, int, node]{
 				'd': func(buf c.Buffer[rune, int]) (node, error) {
 					x := digit{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'D': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonDigit{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'w': func(buf c.Buffer[rune, int]) (node, error) {
 					x := word{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'W': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonWord{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				's': func(buf c.Buffer[rune, int]) (node, error) {
 					x := space{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'S': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonSpace{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'^': func(buf c.Buffer[rune, int]) (node, error) {
 					x := startOfLine{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'$': func(buf c.Buffer[rune, int]) (node, error) {
 					x := endOfLine{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'A': func(buf c.Buffer[rune, int]) (node, error) {
 					x := startOfString{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'z': func(buf c.Buffer[rune, int]) (node, error) {
 					x := endOfString{
-						nested: make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
@@ -1343,8 +1343,8 @@ func parseGroup(union c.Combinator[rune, int, []expression]) parser {
 			}
 
 			x := group{
-				value:  variants,
-				nested: make(index, 0),
+				Value:  variants,
+				Nested: make(index, 0),
 			}
 
 			return &x, nil
@@ -1368,8 +1368,8 @@ func parseNotCapturedGroup(union c.Combinator[rune, int, []expression]) parser {
 			}
 
 			x := notCapturedGroup{
-				value:  variants,
-				nested: make(index, 0),
+				Value:  variants,
+				Nested: make(index, 0),
 			}
 
 			return &x, nil
@@ -1398,9 +1398,9 @@ func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune
 			}
 
 			x := namedGroup{
-				name:   string(name),
-				value:  variants,
-				nested: make(index, 0),
+				Name:   string(name),
+				Value:  variants,
+				Nested: make(index, 0),
 			}
 
 			return &x, nil
@@ -1423,8 +1423,8 @@ func parseNegativeSet(expression parser) parser {
 		}
 
 		x := negativeSet{
-			value:  set,
-			nested: make(index, 0),
+			Value:  set,
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
@@ -1441,8 +1441,8 @@ func parsePositiveSet(expression parser) parser {
 		}
 
 		x := positiveSet{
-			value:  set,
-			nested: make(index, 0),
+			Value:  set,
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
@@ -1470,9 +1470,9 @@ func parseRange(except ...rune) parser {
 		}
 
 		x := rangeNode{
-			from:   f,
-			to:     t,
-			nested: make(index, 0),
+			From:   f,
+			To:     t,
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
