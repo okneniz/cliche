@@ -6,6 +6,7 @@ import (
 
 func TestTrie(t *testing.T) {
 	tr, err := NewTrie(
+		"t",
 		"test",
 		".",
 		"\\d",
@@ -18,6 +19,9 @@ func TestTrie(t *testing.T) {
 		"[^0-9a-zxy\\d]",
 		"(foo|bar|baz)",
 		"(foo|bar|baz)+",
+		"(?:foo|bar|baz)+",
+		"(?<test>foo|bar|baz)+",
+		"(?<test>foo|(ba|za|r)|baz)+",
 		"[^abc1-3]?",
 		"\\d*",
 		"\\S",
@@ -37,4 +41,5 @@ func TestTrie(t *testing.T) {
 	}
 
 	t.Logf("wtf %#v", tr)
+	t.Log(tr)
 }

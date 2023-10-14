@@ -1,7 +1,11 @@
 package regular
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"sort"
+	"strings"
 
 	c "github.com/okneniz/parsec/common"
 )
@@ -48,6 +52,19 @@ func (t *trie) Add(strs ...string) error {
 	return nil
 }
 
+func (t *trie) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.nodes)
+}
+
+func (t *trie) String() string {
+	data, err := t.MarshalJSON()
+	if err != nil {
+		return err.Error()
+	}
+
+	return string(data)
+}
+
 func (t *trie) addExpression(str string, exp expression) {
 	ix := t.nodes
 	l := len(exp)
@@ -62,6 +79,8 @@ func (t *trie) addExpression(str string, exp expression) {
 			ix = n.getNestedNodes()
 		}
 
+		fmt.Printf("add %s to %#v\n", key, ix)
+
 		if i == l {
 			ix[key].addExpression(str)
 		}
@@ -72,14 +91,29 @@ func (t *trie) addExpression(str string, exp expression) {
 // (fo|f)(o|oo)
 
 type group struct {
-	key         string
 	value       []expression
 	expressions dict
 	nested      index
 }
 
 func (n *group) getKey() string {
-	return n.key
+	subKeys := make([]string, len(n.value))
+
+	var b strings.Builder
+
+	for i, exp := range n.value {
+		for _, n := range exp {
+			b.WriteString(n.getKey())
+		}
+
+		subKeys[i] = b.String()
+		b.Reset()
+	}
+
+	// TODO : may be sort? order is important?
+
+	x := strings.Join(subKeys, "|")
+	return fmt.Sprintf("(%s)", x)
 }
 
 func (n *group) getNestedNodes() index {
@@ -105,7 +139,6 @@ func (n *group) isEnd() bool {
 }
 
 type namedGroup struct {
-	key         string
 	name        string
 	value       []expression
 	expressions dict
@@ -113,7 +146,23 @@ type namedGroup struct {
 }
 
 func (n *namedGroup) getKey() string {
-	return n.key
+	subKeys := make([]string, len(n.value))
+
+	var b strings.Builder
+
+	for i, exp := range n.value {
+		for _, n := range exp {
+			b.WriteString(n.getKey())
+		}
+
+		subKeys[i] = b.String()
+		b.Reset()
+	}
+
+	// TODO : may be sort? order is important?
+
+	x := strings.Join(subKeys, "|")
+	return fmt.Sprintf("(?<%s>%s)", n.name, x)
 }
 
 func (n *namedGroup) getNestedNodes() index {
@@ -139,14 +188,29 @@ func (n *namedGroup) addExpression(str string) {
 }
 
 type notCapturedGroup struct {
-	key         string
 	value       []expression
 	expressions dict
 	nested      index
 }
 
 func (n *notCapturedGroup) getKey() string {
-	return n.key
+	subKeys := make([]string, len(n.value))
+
+	var b strings.Builder
+
+	for i, exp := range n.value {
+		for _, n := range exp {
+			b.WriteString(n.getKey())
+		}
+
+		subKeys[i] = b.String()
+		b.Reset()
+	}
+
+	// TODO : may be sort? order is important?
+
+	x := strings.Join(subKeys, "|")
+	return fmt.Sprintf("(?:%s)", x)
 }
 
 func (n *notCapturedGroup) getNestedNodes() index {
@@ -172,14 +236,13 @@ func (n *notCapturedGroup) addExpression(str string) {
 }
 
 type char struct {
-	key         string
 	value       rune
 	expressions dict
 	nested      index
 }
 
 func (n *char) getKey() string {
-	return n.key
+	return string(n.value)
 }
 
 func (n *char) getNestedNodes() index {
@@ -205,13 +268,12 @@ func (n *char) addExpression(str string) {
 }
 
 type dot struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *dot) getKey() string {
-	return n.key
+	return "."
 }
 
 func (n *dot) getNestedNodes() index {
@@ -237,13 +299,12 @@ func (n *dot) addExpression(str string) {
 }
 
 type digit struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *digit) getKey() string {
-	return n.key
+	return "\\d"
 }
 
 func (n *digit) getNestedNodes() index {
@@ -269,13 +330,12 @@ func (n *digit) addExpression(str string) {
 }
 
 type nonDigit struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *nonDigit) getKey() string {
-	return n.key
+	return "\\D"
 }
 
 func (n *nonDigit) getNestedNodes() index {
@@ -301,13 +361,12 @@ func (n *nonDigit) addExpression(str string) {
 }
 
 type word struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *word) getKey() string {
-	return n.key
+	return "\\w"
 }
 
 func (n *word) getNestedNodes() index {
@@ -333,13 +392,12 @@ func (n *word) addExpression(str string) {
 }
 
 type nonWord struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *nonWord) getKey() string {
-	return n.key
+	return "\\W"
 }
 
 func (n *nonWord) getNestedNodes() index {
@@ -365,13 +423,12 @@ func (n *nonWord) addExpression(str string) {
 }
 
 type space struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *space) getKey() string {
-	return n.key
+	return "\\s"
 }
 
 func (n *space) getNestedNodes() index {
@@ -397,13 +454,12 @@ func (n *space) addExpression(str string) {
 }
 
 type nonSpace struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *nonSpace) getKey() string {
-	return n.key
+	return "\\S"
 }
 
 func (n *nonSpace) getNestedNodes() index {
@@ -429,13 +485,12 @@ func (n *nonSpace) addExpression(str string) {
 }
 
 type startOfLine struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *startOfLine) getKey() string {
-	return n.key
+	return "\\^"
 }
 
 func (n *startOfLine) getNestedNodes() index {
@@ -461,13 +516,12 @@ func (n *startOfLine) addExpression(str string) {
 }
 
 type endOfLine struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *endOfLine) getKey() string {
-	return n.key
+	return "\\$"
 }
 
 func (n *endOfLine) getNestedNodes() index {
@@ -493,13 +547,12 @@ func (n *endOfLine) addExpression(str string) {
 }
 
 type startOfString struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *startOfString) getKey() string {
-	return n.key
+	return "\\A"
 }
 
 func (n *startOfString) getNestedNodes() index {
@@ -525,13 +578,12 @@ func (n *startOfString) addExpression(str string) {
 }
 
 type endOfString struct {
-	key         string
 	expressions dict
 	nested      index
 }
 
 func (n *endOfString) getKey() string {
-	return n.key
+	return "\\z"
 }
 
 func (n *endOfString) getNestedNodes() index {
@@ -557,7 +609,6 @@ func (n *endOfString) addExpression(str string) {
 }
 
 type rangeNode struct {
-	key         string
 	from        rune
 	to          rune
 	nested      index
@@ -565,7 +616,7 @@ type rangeNode struct {
 }
 
 func (n *rangeNode) getKey() string {
-	return n.key
+	return string([]rune{n.from, '-', n.to})
 }
 
 func (n *rangeNode) getNestedNodes() index {
@@ -591,7 +642,6 @@ func (n *rangeNode) addExpression(str string) {
 }
 
 type quantifier struct {
-	key         string
 	from        int
 	to          *int
 	more        bool
@@ -601,7 +651,40 @@ type quantifier struct {
 }
 
 func (n *quantifier) getKey() string {
-	return n.key
+	return n.value.getKey() + n.getQuantifierKey()
+}
+
+func (n *quantifier) getQuantifierKey() string {
+	if n.from == 0 && n.to == nil && n.more {
+		return "*"
+	}
+
+	if n.from == 1 && n.to == nil && n.more {
+		return "+"
+	}
+
+	if n.from == 0 && n.to != nil && *n.to == 1 {
+		return "?"
+	}
+
+	var b strings.Builder
+
+	b.WriteRune('{')
+	b.WriteString(fmt.Sprintf("%d", n.from))
+
+	if n.more {
+		b.WriteRune(',')
+	}
+
+	if n.to != nil {
+		b.WriteString(fmt.Sprintf("%d", *n.to))
+	}
+
+
+	b.WriteRune('}')
+
+
+	return b.String()
 }
 
 func (n *quantifier) getNestedNodes() index {
@@ -627,14 +710,25 @@ func (n *quantifier) addExpression(str string) {
 }
 
 type positiveSet struct {
-	key         string
 	value       []node
 	expressions dict
 	nested      index
 }
 
 func (n *positiveSet) getKey() string {
-	return n.key
+	subKeys := make([]string, len(n.value))
+
+	for i, value := range n.value {
+		subKeys[i] = value.getKey()
+	}
+
+	sort.Slice(subKeys, func(i, j int) bool {
+		return subKeys[i] < subKeys[j]
+	})
+
+	x := strings.Join(subKeys, "")
+
+	return fmt.Sprintf("[%s]", x)
 }
 
 func (n *positiveSet) getNestedNodes() index {
@@ -660,14 +754,25 @@ func (n *positiveSet) addExpression(str string) {
 }
 
 type negativeSet struct {
-	key         string
 	value       []node
 	expressions dict
 	nested      index
 }
 
 func (n *negativeSet) getKey() string {
-	return n.key
+	subKeys := make([]string, len(n.value))
+
+	for i, value := range n.value {
+		subKeys[i] = value.getKey()
+	}
+
+	sort.Slice(subKeys, func(i, j int) bool {
+		return subKeys[i] < subKeys[j]
+	})
+
+	x := strings.Join(subKeys, "")
+
+	return fmt.Sprintf("[^%s]", x)
 }
 
 func (n *negativeSet) getNestedNodes() index {
@@ -752,12 +857,12 @@ type MatchedData interface {
 	Groups() map[string]string
 }
 
-type parser = c.Combinator[rune, int, node]
 type expression = []node
-type expressionParser = c.Combinator[rune, int, expression]
-
 type index map[string]node
 type dict map[string]struct{}
+
+type parser = c.Combinator[rune, int, node]
+type expressionParser = c.Combinator[rune, int, expression]
 
 var (
 	defaultParser = parseRegexp()
@@ -779,11 +884,7 @@ func New(exps ...string) (Trie, error) {
 }
 
 func parseRegexp(except ...rune) expressionParser {
-	var (
-		regexp       expressionParser
-		nestedRegexp expressionParser
-		groups       parser
-	)
+	var nestedRegexp expressionParser
 
 	union := func(buf c.Buffer[rune, int]) ([]expression, error) {
 		result := make([]expression, 0, 1)
@@ -807,7 +908,7 @@ func parseRegexp(except ...rune) expressionParser {
 		return result, nil
 	}
 
-	groups = choice(
+	groups := choice(
 		parseNotCapturedGroup(union),
 		parseNamedGroup(union),
 		parseGroup(union),
@@ -815,28 +916,26 @@ func parseRegexp(except ...rune) expressionParser {
 
 	characters := choice(
 		parseInvalidQuantifier(),
-		parseEscapedMetacharacters(),
-		parseDot(),
 		parseMetaCharacters(),
+		parseDot(),
+		parseEscapedMetacharacters(),
 		parseCharacter(except...),
 	)
 
 	setsCombinatrors := choice( // where dot?
 		parseRange(append(except, ']')...),
-		parseEscapedMetacharacters(),
 		parseMetaCharacters(),
+		parseEscapedMetacharacters(),
 		parseCharacter(except...),
 	)
 
-	// TODO - improve parsing - use one parser for meta characters - avoid tries
-
 	sets := choice(
-		parsePositiveSet(setsCombinatrors),
 		parseNegativeSet(setsCombinatrors),
+		parsePositiveSet(setsCombinatrors),
 	)
 
-	regexp = c.Some(
-		0,
+	regexp := c.Some(
+		1,
 		parseOptionalQuantifier(
 			choice(
 				sets,
@@ -978,7 +1077,7 @@ func parseInvalidQuantifier() parser {
 	}
 
 	return func(buf c.Buffer[rune, int]) (node, error) {
-		x, err := buf.Read(true)
+		x, err := buf.Read(false)
 		if err != nil {
 			return nil, err
 		}
@@ -1098,10 +1197,10 @@ func parseOptionalQuantifier(expression parser) parser {
 }
 
 func SkipString(data string) c.Combinator[rune, int, struct{}] {
-	return func(simpleBuffer c.Buffer[rune, int]) (struct{}, error) {
+	return func(buf c.Buffer[rune, int]) (struct{}, error) {
 		l := len(data)
 		for _, x := range data {
-			r, err := simpleBuffer.Read(true)
+			r, err := buf.Read(true)
 			if err != nil {
 				return none, err
 			}
@@ -1279,9 +1378,9 @@ func parseNotCapturedGroup(union c.Combinator[rune, int, []expression]) parser {
 }
 
 func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune) parser {
-	groupName := angles(
-		c.Skip(
-			c.Eq[rune, int]('?'),
+	groupName :=c.Skip(
+		c.Eq[rune, int]('?'),
+		angles(
 			c.Many(0, c.NoneOf[rune, int](append(except, '>')...)),
 		),
 	)
