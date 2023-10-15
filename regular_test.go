@@ -13,7 +13,7 @@ func TestTrie(t *testing.T) {
 		"tost",
 		"tot",
 		".",
-		"^", // check it more, and dot
+		"^",
 		"$",
 		"\\d",
 		"\\D",

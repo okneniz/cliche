@@ -499,7 +499,7 @@ type startOfLine struct {
 }
 
 func (n *startOfLine) getKey() string {
-	return "\\^"
+	return "^"
 }
 
 func (n *startOfLine) getNestedNodes() index {
@@ -530,7 +530,7 @@ type endOfLine struct {
 }
 
 func (n *endOfLine) getKey() string {
-	return "\\$"
+	return "$"
 }
 
 func (n *endOfLine) getNestedNodes() index {
@@ -878,6 +878,27 @@ var (
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
 
+func Trace[T any, P any, S any](
+	m string,
+	parse c.Combinator[T, P, S],
+) c.Combinator[T, P, S] {
+	return func(buffer c.Buffer[T, P]) (S, error) {
+		fmt.Printf("%v\n", m)
+		fmt.Printf("%s %v\n", m, buffer)
+		fmt.Printf("\t%s position before: %v\n", m, buffer.Position())
+
+		result, err := parse(buffer)
+		fmt.Printf("\t%s position after: %v\n", m, buffer.Position())
+		if err != nil {
+			fmt.Printf("\t%s not parsed: %v %v\n", m, result, err)
+			return *new(S), err
+		}
+
+		fmt.Println("\tparsed:", fmt.Sprintf("%#v", result))
+		return result, err
+	}
+}
+
 func parseRegexp(except ...rune) expressionParser {
 	var nestedRegexp expressionParser
 
@@ -924,20 +945,20 @@ func parseRegexp(except ...rune) expressionParser {
 	characters := choice(
 		parseInvalidQuantifier(),
 		parseMetaCharacters(),
-		parseDot(),
+		parseSymbols(),
 		parseEscapedMetacharacters(),
 		parseCharacter(except...),
 	)
 
+	// TODO : return error for invalid escaped chars like '\x' (check on rubular)
+
 	// is it possible for nested set?
-	setsCombinatrors := choice( // where dot?
+	setsCombinatrors := choice(
 		parseRange(append(except, ']')...),
 		parseMetaCharacters(),
 		parseEscapedMetacharacters(),
 		parseCharacter(append(except, ']')...),
 	)
-
-	// '^', '$' and '.' should be char in set and meta char in expressions
 
 	sets := choice(
 		parseNegativeSet(setsCombinatrors),
@@ -1246,47 +1267,38 @@ func parseCharacter(except ...rune) parser {
 	}
 }
 
-func parseDot() parser {
-	parse := c.Eq[rune, int]('.')
+func parseSymbols() parser {
+	return c.MapAs(
+		map[rune]c.Combinator[rune, int, node]{
+			'.': func(buf c.Buffer[rune, int]) (node, error) {
+				x := dot{
+					Nested: make(index, 0),
+				}
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
+				return &x, nil
+			},
+			'^': func(buf c.Buffer[rune, int]) (node, error) {
+				x := startOfLine{
+					Nested: make(index, 0),
+				}
 
-		x := dot{
-			Nested: make(index, 0),
-		}
+				return &x, nil
+			},
+			'$': func(buf c.Buffer[rune, int]) (node, error) {
+				x := endOfLine{
+					Nested: make(index, 0),
+				}
 
-		return &x, nil
-	}
-}
-
-func Trace[T any, P any, S any](
-	m string,
-	parse c.Combinator[T, P, S],
-) c.Combinator[T, P, S] {
-	return func(buffer c.Buffer[T, P]) (S, error) {
-		fmt.Printf("%v\n", m)
-		fmt.Printf("%s %v\n", m, buffer)
-		fmt.Printf("\t%s position before: %v\n", m, buffer.Position())
-
-		result, err := parse(buffer)
-		fmt.Printf("\t%s position after: %v\n", m, buffer.Position())
-		if err != nil {
-			fmt.Printf("\t%s not parsed: %v %v\n", m, result, err)
-			return *new(S), err
-		}
-
-		fmt.Println("\tparsed:", fmt.Sprintf("%#v", result))
-		return result, err
-	}
+				return &x, nil
+			},
+		},
+		c.Any[rune, int](),
+	)
 }
 
 func parseMetaCharacters() parser {
 	return c.Skip(
-		SkipString("\\"),
+		c.Eq[rune, int]('\\'),
 		c.MapAs(
 			map[rune]c.Combinator[rune, int, node]{
 				'd': func(buf c.Buffer[rune, int]) (node, error) {
@@ -1326,20 +1338,6 @@ func parseMetaCharacters() parser {
 				},
 				'S': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonSpace{
-						Nested: make(index, 0),
-					}
-
-					return &x, nil
-				},
-				'^': func(buf c.Buffer[rune, int]) (node, error) {
-					x := startOfLine{
-						Nested: make(index, 0),
-					}
-
-					return &x, nil
-				},
-				'$': func(buf c.Buffer[rune, int]) (node, error) {
-					x := endOfLine{
 						Nested: make(index, 0),
 					}
 
