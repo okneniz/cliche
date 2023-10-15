@@ -1,6 +1,7 @@
 package regular
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -53,7 +54,14 @@ func (t *trie) Add(strs ...string) error {
 }
 
 func (t *trie) MarshalJSON() ([]byte, error) {
-	return json.MarshalIndent(t.nodes, " ", " ")
+	output := bytes.NewBuffer(nil)
+
+	encoder := json.NewEncoder(output)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", " ")
+	encoder.Encode(t.nodes)
+
+	return output.Bytes(), nil
 }
 
 func (t *trie) String() string {
@@ -67,24 +75,22 @@ func (t *trie) String() string {
 
 func (t *trie) addExpression(str string, exp expression) {
 	ix := t.nodes
-	l := len(exp)
+	lastNode := exp[len(exp)-1]
 
-	for i, n := range exp {
+	for _, n := range exp {
 		key := n.getKey()
 
 		if prev, exists := ix[key]; exists {
 			ix = prev.getNestedNodes()
-			prev.addExpression(str)
+			lastNode = prev
 		} else {
-			n.addExpression(str)
 			ix[key] = n
 			ix = n.getNestedNodes()
-		}
-
-		if i == l {
-			ix[key].addExpression(str)
+			lastNode = n
 		}
 	}
+
+	lastNode.addExpression(str)
 }
 
 // is (foo|bar) is equal (bar|foo) ?
@@ -1010,7 +1016,7 @@ func angles[T any](
 ) c.Combinator[rune, int, T] {
 	return between(
 		c.Eq[rune, int]('<'),
-		Trace("angles", body),
+		body,
 		c.Eq[rune, int]('>'),
 	)
 }
@@ -1020,7 +1026,7 @@ func squares[T any](
 ) c.Combinator[rune, int, T] {
 	return between(
 		c.Eq[rune, int]('['),
-		Trace("squares", body),
+		body,
 		c.Eq[rune, int](']'),
 	)
 }
@@ -1270,13 +1276,13 @@ func Trace[T any, P any, S any](
 ) c.Combinator[T, P, S] {
 	return func(buffer c.Buffer[T, P]) (S, error) {
 		fmt.Printf("%v\n", m)
-		fmt.Printf("%v\n", buffer)
-		fmt.Println("\tposition before:", buffer.Position())
+		fmt.Printf("%s %v\n", m, buffer)
+		fmt.Printf("\t%s position before: %v\n", m, buffer.Position())
 
 		result, err := parse(buffer)
-		fmt.Println("\tposition after:", buffer.Position())
+		fmt.Printf("\t%s position after: %v\n", m, buffer.Position())
 		if err != nil {
-			fmt.Println("\tnot parsed:", m, result, err)
+			fmt.Printf("\t%s not parsed: %v %v\n", m, result, err)
 			return *new(S), err
 		}
 
@@ -1418,14 +1424,16 @@ func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune
 	groupName := c.Skip(
 		c.Eq[rune, int]('?'),
 		angles(
-			c.Some(1, c.NoneOf[rune, int](append(except, '>')...)),
+			c.Some(
+				0,
+				c.Try(c.NoneOf[rune, int](append(except, '>')...)),
+			),
 		),
 	)
 
 	return parens(
 		func(buf c.Buffer[rune, int]) (node, error) {
 			name, err := groupName(buf)
-			fmt.Println("wtf name", name, err, except, buf)
 			if err != nil {
 				return nil, err
 			}
@@ -1475,7 +1483,6 @@ func parsePositiveSet(expression parser) parser {
 
 	return func(buf c.Buffer[rune, int]) (node, error) {
 		set, err := parse(buf)
-		fmt.Println("wtf", set, err)
 		if err != nil {
 			return nil, err
 		}
@@ -1515,8 +1522,6 @@ func parseRange(except ...rune) parser {
 			To:     t,
 			Nested: make(index, 0),
 		}
-
-		fmt.Println("range", buf, x, buf.IsEOF(), ']')
 
 		return &x, nil
 	}

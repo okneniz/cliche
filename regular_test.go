@@ -4,11 +4,14 @@ import (
 	"testing"
 )
 
+// https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
+
 func TestTrie(t *testing.T) {
 	tr, err := NewTrie(
 		"t",
 		"test",
 		"tost",
+		"tot",
 		".",
 		"\\d",
 		"\\?",
@@ -27,7 +30,9 @@ func TestTrie(t *testing.T) {
 		"(foo|bar|baz)",
 		"(foo|bar|baz)+",
 		"(?:foo|bar|baz)+",
-		"(?<x>foo)", // TODO : check it more
+		"(?<x>y)",
+		"(?<name>x|y|z)",
+		"(?<name>y|x|z)",
 		"(?<test>foo|bar|baz)+",
 		"(?<test>foo|(ba|za|r)|baz)+",
 		"[^abc1-3]?",
