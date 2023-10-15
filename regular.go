@@ -1095,33 +1095,27 @@ func number() c.Combinator[rune, int, int] {
 }
 
 func parseEscapedSpecSymbols() parser {
-	chars := ".?+*^$[]{}()"
-	parsers := make([]parser, len(chars))
+	symbols := ".?+*^$[]{}()"
+	cases := make(map[rune]parser)
 
-	for i, c := range chars {
-		parsers[i] = parseEscapedSpecSymbol(c) // TODO: speed up it - use one parser without try
+	for _, symbol := range symbols {
+		cases[symbol] = func(buf c.Buffer[rune, int]) (node, error) {
+			x := char{
+				Value: string(symbol),
+				Nested: make(index, 0),
+			}
+
+			return &x, nil
+		}
 	}
 
-	return choice(parsers...)
-}
-
-func parseEscapedSpecSymbol(value rune) parser {
-	str := string([]rune{'\\', value})
-	parse := SkipString(str)
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		_, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := char{
-			Value:  str,
-			Nested: make(index, 0),
-		}
-
-		return &x, nil
-	}
+	return c.Skip(
+		c.Eq[rune, int]('\\'),
+		c.MapAs(
+			cases,
+			c.Any[rune, int](),
+		),
+	)
 }
 
 func parseInvalidQuantifier() parser {
