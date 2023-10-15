@@ -899,12 +899,35 @@ func Trace[T any, P any, S any](
 	}
 }
 
+func SkipString(data string) c.Combinator[rune, int, struct{}] {
+	return func(buf c.Buffer[rune, int]) (struct{}, error) {
+		l := len(data)
+		for _, x := range data {
+			r, err := buf.Read(true)
+			if err != nil {
+				return none, err
+			}
+			if x != r {
+				return none, c.NothingMatched
+			}
+			l -= 1
+		}
+
+		if l != 0 {
+			return none, c.NothingMatched
+		}
+
+		return none, nil
+	}
+}
+
+
 func parseRegexp(except ...rune) expressionParser {
 	var nestedRegexp expressionParser
 
 	sep := c.Eq[rune, int]('|')
 
-	// todo union without groups?
+	// TODO : union without groups?
 	union := func(buf c.Buffer[rune, int]) ([]expression, error) {
 		result := make([]expression, 0, 1)
 
@@ -1224,28 +1247,6 @@ func parseOptionalQuantifier(expression parser) parser {
 		q.Nested = make(index, 0)
 
 		return &q, nil
-	}
-}
-
-func SkipString(data string) c.Combinator[rune, int, struct{}] {
-	return func(buf c.Buffer[rune, int]) (struct{}, error) {
-		l := len(data)
-		for _, x := range data {
-			r, err := buf.Read(true)
-			if err != nil {
-				return none, err
-			}
-			if x != r {
-				return none, c.NothingMatched
-			}
-			l -= 1
-		}
-
-		if l != 0 {
-			return none, c.NothingMatched
-		}
-
-		return none, nil
 	}
 }
 
