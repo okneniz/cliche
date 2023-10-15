@@ -276,6 +276,7 @@ func (n *char) addExpression(str string) {
 	}
 }
 
+// add something to empty json value, and in another spec symbols
 type dot struct {
 	Expressions dict  `json:"expressions,omitempty"`
 	Nested      index `json:"nested,omitempty"`
@@ -967,9 +968,9 @@ func parseRegexp(except ...rune) expressionParser {
 
 	characters := choice(
 		parseInvalidQuantifier(),
+		parseEscapedMetaCharacters(),
 		parseMetaCharacters(),
-		parseSymbols(),
-		parseEscapedMetacharacters(),
+		parseEscapedSpecSymbols(),
 		parseCharacter(except...),
 	)
 
@@ -978,8 +979,8 @@ func parseRegexp(except ...rune) expressionParser {
 	// is it possible for nested set?
 	setsCombinatrors := choice(
 		parseRange(append(except, ']')...),
-		parseMetaCharacters(),
-		parseEscapedMetacharacters(),
+		parseEscapedMetaCharacters(),
+		parseEscapedSpecSymbols(),
 		parseCharacter(append(except, ']')...),
 	)
 
@@ -1093,18 +1094,18 @@ func number() c.Combinator[rune, int, int] {
 	}
 }
 
-func parseEscapedMetacharacters() parser {
+func parseEscapedSpecSymbols() parser {
 	chars := ".?+*^$[]{}()"
 	parsers := make([]parser, len(chars))
 
 	for i, c := range chars {
-		parsers[i] = parseEscapedMetacharacter(c) // todo - speed up it - use one parser without try
+		parsers[i] = parseEscapedSpecSymbol(c) // TODO: speed up it - use one parser without try
 	}
 
 	return choice(parsers...)
 }
 
-func parseEscapedMetacharacter(value rune) parser {
+func parseEscapedSpecSymbol(value rune) parser {
 	str := string([]rune{'\\', value})
 	parse := SkipString(str)
 
@@ -1268,7 +1269,7 @@ func parseCharacter(except ...rune) parser {
 	}
 }
 
-func parseSymbols() parser {
+func parseMetaCharacters() parser {
 	return c.MapAs(
 		map[rune]c.Combinator[rune, int, node]{
 			'.': func(buf c.Buffer[rune, int]) (node, error) {
@@ -1297,7 +1298,7 @@ func parseSymbols() parser {
 	)
 }
 
-func parseMetaCharacters() parser {
+func parseEscapedMetaCharacters() parser {
 	return c.Skip(
 		c.Eq[rune, int]('\\'),
 		c.MapAs(
