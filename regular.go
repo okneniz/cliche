@@ -59,7 +59,10 @@ func (t *trie) MarshalJSON() ([]byte, error) {
 	encoder := json.NewEncoder(output)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", " ")
-	encoder.Encode(t.nodes)
+	err := encoder.Encode(t.nodes)
+	if err != nil {
+		return nil, err
+	}
 
 	return output.Bytes(), nil
 }
@@ -97,9 +100,9 @@ func (t *trie) addExpression(str string, exp expression) {
 // (fo|f)(o|oo)
 
 type group struct {
-	Value       []expression
-	Expressions dict
-	Nested      index
+	Value       []expression `json:"value,omitempty"`
+	Expressions dict         `json:"expression,omitempty"`
+	Nested      index        `json:"nested,omitempty"`
 }
 
 func (n *group) getKey() string {
@@ -145,10 +148,10 @@ func (n *group) isEnd() bool {
 }
 
 type namedGroup struct {
-	Name        string
-	Value       []expression
-	Expressions dict
-	Nested      index
+	Name        string       `json:"name,omitempty"`
+	Value       []expression `json:"value,omitempty"`
+	Expressions dict         `json:"expressions,omitempty"`
+	Nested      index        `json:"nested,omitempty"`
 }
 
 func (n *namedGroup) getKey() string {
@@ -194,9 +197,9 @@ func (n *namedGroup) addExpression(str string) {
 }
 
 type notCapturedGroup struct {
-	Value       []expression
-	Expressions dict
-	Nested      index
+	Value       []expression `json:"value,omitempty"`
+	Expressions dict         `json:"expressions,omitempty"`
+	Nested      index        `json:"nested,omitempty"`
 }
 
 func (n *notCapturedGroup) getKey() string {
@@ -242,9 +245,9 @@ func (n *notCapturedGroup) addExpression(str string) {
 }
 
 type char struct {
-	Value       string
-	Expressions dict
-	Nested      index
+	Value       string `json:"value,omitempty"`
+	Expressions dict   `json:"expressions,omitempty"`
+	Nested      index  `json:"nested,omitempty"`
 }
 
 func (n *char) getKey() string {
@@ -274,8 +277,8 @@ func (n *char) addExpression(str string) {
 }
 
 type dot struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *dot) getKey() string {
@@ -305,8 +308,8 @@ func (n *dot) addExpression(str string) {
 }
 
 type digit struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *digit) getKey() string {
@@ -336,8 +339,8 @@ func (n *digit) addExpression(str string) {
 }
 
 type nonDigit struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *nonDigit) getKey() string {
@@ -367,8 +370,8 @@ func (n *nonDigit) addExpression(str string) {
 }
 
 type word struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *word) getKey() string {
@@ -398,8 +401,8 @@ func (n *word) addExpression(str string) {
 }
 
 type nonWord struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *nonWord) getKey() string {
@@ -429,8 +432,8 @@ func (n *nonWord) addExpression(str string) {
 }
 
 type space struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expression,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *space) getKey() string {
@@ -460,8 +463,8 @@ func (n *space) addExpression(str string) {
 }
 
 type nonSpace struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *nonSpace) getKey() string {
@@ -491,8 +494,8 @@ func (n *nonSpace) addExpression(str string) {
 }
 
 type startOfLine struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *startOfLine) getKey() string {
@@ -522,8 +525,8 @@ func (n *startOfLine) addExpression(str string) {
 }
 
 type endOfLine struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *endOfLine) getKey() string {
@@ -553,8 +556,8 @@ func (n *endOfLine) addExpression(str string) {
 }
 
 type startOfString struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *startOfString) getKey() string {
@@ -584,8 +587,8 @@ func (n *startOfString) addExpression(str string) {
 }
 
 type endOfString struct {
-	Expressions dict
-	Nested      index
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *endOfString) getKey() string {
@@ -615,10 +618,10 @@ func (n *endOfString) addExpression(str string) {
 }
 
 type rangeNode struct {
-	From        rune
-	To          rune
-	Nested      index
-	Expressions dict
+	From        rune  `json:"from,omitempty"`
+	To          rune  `json:"to,omitempty"`
+	Nested      index `json:"nested,omitempty"`
+	Expressions dict  `json:"expressions,omitempty"`
 }
 
 func (n *rangeNode) getKey() string {
@@ -648,12 +651,12 @@ func (n *rangeNode) addExpression(str string) {
 }
 
 type quantifier struct {
-	From        int
-	To          *int
-	More        bool
-	Value       node
-	Expressions dict
-	Nested      index
+	From        int   `json:"from"`
+	To          *int  `json:"to,omitempty"`
+	More        bool  `json:"more,omitempty"`
+	Value       node  `json:"value,omitempty"`
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *quantifier) getKey() string {
@@ -714,9 +717,9 @@ func (n *quantifier) addExpression(str string) {
 }
 
 type positiveSet struct {
-	Value       []node
-	Expressions dict
-	Nested      index
+	Value       []node `json:"value,omitempty"`
+	Expressions dict   `json:"expressions,omitempty"`
+	Nested      index  `json:"nested,omitempty"`
 }
 
 func (n *positiveSet) getKey() string {
@@ -758,9 +761,9 @@ func (n *positiveSet) addExpression(str string) {
 }
 
 type negativeSet struct {
-	Value       []node
-	Expressions dict
-	Nested      index
+	Value       []node `json:"value,omitempty"`
+	Expressions dict   `json:"expressions,omitempty"`
+	Nested      index  `json:"nested,omitempty"`
 }
 
 func (n *negativeSet) getKey() string {
@@ -875,18 +878,6 @@ var (
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
 
-func New(exps ...string) (Trie, error) {
-	t := new(trie)
-	t.nodes = make(index, len(exps))
-
-	err := t.Add(exps...)
-	if err != nil {
-		return nil, err
-	}
-
-	return t, nil
-}
-
 func parseRegexp(except ...rune) expressionParser {
 	var nestedRegexp expressionParser
 
@@ -945,6 +936,8 @@ func parseRegexp(except ...rune) expressionParser {
 		parseEscapedMetacharacters(),
 		parseCharacter(append(except, ']')...),
 	)
+
+	// '^', '$' and '.' should be char in set and meta char in expressions
 
 	sets := choice(
 		parseNegativeSet(setsCombinatrors),
@@ -1292,11 +1285,6 @@ func Trace[T any, P any, S any](
 }
 
 func parseMetaCharacters() parser {
-	// logger := log.Default()
-	// logger.SetOutput(os.Stdout)
-
-	// logger.Printf("wtf %v", []rune("\\"))
-
 	return c.Skip(
 		SkipString("\\"),
 		c.MapAs(
@@ -1438,7 +1426,6 @@ func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune
 				return nil, err
 			}
 
-
 			variants, err := union(buf)
 			if err != nil {
 				return nil, err
@@ -1486,7 +1473,6 @@ func parsePositiveSet(expression parser) parser {
 		if err != nil {
 			return nil, err
 		}
-
 
 		x := positiveSet{
 			Value:  set,
