@@ -922,7 +922,6 @@ func SkipString(data string) c.Combinator[rune, int, struct{}] {
 	}
 }
 
-
 func parseRegexp(except ...rune) expressionParser {
 	var nestedRegexp expressionParser
 
@@ -1039,16 +1038,6 @@ func parens[T any](
 	)
 }
 
-func braces[T any](
-	body c.Combinator[rune, int, T],
-) c.Combinator[rune, int, T] {
-	return between(
-		c.Eq[rune, int]('{'),
-		body,
-		c.Eq[rune, int]('}'),
-	)
-}
-
 func angles[T any](
 	body c.Combinator[rune, int, T],
 ) c.Combinator[rune, int, T] {
@@ -1101,7 +1090,7 @@ func parseEscapedSpecSymbols() parser {
 	for _, symbol := range symbols {
 		cases[symbol] = func(buf c.Buffer[rune, int]) (node, error) {
 			x := char{
-				Value: string(symbol),
+				Value:  string(symbol),
 				Nested: make(index, 0),
 			}
 
@@ -1140,9 +1129,10 @@ func parseInvalidQuantifier() parser {
 }
 
 func parseOptionalQuantifier(expression parser) parser {
+	any := c.Any[rune, int]()
 	digit := c.Try(number())
-	lookup := c.Satisfy[rune, int](false, c.Anything[rune])
-	skip := c.Any[rune, int]()
+	comma := c.Try(c.Eq[rune, int](','))
+	rightBrace := c.Eq[rune, int]('}')
 
 	parseQuantifier := c.Try(
 		c.MapAs(
@@ -1150,13 +1140,8 @@ func parseOptionalQuantifier(expression parser) parser {
 				'?': func(buf c.Buffer[rune, int]) (quantifier, error) {
 					q := quantifier{}
 
-					_, err := skip(buf) // TODO : remove skip? and lookup?
-					if err != nil {
-						return q, err
-					}
-
-					to := 1
 					q.From = 0
+					to := 1
 					q.To = &to
 					q.More = false
 
@@ -1164,11 +1149,6 @@ func parseOptionalQuantifier(expression parser) parser {
 				},
 				'+': func(buf c.Buffer[rune, int]) (quantifier, error) {
 					q := quantifier{}
-
-					_, err := skip(buf)
-					if err != nil {
-						return q, err
-					}
 
 					q.From = 1
 					q.More = true
@@ -1178,52 +1158,63 @@ func parseOptionalQuantifier(expression parser) parser {
 				'*': func(buf c.Buffer[rune, int]) (quantifier, error) {
 					q := quantifier{}
 
-					_, err := skip(buf)
-					if err != nil {
-						return q, err
-					}
-
 					q.From = 0
 					q.More = true
 
 					return q, nil
 				},
-				'{': braces[quantifier](func(buf c.Buffer[rune, int]) (quantifier, error) {
+				'{': func(buf c.Buffer[rune, int]) (quantifier, error) {
 					q := quantifier{}
 
 					from, err := digit(buf)
 					if err != nil {
 						return q, err
 					}
-
 					q.From = from
 
-					x, err := lookup(buf)
+					_, err = comma(buf)
 					if err != nil {
-						return q, nil
-					}
-					if x != ',' {
-						return q, nil
-					}
-					_, err = skip(buf)
-					if err != nil {
-						return q, err
-					}
+						_, err = rightBrace(buf)
+						if err != nil {
+							return q, err
+						}
 
+						return q, nil
+					}
 					q.More = true
 
 					to, err := digit(buf)
 					if err != nil {
+						_, err = rightBrace(buf)
+						if err != nil {
+							return q, err
+						}
+
 						return q, err
+					}
+
+					// TODO : check it
+					if from == 0 && to == 0 {
+						return q, c.NothingMatched
 					}
 
 					q.To = &to
 
+					// compact {1,1} to {1}
+					if from == to {
+						q.More = false
+						q.To = nil
+					}
+
+					_, err = rightBrace(buf)
+					if err != nil {
+						return q, err
+					}
+
 					return q, nil
 				},
-				),
 			},
-			lookup,
+			any,
 		),
 	)
 
