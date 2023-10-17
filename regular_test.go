@@ -13,8 +13,8 @@ func TestTrie(t *testing.T) {
 		"tost",
 		"tot",
 		".",
-		"^",
-		"$",
+		"^", // only for start of regexp?
+		"$", // only for end of regexp?
 		"\\d",
 		"\\D",
 		"\\w",

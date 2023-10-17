@@ -11,13 +11,278 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
+// do a lot of methods for different scanning
+// - for match without allocations
+// - for replacements
+// - for data extractions
+//
+// and scanner for all of them?
+//
+// try to copy official API
+//
+// https://pkg.go.dev/regexp#Regexp.FindString
+//
+// https://swtch.com/~rsc/regexp/regexp2.html#posix
+
+type Match interface {
+	From() int
+	To() int
+	String() string
+	NamedGroups() map[string]string
+	Groups() []string
+}
+
+type output interface {
+    yield(n node, from, to int, isLeaf, isEmpty bool)
+	rewind(size int)
+    lastMatch() (int, int)
+}
+
+// buffer for groups captures
+type captures struct {
+	from map[string]int
+	to map[string]int
+	order []string
+}
+
+func (c *captures) IsEmpty() bool {
+	return len(c.order) == 0
+}
+
+func (c *captures) Size() int {
+	return len(c.order)
+}
+
+func (c *captures) From(name string, index int) {
+	if _, exists := c.from[name]; exists {
+		return
+	}
+
+	c.from[name] = index
+	c.order = append(c.order, name)
+}
+
+func (c *captures) To(name string, index int) {
+	if _, exists := c.from[name]; exists {
+		c.to[name] = index
+	}
+}
+
+
+func (c *captures) Delete(name string) {
+	delete(c.from, name)
+	delete(c.to, name)
+	c.order = remove[string](c.order, name)
+}
+
+// TODO : check defaultFinish must be optional?
+func (c *captures) ToSlice(defaultFinish int) []bounds {
+	result := make([]bounds, 0, len(c.to))
+
+	var (
+		start int
+		finish int
+		exists bool
+	)
+
+	for _, name := range c.order {
+		if _, exists := c.from[name]; !exists {
+			break
+		}
+
+		if finish, exists = c.to[name]; !exists {
+			finish = defaultFinish
+		}
+
+		result = append(result, bounds{
+			from: start,
+			to: finish,
+		})
+	}
+
+	return result
+}
+
+// TODO : rename method to lower case?
+func (c *captures) ToMap(defaultFinish int) map[string]bounds {
+	result := make(map[string]bounds, len(c.to))
+
+	var (
+		start int
+		finish int
+		exists bool
+	)
+
+	for _, name := range c.order {
+		if _, exists := c.from[name]; !exists {
+			break
+		}
+
+		if finish, exists = c.to[name]; !exists {
+			finish = defaultFinish
+		}
+
+		result[name] = bounds{
+			from: start,
+			to: finish,
+		}
+	}
+
+	return result
+}
+
+type list[T any] struct {
+	data []T
+	pos int
+}
+
+func newList[T any](cap int) *list[T] {
+	l := new(list[T])
+	l.data = make([]T, 0, cap)
+	return l
+}
+
+func (l list[T]) push(item T) {
+	if l.pos >= len(l.data) {
+		l.data = append(l.data, item)
+	} else {
+		l.data[l.pos] = item
+	}
+
+	l.pos++
+}
+
+func (l list[T]) size() int {
+	return len(l.data)
+}
+
+func (l list[T]) first() *T {
+	if len(l.data) == 0 {
+		return nil
+	}
+
+	return &l.data[0]
+}
+
+func (l list[T]) last() *T {
+	if len(l.data) == 0 {
+		return nil
+	}
+
+	return &l.data[l.pos - 1]
+}
+
+// TODO : check bounds in the tests
+func (l list[T]) toSlize() []T {
+	return l.data[0:l.pos]
+}
+
+func remove[T comparable](l []T, item T) []T {
+    for i, other := range l {
+        if other == item {
+            return append(l[:i], l[i+1:]...)
+        }
+    }
+
+    return l
+}
+
+type bounds struct {
+	from, to int
+}
+
+func (b bounds) size() int {
+	return b.to - b.from
+}
+
+type boundsList struct {
+	data map[int]Match
+	f func(Match) bounds // TODO : is it really required?
+	max Match
+}
+
+func (b *boundsList) clear() {
+	// for key, _ := range b.data {
+	// 	delete(b.data, key)
+	// }
+
+	b.data = make(map[int]Match, len(b.data))
+	b.max = nil
+}
+
+func (b *boundsList) push(newMatch Match) {
+	x := b.f(newMatch)
+
+	if prevMatch, exists := b.data[x.from]; exists {
+		b.data[x.from] = b.longestMatch(prevMatch, newMatch)
+	} else {
+		b.data[x.from] = newMatch
+	}
+
+	if b.max == nil {
+		b.max = newMatch
+	} else {
+		b.max = b.longestMatch(b.max, newMatch)
+	}
+}
+
+func (b *boundsList) maximum() Match {
+	return b.max
+}
+
+// TODO : rename to earlist or longest match?
+func (b *boundsList) longestMatch(x, y Match) Match {
+	xBounds := b.f(x)
+	yBounds := b.f(y)
+
+	// TODO : without bounds? only match? without b.f ?
+
+	if xBounds.from < yBounds.from {
+		return x
+	}
+
+	if xBounds.size() > yBounds.size() {
+		return x
+	}
+
+	if xBounds.from == yBounds.from {
+		return y
+	}
+
+	// is it duplication?
+	if xBounds.size() > yBounds.size() {
+		return x
+	}
+
+	return y
+}
+
+// type scanner struct {
+// 	input string
+// 	output func(Match)
+// 	matches []Match
+
+// }
+
+// func (s *scanner) yield(n node, from, to int, isLeaf, isEmpty bool) {
+
+// }
+
+// func (s *scanner) rewind(size int) {
+
+// }
+
+// func (s *scanner) lastMatch() (int, int) {
+
+// }
+
+
 type node interface {
 	getKey() string
 	getExpressions() dict
 	getNestedNodes() index
 	addExpression(string)
 	isEnd() bool
-	// scan()
 }
 
 type trie struct {
@@ -856,13 +1121,6 @@ type Trie interface {
 	// IsInclude(string) bool
 	// Match(string) (MatchedData, error)
 	// IsMatched(string) (bool, error)
-}
-
-type MatchedData interface {
-	From() int
-	To() int
-	String() string
-	Groups() map[string]string
 }
 
 type expression = []node
