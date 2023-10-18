@@ -156,6 +156,14 @@ func (l list[T]) size() int {
 	return len(l.data)
 }
 
+func (l list[T]) truncate(pos int) {
+	if pos <= 0 {
+		panic(fmt.Sprintf("invalid position for truncate: %d", pos))
+	}
+
+	l.pos = pos
+}
+
 func (l list[T]) first() *T {
 	if len(l.data) == 0 {
 		return nil
@@ -197,8 +205,15 @@ func (b bounds) size() int {
 
 type boundsList struct {
 	data map[int]Match
-	f func(Match) bounds // TODO : is it really required?
 	max Match
+	f func(Match) bounds // TODO : is it really required?
+}
+
+func newBoundsList(f func(Match) bounds) *boundsList {
+	b := new(boundsList)
+	b.data = make(map[int]Match)
+	b.f = f
+	return b
 }
 
 func (b *boundsList) clear() {
@@ -257,25 +272,91 @@ func (b *boundsList) longestMatch(x, y Match) Match {
 	return y
 }
 
-// type scanner struct {
-// 	input string
-// 	output func(Match)
-// 	matches []Match
+// todo - better name?
+type match struct {
+	from int
+	to int
+	node node
+}
 
-// }
+type fullScanner struct {
+	input string
+	output func(*FullMatch)
+	matches list[match]
 
-// func (s *scanner) yield(n node, from, to int, isLeaf, isEmpty bool) {
+	groups captures
+	namedGroups captures
+	callback func(node, int, int)
+}
 
-// }
+func newScanner(input string, output func(*FullMatch), cb func(node, int, int)) *fullScanner {
+	s := new(fullScanner)
+	s.input = input
+	s.output = output
+	s.matches = *newList[match](100) // pointer?
+	s.callback = cb
+	return s
+}
 
-// func (s *scanner) rewind(size int) {
+type FullMatch struct {
+	data string
+	from int
+	to int
+	node node
+	groups []bounds
+	namedGroups map[string]bounds
+	empty bool
+}
 
-// }
+func (s *fullScanner) yield(n node, from, to int, isLeaf, isEmpty bool) {
+	m := match{
+		from: from,
+		to: to,
+		node: n,
+	}
 
-// func (s *scanner) lastMatch() (int, int) {
+	s.matches.push(m)
 
-// }
+	if isLeaf {
+		start := s.matches.first()
 
+		match := FullMatch {
+			data: s.input,
+			from: start.from,
+			to: to,
+			node: m.node,
+			groups: s.groups.ToSlice(m.to),
+			namedGroups: s.groups.ToMap(m.to),
+			empty: isEmpty,
+		}
+
+		if s.callback != nil {
+			s.callback(n, from, to)
+		}
+
+		s.output(&match)
+	}
+}
+
+func (s *fullScanner) position() int {
+	return s.matches.size()
+}
+
+func (s *fullScanner) rewind(size int) {
+	if s.matches.size() < size {
+		return
+	}
+
+	s.matches.truncate(size)
+}
+
+func (s *fullScanner) lastMatch() *match {
+	if s.matches.size() > 0 {
+		return s.matches.last()
+	}
+
+	return nil
+}
 
 type node interface {
 	getKey() string
