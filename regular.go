@@ -11,6 +11,10 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
+// bnf / ebnf
+//
+// https://www2.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html
+
 // do a lot of methods for different scanning
 // - for match without allocations
 // - for replacements
@@ -33,10 +37,10 @@ type Match interface {
 }
 
 type output interface {
-    yield(n node, from, to int, isLeaf, isEmpty bool)
+	yield(n node, from, to int, isLeaf, isEmpty bool)
 	position() int
 	rewind(size int)
-    lastMatch() (int, int)
+	lastMatch() (int, int)
 
 	startNamedGroup(name string, index int)
 	endNamedGroup(name string, index int)
@@ -47,8 +51,8 @@ type output interface {
 
 // buffer for groups captures
 type captures struct {
-	from map[string]int
-	to map[string]int
+	from  map[string]int
+	to    map[string]int
 	order []string
 }
 
@@ -87,7 +91,7 @@ func (c *captures) ToSlice(defaultFinish int) []bounds {
 	result := make([]bounds, 0, len(c.to))
 
 	var (
-		start int
+		start  int
 		finish int
 		exists bool
 	)
@@ -103,7 +107,7 @@ func (c *captures) ToSlice(defaultFinish int) []bounds {
 
 		result = append(result, bounds{
 			from: start,
-			to: finish,
+			to:   finish,
 		})
 	}
 
@@ -115,7 +119,7 @@ func (c *captures) ToMap(defaultFinish int) map[string]bounds {
 	result := make(map[string]bounds, len(c.to))
 
 	var (
-		start int
+		start  int
 		finish int
 		exists bool
 	)
@@ -131,7 +135,7 @@ func (c *captures) ToMap(defaultFinish int) map[string]bounds {
 
 		result[name] = bounds{
 			from: start,
-			to: finish,
+			to:   finish,
 		}
 	}
 
@@ -140,7 +144,7 @@ func (c *captures) ToMap(defaultFinish int) map[string]bounds {
 
 type list[T any] struct {
 	data []T
-	pos int
+	pos  int
 }
 
 func newList[T any](cap int) *list[T] {
@@ -184,7 +188,7 @@ func (l list[T]) last() *T {
 		return nil
 	}
 
-	return &l.data[l.pos - 1]
+	return &l.data[l.pos-1]
 }
 
 // TODO : check bounds in the tests
@@ -193,13 +197,13 @@ func (l list[T]) toSlize() []T {
 }
 
 func remove[T comparable](l []T, item T) []T {
-    for i, other := range l {
-        if other == item {
-            return append(l[:i], l[i+1:]...)
-        }
-    }
+	for i, other := range l {
+		if other == item {
+			return append(l[:i], l[i+1:]...)
+		}
+	}
 
-    return l
+	return l
 }
 
 type bounds struct {
@@ -212,8 +216,8 @@ func (b bounds) size() int {
 
 type boundsList struct {
 	data map[int]Match
-	max Match
-	f func(Match) bounds // TODO : is it really required?
+	max  Match
+	f    func(Match) bounds // TODO : is it really required?
 }
 
 func newBoundsList(f func(Match) bounds) *boundsList {
@@ -282,18 +286,18 @@ func (b *boundsList) longestMatch(x, y Match) Match {
 // todo - better name?
 type match struct {
 	from int
-	to int
+	to   int
 	node node
 }
 
 type fullScanner struct {
-	input string
-	output func(*FullMatch)
+	input   string
+	output  func(*FullMatch)
 	matches list[match]
 
-	groups captures
+	groups      captures
 	namedGroups captures
-	callback func(node, int, int)
+	callback    func(node, int, int)
 }
 
 func newScanner(input string, output func(*FullMatch), cb func(node, int, int)) *fullScanner {
@@ -306,19 +310,19 @@ func newScanner(input string, output func(*FullMatch), cb func(node, int, int)) 
 }
 
 type FullMatch struct {
-	data string
-	from int
-	to int
-	node node
-	groups []bounds
+	data        string
+	from        int
+	to          int
+	node        node
+	groups      []bounds
 	namedGroups map[string]bounds
-	empty bool
+	empty       bool
 }
 
 func (s *fullScanner) yield(n node, from, to int, isLeaf, isEmpty bool) {
 	m := match{
 		from: from,
-		to: to,
+		to:   to,
 		node: n,
 	}
 
@@ -327,14 +331,14 @@ func (s *fullScanner) yield(n node, from, to int, isLeaf, isEmpty bool) {
 	if isLeaf {
 		start := s.matches.first()
 
-		match := FullMatch {
-			data: s.input,
-			from: start.from,
-			to: to,
-			node: m.node,
-			groups: s.groups.ToSlice(m.to),
+		match := FullMatch{
+			data:        s.input,
+			from:        start.from,
+			to:          to,
+			node:        m.node,
+			groups:      s.groups.ToSlice(m.to),
 			namedGroups: s.groups.ToMap(m.to),
-			empty: isEmpty,
+			empty:       isEmpty,
 		}
 
 		if s.callback != nil {
@@ -385,10 +389,11 @@ type node interface {
 	getKey() string
 	getExpressions() dict
 	getNestedNodes() index
-	isEnd() bool // rename to leaf?
+	isEnd() bool
+
 	visit(output, int, int, visitor)
 	merge(node)
-	forEachLeaf(func(node))
+	walk(func(node))
 }
 
 type visitor func(node, int, int)
@@ -426,6 +431,18 @@ func (t *trie) Add(strs ...string) error {
 	return nil
 }
 
+func (t *trie) Size() int {
+	size := 0
+
+	for _, x := range t.nodes {
+		x.walk(func(n node) {
+			size++
+		})
+	}
+
+	return size
+}
+
 func (t *trie) MarshalJSON() ([]byte, error) {
 	output := bytes.NewBuffer(nil)
 
@@ -450,12 +467,11 @@ func (t *trie) String() string {
 }
 
 func (t *trie) addExpression(str string, newNode node) {
-	fmt.Printf("new node %#v\n", newNode)
-
-	// newNode.forEachLeaf(func(leaf node) {
-	// 	fmt.Printf("wtf %#v\n\n", leaf)
-	// 	leaf.getExpressions().add(str)
-	// })
+	newNode.walk(func(x node) {
+		if len(x.getNestedNodes()) == 0 {
+			x.getExpressions().add(str)
+		}
+	})
 
 	key := newNode.getKey()
 
@@ -467,7 +483,8 @@ func (t *trie) addExpression(str string, newNode node) {
 }
 
 type union struct {
-	Value     map[string]node `json:"value,omitempty"`
+	key       string
+	Value     map[string]node   `json:"value,omitempty"`
 	lastNodes map[node]struct{} // TODO : interface like key, is it ok?
 }
 
@@ -476,57 +493,68 @@ func newUnion(variants []node) *union {
 	n.Value = make(map[string]node, len(variants))
 	n.lastNodes = make(map[node]struct{}, len(variants))
 
-	for _, variant := range variants {
-		n.Value[variant.getKey()] = variant
+	variantKey := bytes.NewBuffer(nil)
+	key := bytes.NewBuffer(nil)
 
-		variant.forEachLeaf(func(last node) {
-			n.lastNodes[last] = struct{}{}
+	last := len(variants) - 1
+
+	for i, variant := range variants {
+		variant.walk(func(x node) {
+			variantKey.WriteString(x.getKey())
+
+			if len(x.getNestedNodes()) == 0 {
+				n.lastNodes[x] = struct{}{}
+			}
 		})
+
+		n.Value[variantKey.String()] = variant
+		key.Write(variantKey.Bytes())
+		variantKey.Reset()
+
+		if i != last {
+			key.WriteRune('|')
+		}
 	}
+
+	n.key = key.String()
+
+	variantKey.Reset()
+	key.Reset()
 
 	return n
 }
 
 func (n *union) getKey() string {
-	subKeys := make([]string, 0, len(n.Value))
-
-	var b strings.Builder
-
-	for key, _ := range n.Value {
-		b.WriteString(key)
-		subKeys = append(subKeys, b.String())
-		b.Reset()
-	}
-
-	// TODO : may be sort? order is important?
-
-	x := strings.Join(subKeys, "|")
-	return fmt.Sprintf("%s", x)
+	return n.key
 }
 
-func (n *union) forEachLeaf(f func(node)) {
+func (n *union) walk(f func(node)) {
+	f(n)
+
 	for _, x := range n.Value {
-		f(x)
+		x.walk(f)
 	}
 }
 
 func (n *union) getExpressions() dict {
-	// TODO : implement it
+	for _, x := range n.Value {
+		return x.getExpressions()
+	}
+
 	return nil
 }
 
 func (n *union) getNestedNodes() index {
-	// TODO : implement it
 	return nil
 }
 
 func (n *union) isEnd() bool {
-	// TODO : implement it
-	return false
+	return len(n.getExpressions()) == 0
 }
 
 func (n *union) merge(x node) {
-	panic(fmt.Sprintf("it's imposible to merge : %v", x))
+	// just ignore it?
+	panic(fmt.Sprintf("union can't be merged with : %v", x))
 }
 
 func (n *union) visit(output output, from, to int, f visitor) {
@@ -534,10 +562,10 @@ func (n *union) visit(output output, from, to int, f visitor) {
 	return
 }
 
-func (n *union) visitVariants(output output, id string, from, to int, f visitor) {
+func (n *union) visitUnion(output output, id string, from, to int, f visitor) {
 	// todo : check length?
 
-	n.visitGroups(output, from, to, func(matchedGroup node, groupFrom, groupTo int) {
+	n.visitVariants(output, from, to, func(variant node, vFrom, vTo int) {
 		// output.endGroup(id, groupTo)
 
 		// if _, exists := n.lastNodes[matchedGroup]; exists {
@@ -546,10 +574,10 @@ func (n *union) visitVariants(output output, id string, from, to int, f visitor)
 	})
 }
 
-func (n *union) visitGroups(output output, from, to int, f visitor) {
-	for _, n := range n.Value {
+func (n *union) visitVariants(output output, from, to int, f visitor) {
+	for _, variant := range n.Value {
 		position := output.position()
-		n.visit(output, from, to, f)
+		variant.visit(output, from, to, f)
 		output.rewind(position)
 	}
 }
@@ -558,10 +586,10 @@ func (n *union) visitGroups(output output, from, to int, f visitor) {
 // (fo|f)(o|oo)
 
 type group struct {
-	uniqID string
-	Value *union
-	Expressions dict   `json:"expression,omitempty"`
-	Nested      index  `json:"nested,omitempty"`
+	uniqID      string
+	Value       *union
+	Expressions dict  `json:"expression,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *group) getKey() string {
@@ -585,28 +613,25 @@ func (n *group) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *group) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *group) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
 func (n *group) visit(output output, from, to int, f visitor) {
 	output.startGroup(n.uniqID, from)
-	n.Value.visitVariants(output, n.uniqID, from, to, f)
+	n.Value.visitUnion(output, n.uniqID, from, to, f)
 	output.endGroup(n.uniqID, to)
 }
 
-
 type namedGroup struct {
-	Name        string       `json:"name,omitempty"`
+	Name        string `json:"name,omitempty"`
 	Value       *union `json:"value,omitempty"`
-	Expressions dict         `json:"expressions,omitempty"`
-	Nested      index        `json:"nested,omitempty"`
+	Expressions dict   `json:"expressions,omitempty"`
+	Nested      index  `json:"nested,omitempty"`
 }
 
 func (n *namedGroup) getKey() string {
@@ -630,26 +655,24 @@ func (n *namedGroup) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *namedGroup) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *namedGroup) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
 func (n *namedGroup) visit(output output, from, to int, f visitor) {
 	output.startNamedGroup(n.Name, from)
-	n.Value.visitVariants(output, n.Name, from, to, f)
+	n.Value.visitUnion(output, n.Name, from, to, f)
 	output.endNamedGroup(n.Name, to)
 }
 
 type notCapturedGroup struct {
 	Value       *union `json:"value,omitempty"`
-	Expressions dict         `json:"expressions,omitempty"`
-	Nested      index        `json:"nested,omitempty"`
+	Expressions dict   `json:"expressions,omitempty"`
+	Nested      index  `json:"nested,omitempty"`
 }
 
 func (n *notCapturedGroup) getKey() string {
@@ -673,19 +696,17 @@ func (n *notCapturedGroup) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *notCapturedGroup) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *notCapturedGroup) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
 func (n *notCapturedGroup) visit(output output, from, to int, f visitor) {
 	// TODO : visit variants without groups?
-	n.Value.visitVariants(output, "", from, to, f)
+	n.Value.visitUnion(output, "", from, to, f)
 }
 
 type char struct {
@@ -710,19 +731,17 @@ func (n *char) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *char) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
-
-	for _, x := range n.Nested {
-		x.forEachLeaf(f)
-	}
-}
-
 func (n *char) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
 	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *char) walk(f func(node)) {
+	f(n)
+
+	for _, x := range n.Nested {
+		x.walk(f)
+	}
 }
 
 func (n *char) visit(output output, from, to int, f visitor) {
@@ -752,13 +771,11 @@ func (n *dot) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *dot) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *dot) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -793,13 +810,11 @@ func (n *digit) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *digit) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *digit) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -834,13 +849,11 @@ func (n *nonDigit) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *nonDigit) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *nonDigit) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -875,13 +888,11 @@ func (n *word) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *word) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *word) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -916,13 +927,11 @@ func (n *nonWord) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *nonWord) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *nonWord) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -957,13 +966,11 @@ func (n *space) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *space) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *space) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -998,13 +1005,11 @@ func (n *nonSpace) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *nonSpace) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *nonSpace) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1039,13 +1044,11 @@ func (n *startOfLine) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *startOfLine) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *startOfLine) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1080,13 +1083,11 @@ func (n *endOfLine) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *endOfLine) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *endOfLine) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1121,13 +1122,11 @@ func (n *startOfString) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *startOfString) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *startOfString) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1162,13 +1161,11 @@ func (n *endOfString) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *endOfString) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *endOfString) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1205,13 +1202,11 @@ func (n *rangeNode) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *rangeNode) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *rangeNode) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1281,13 +1276,11 @@ func (n *quantifier) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *quantifier) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *quantifier) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1335,13 +1328,11 @@ func (n *positiveSet) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *positiveSet) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *positiveSet) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1389,13 +1380,11 @@ func (n *negativeSet) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *negativeSet) forEachLeaf(f func(node)) {
-	if n.isEnd() {
-		f(n)
-	}
+func (n *negativeSet) walk(f func(node)) {
+	f(n)
 
 	for _, x := range n.Nested {
-		x.forEachLeaf(f)
+		x.walk(f)
 	}
 }
 
@@ -1457,10 +1446,14 @@ func newBuffer(str string) c.Buffer[rune, int] {
 
 type Trie interface {
 	Add(...string) error
+	Size() int
+	MarshalJSON() ([]byte, error)
 	// IsInclude(string) bool
 	// Match(string) (MatchedData, error)
 	// IsMatched(string) (bool, error)
 }
+
+var _ Trie = new(trie)
 
 type parser = c.Combinator[rune, int, node]
 
@@ -1500,7 +1493,6 @@ var (
 
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
-
 
 func Trace[T any, P any, S any](
 	m string,
@@ -1792,8 +1784,9 @@ func parseEscapedSpecSymbols() parser {
 	for _, symbol := range symbols {
 		cases[symbol] = func(buf c.Buffer[rune, int]) (node, error) {
 			x := char{
-				Value:  string(symbol),
-				Nested: make(index, 0),
+				Value:       string(symbol),
+				Nested:      make(index, 0),
+				Expressions: make(dict, 0),
 			}
 
 			return &x, nil
@@ -1951,9 +1944,9 @@ func parseCharacter(except ...rune) parser {
 		}
 
 		x := char{
-			Value:  string(c),
+			Value:       string(c),
 			Expressions: make(dict, 0),
-			Nested: make(index, 0),
+			Nested:      make(index, 0),
 		}
 
 		return &x, nil
@@ -1966,7 +1959,7 @@ func parseMetaCharacters() parser {
 			'.': func(buf c.Buffer[rune, int]) (node, error) {
 				x := dot{
 					Expressions: make(dict, 0),
-					Nested: make(index, 0),
+					Nested:      make(index, 0),
 				}
 
 				return &x, nil
@@ -1974,7 +1967,7 @@ func parseMetaCharacters() parser {
 			'^': func(buf c.Buffer[rune, int]) (node, error) {
 				x := startOfLine{
 					Expressions: make(dict, 0),
-					Nested: make(index, 0),
+					Nested:      make(index, 0),
 				}
 
 				return &x, nil
@@ -1982,7 +1975,7 @@ func parseMetaCharacters() parser {
 			'$': func(buf c.Buffer[rune, int]) (node, error) {
 				x := endOfLine{
 					Expressions: make(dict, 0),
-					Nested: make(index, 0),
+					Nested:      make(index, 0),
 				}
 
 				return &x, nil
@@ -1999,56 +1992,64 @@ func parseEscapedMetaCharacters() parser {
 			map[rune]c.Combinator[rune, int, node]{
 				'd': func(buf c.Buffer[rune, int]) (node, error) {
 					x := digit{
-						Nested: make(index, 0),
+						Nested:      make(index, 0),
+						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
 				},
 				'D': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonDigit{
-						Nested: make(index, 0),
+						Nested:      make(index, 0),
+						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
 				},
 				'w': func(buf c.Buffer[rune, int]) (node, error) {
 					x := word{
-						Nested: make(index, 0),
+						Nested:      make(index, 0),
+						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
 				},
 				'W': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonWord{
-						Nested: make(index, 0),
+						Nested:      make(index, 0),
+						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
 				},
 				's': func(buf c.Buffer[rune, int]) (node, error) {
 					x := space{
-						Nested: make(index, 0),
+						Nested:      make(index, 0),
+						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
 				},
 				'S': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonSpace{
-						Nested: make(index, 0),
+						Nested:      make(index, 0),
+						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
 				},
 				'A': func(buf c.Buffer[rune, int]) (node, error) {
 					x := startOfString{
-						Nested: make(index, 0),
+						Nested:      make(index, 0),
+						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
 				},
 				'z': func(buf c.Buffer[rune, int]) (node, error) {
 					x := endOfString{
-						Nested: make(index, 0),
+						Nested:      make(index, 0),
+						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2076,8 +2077,6 @@ func parseGroup(parse c.Combinator[rune, int, *union]) parser {
 			x.Value = value
 			x.Expressions = make(dict, 0)
 
-			fmt.Println("group", x, x.getKey(), buf)
-
 			return x, nil
 		},
 	)
@@ -2099,8 +2098,8 @@ func parseNotCapturedGroup(parse c.Combinator[rune, int, *union]) parser {
 			}
 
 			x := notCapturedGroup{
-				Value: value,
-				Nested: make(index, 0),
+				Value:       value,
+				Nested:      make(index, 0),
 				Expressions: make(dict, 0),
 			}
 
@@ -2133,9 +2132,9 @@ func parseNamedGroup(parse c.Combinator[rune, int, *union], except ...rune) pars
 			}
 
 			x := namedGroup{
-				Name:   string(name),
-				Value:  variants,
-				Nested: make(index, 0),
+				Name:        string(name),
+				Value:       variants,
+				Nested:      make(index, 0),
 				Expressions: make(dict, 0),
 			}
 
@@ -2159,8 +2158,8 @@ func parseNegativeSet(expression parser) parser {
 		}
 
 		x := negativeSet{
-			Value:  set,
-			Nested: make(index, 0),
+			Value:       set,
+			Nested:      make(index, 0),
 			Expressions: make(dict, 0),
 		}
 
@@ -2178,8 +2177,8 @@ func parsePositiveSet(expression parser) parser {
 		}
 
 		x := positiveSet{
-			Value:  set,
-			Nested: make(index, 0),
+			Value:       set,
+			Nested:      make(index, 0),
 			Expressions: make(dict, 0),
 		}
 

@@ -37,17 +37,18 @@ func TestTrie(t *testing.T) {
 		"(y|x)",
 		"(x|y)",
 		"x|y",
+		"y|x",
 		"(?:y)",
 		"(?<x>y)",
 		"foo",
-		"(foo)", // TODO : fix key of union
+		"(foo)",
 		"(f|b)",
-		"(foo|bar|baz)", // TODO : fix key of union
+		"(foo|bar|baz)",
 		"(foo|bar|baz)+",
 		"(?:foo|bar|baz)+",
 		"(?<name>x|y|z)",
 		"(?<name>y|x|z)",
-		"(?<test>foo|bar|baz)+", // TODO : where is bar?
+		"(?<test>foo|bar|baz)+",
 		"(?<test>foo|(ba|za|r)|baz)+",
 		"[^abc1-3]?",
 		"\\d*",
@@ -67,6 +68,7 @@ func TestTrie(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	t.Logf("size: %d", tr.Size())
 	t.Logf("wtf %#v", tr)
 	t.Log(tr)
 }
