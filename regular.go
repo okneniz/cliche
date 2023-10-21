@@ -34,8 +34,15 @@ type Match interface {
 
 type output interface {
     yield(n node, from, to int, isLeaf, isEmpty bool)
+	position() int
 	rewind(size int)
     lastMatch() (int, int)
+
+	startNamedGroup(name string, index int)
+	endNamedGroup(name string, index int)
+
+	startGroup(name string, index int)
+	endGroup(name string, index int)
 }
 
 // buffer for groups captures
@@ -68,10 +75,10 @@ func (c *captures) To(name string, index int) {
 	}
 }
 
-
 func (c *captures) Delete(name string) {
 	delete(c.from, name)
 	delete(c.to, name)
+	// TODO : maybe use map + slice for faster remove?
 	c.order = remove[string](c.order, name)
 }
 
@@ -358,13 +365,33 @@ func (s *fullScanner) lastMatch() *match {
 	return nil
 }
 
+func (s *fullScanner) startNamedGroup(name string, index int) {
+	s.namedGroups.From(name, index)
+}
+
+func (s *fullScanner) endNamedGroup(name string, index int) {
+	s.namedGroups.To(name, index)
+}
+
+func (s *fullScanner) startGroup(name string, index int) {
+	s.groups.From(name, index)
+}
+
+func (s *fullScanner) endGroup(name string, index int) {
+	s.groups.To(name, index)
+}
+
 type node interface {
 	getKey() string
 	getExpressions() dict
 	getNestedNodes() index
-	addExpression(string)
-	isEnd() bool
+	isEnd() bool // rename to leaf?
+	visit(output, int, int, visitor)
+	merge(node)
+	forEachLeaf(func(node))
 }
+
+type visitor func(node, int, int)
 
 type trie struct {
 	nodes index
@@ -388,12 +415,12 @@ func (t *trie) Add(strs ...string) error {
 	for _, str := range strs {
 		buf := newBuffer(str)
 
-		exp, err := defaultParser(buf)
+		node, err := defaultParser(buf)
 		if err != nil {
 			return err
 		}
 
-		t.addExpression(str, exp)
+		t.addExpression(str, node)
 	}
 
 	return nil
@@ -422,53 +449,123 @@ func (t *trie) String() string {
 	return string(data)
 }
 
-func (t *trie) addExpression(str string, exp expression) {
-	ix := t.nodes
-	lastNode := exp[len(exp)-1]
+func (t *trie) addExpression(str string, newNode node) {
+	fmt.Printf("new node %#v\n", newNode)
 
-	for _, n := range exp {
-		key := n.getKey()
+	// newNode.forEachLeaf(func(leaf node) {
+	// 	fmt.Printf("wtf %#v\n\n", leaf)
+	// 	leaf.getExpressions().add(str)
+	// })
 
-		if prev, exists := ix[key]; exists {
-			ix = prev.getNestedNodes()
-			lastNode = prev
-		} else {
-			ix[key] = n
-			ix = n.getNestedNodes()
-			lastNode = n
-		}
+	key := newNode.getKey()
+
+	if prev, exists := t.nodes[key]; exists {
+		prev.merge(newNode)
+	} else {
+		t.nodes[key] = newNode
+	}
+}
+
+type union struct {
+	Value     map[string]node `json:"value,omitempty"`
+	lastNodes map[node]struct{} // TODO : interface like key, is it ok?
+}
+
+func newUnion(variants []node) *union {
+	n := new(union)
+	n.Value = make(map[string]node, len(variants))
+	n.lastNodes = make(map[node]struct{}, len(variants))
+
+	for _, variant := range variants {
+		n.Value[variant.getKey()] = variant
+
+		variant.forEachLeaf(func(last node) {
+			n.lastNodes[last] = struct{}{}
+		})
 	}
 
-	lastNode.addExpression(str)
+	return n
 }
 
-// is (foo|bar) is equal (bar|foo) ?
-// (fo|f)(o|oo)
-
-type group struct {
-	Value       []expression `json:"value,omitempty"`
-	Expressions dict         `json:"expression,omitempty"`
-	Nested      index        `json:"nested,omitempty"`
-}
-
-func (n *group) getKey() string {
-	subKeys := make([]string, len(n.Value))
+func (n *union) getKey() string {
+	subKeys := make([]string, 0, len(n.Value))
 
 	var b strings.Builder
 
-	for i, exp := range n.Value {
-		for _, n := range exp {
-			b.WriteString(n.getKey())
-		}
-
-		subKeys[i] = b.String()
+	for key, _ := range n.Value {
+		b.WriteString(key)
+		subKeys = append(subKeys, b.String())
 		b.Reset()
 	}
 
 	// TODO : may be sort? order is important?
 
 	x := strings.Join(subKeys, "|")
-	return fmt.Sprintf("(%s)", x)
+	return fmt.Sprintf("%s", x)
+}
+
+func (n *union) forEachLeaf(f func(node)) {
+	for _, x := range n.Value {
+		f(x)
+	}
+}
+
+func (n *union) getExpressions() dict {
+	// TODO : implement it
+	return nil
+}
+
+func (n *union) getNestedNodes() index {
+	// TODO : implement it
+	return nil
+}
+
+func (n *union) isEnd() bool {
+	// TODO : implement it
+	return false
+}
+
+func (n *union) merge(x node) {
+	panic(fmt.Sprintf("it's imposible to merge : %v", x))
+}
+
+func (n *union) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
+}
+
+func (n *union) visitVariants(output output, id string, from, to int, f visitor) {
+	// todo : check length?
+
+	n.visitGroups(output, from, to, func(matchedGroup node, groupFrom, groupTo int) {
+		// output.endGroup(id, groupTo)
+
+		// if _, exists := n.lastNodes[matchedGroup]; exists {
+		// 	output.yield(matchedGroup, groupFrom, groupTo, n.isEnd())
+		// }
+	})
+}
+
+func (n *union) visitGroups(output output, from, to int, f visitor) {
+	for _, n := range n.Value {
+		position := output.position()
+		n.visit(output, from, to, f)
+		output.rewind(position)
+	}
+}
+
+// is (foo|bar) is equal (bar|foo) ?
+// (fo|f)(o|oo)
+
+type group struct {
+	uniqID string
+	Value *union
+	Expressions dict   `json:"expression,omitempty"`
+	Nested      index  `json:"nested,omitempty"`
+}
+
+func (n *group) getKey() string {
+	return fmt.Sprintf("(%s)", n.Value.getKey())
 }
 
 func (n *group) getNestedNodes() index {
@@ -479,45 +576,41 @@ func (n *group) getExpressions() dict {
 	return n.Expressions
 }
 
-func (n *group) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
-	}
-}
-
 func (n *group) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
+func (n *group) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *group) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
+	}
+
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
+	}
+}
+
+func (n *group) visit(output output, from, to int, f visitor) {
+	output.startGroup(n.uniqID, from)
+	n.Value.visitVariants(output, n.uniqID, from, to, f)
+	output.endGroup(n.uniqID, to)
+}
+
+
 type namedGroup struct {
 	Name        string       `json:"name,omitempty"`
-	Value       []expression `json:"value,omitempty"`
+	Value       *union `json:"value,omitempty"`
 	Expressions dict         `json:"expressions,omitempty"`
 	Nested      index        `json:"nested,omitempty"`
 }
 
 func (n *namedGroup) getKey() string {
-	subKeys := make([]string, len(n.Value))
-
-	var b strings.Builder
-
-	for i, exp := range n.Value {
-		for _, n := range exp {
-			b.WriteString(n.getKey())
-		}
-
-		subKeys[i] = b.String()
-		b.Reset()
-	}
-
-	// TODO : may be sort? order is important?
-
-	x := strings.Join(subKeys, "|")
-	return fmt.Sprintf("(?<%s>%s)", n.Name, x)
+	return fmt.Sprintf("(?<%s>%s)", n.Name, n.Value.getKey())
 }
 
 func (n *namedGroup) getNestedNodes() index {
@@ -532,40 +625,35 @@ func (n *namedGroup) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *namedGroup) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *namedGroup) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *namedGroup) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
 }
 
+func (n *namedGroup) visit(output output, from, to int, f visitor) {
+	output.startNamedGroup(n.Name, from)
+	n.Value.visitVariants(output, n.Name, from, to, f)
+	output.endNamedGroup(n.Name, to)
+}
+
 type notCapturedGroup struct {
-	Value       []expression `json:"value,omitempty"`
+	Value       *union `json:"value,omitempty"`
 	Expressions dict         `json:"expressions,omitempty"`
 	Nested      index        `json:"nested,omitempty"`
 }
 
 func (n *notCapturedGroup) getKey() string {
-	subKeys := make([]string, len(n.Value))
-
-	var b strings.Builder
-
-	for i, exp := range n.Value {
-		for _, n := range exp {
-			b.WriteString(n.getKey())
-		}
-
-		subKeys[i] = b.String()
-		b.Reset()
-	}
-
-	// TODO : may be sort? order is important?
-
-	x := strings.Join(subKeys, "|")
-	return fmt.Sprintf("(?:%s)", x)
+	return fmt.Sprintf("(?:%s)", n.Value.getKey())
 }
 
 func (n *notCapturedGroup) getNestedNodes() index {
@@ -580,14 +668,24 @@ func (n *notCapturedGroup) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *notCapturedGroup) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *notCapturedGroup) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *notCapturedGroup) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *notCapturedGroup) visit(output output, from, to int, f visitor) {
+	// TODO : visit variants without groups?
+	n.Value.visitVariants(output, "", from, to, f)
 }
 
 type char struct {
@@ -612,14 +710,24 @@ func (n *char) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *char) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *char) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *char) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *char) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 // add something to empty json value, and in another spec symbols
@@ -644,14 +752,24 @@ func (n *dot) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *dot) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *dot) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *dot) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *dot) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type digit struct {
@@ -675,14 +793,24 @@ func (n *digit) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *digit) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *digit) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *digit) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *digit) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type nonDigit struct {
@@ -706,14 +834,24 @@ func (n *nonDigit) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *nonDigit) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *nonDigit) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *nonDigit) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *nonDigit) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type word struct {
@@ -737,14 +875,24 @@ func (n *word) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *word) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *word) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *word) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *word) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type nonWord struct {
@@ -768,14 +916,24 @@ func (n *nonWord) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *nonWord) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *nonWord) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *nonWord) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *nonWord) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type space struct {
@@ -799,14 +957,24 @@ func (n *space) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *space) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *space) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *space) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *space) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type nonSpace struct {
@@ -830,14 +998,24 @@ func (n *nonSpace) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *nonSpace) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *nonSpace) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *nonSpace) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *nonSpace) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type startOfLine struct {
@@ -861,14 +1039,24 @@ func (n *startOfLine) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *startOfLine) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *startOfLine) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *startOfLine) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *startOfLine) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type endOfLine struct {
@@ -892,14 +1080,24 @@ func (n *endOfLine) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *endOfLine) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *endOfLine) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *endOfLine) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *endOfLine) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type startOfString struct {
@@ -923,14 +1121,24 @@ func (n *startOfString) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *startOfString) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *startOfString) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *startOfString) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *startOfString) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type endOfString struct {
@@ -954,14 +1162,24 @@ func (n *endOfString) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *endOfString) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *endOfString) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *endOfString) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *endOfString) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type rangeNode struct {
@@ -987,14 +1205,24 @@ func (n *rangeNode) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *rangeNode) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *rangeNode) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *rangeNode) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *rangeNode) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type quantifier struct {
@@ -1053,14 +1281,24 @@ func (n *quantifier) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *quantifier) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *quantifier) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *quantifier) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *quantifier) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type positiveSet struct {
@@ -1097,14 +1335,24 @@ func (n *positiveSet) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *positiveSet) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *positiveSet) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *positiveSet) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
+}
+
+func (n *positiveSet) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
 }
 
 type negativeSet struct {
@@ -1141,14 +1389,24 @@ func (n *negativeSet) isEnd() bool {
 	return len(n.Expressions) == 0
 }
 
-func (n *negativeSet) addExpression(str string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
+func (n *negativeSet) forEachLeaf(f func(node)) {
+	if n.isEnd() {
+		f(n)
 	}
 
-	if _, exists := n.Expressions[str]; !exists {
-		n.Expressions[str] = struct{}{}
+	for _, x := range n.Nested {
+		x.forEachLeaf(f)
 	}
+}
+
+func (n *negativeSet) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *negativeSet) visit(output output, from, to int, f visitor) {
+	// TODO : implement it
+	return
 }
 
 type simpleBuffer struct {
@@ -1204,12 +1462,37 @@ type Trie interface {
 	// IsMatched(string) (bool, error)
 }
 
-type expression = []node
+type parser = c.Combinator[rune, int, node]
+
 type index map[string]node
+
+func (ix index) merge(other index) {
+	for key, newNode := range other {
+		if prev, exists := ix[key]; exists {
+			prev.merge(newNode)
+		} else {
+			ix[key] = newNode
+		}
+	}
+}
+
 type dict map[string]struct{}
 
-type parser = c.Combinator[rune, int, node]
-type expressionParser = c.Combinator[rune, int, expression]
+func (d dict) add(str string) {
+	// TODO : is it pointless condition?
+	// check it on becnmarks / tests
+	if _, exists := d[str]; !exists {
+		d[str] = struct{}{}
+	}
+}
+
+func (d dict) merge(other dict) {
+	for key, value := range other {
+		if _, exists := d[key]; !exists {
+			d[key] = value
+		}
+	}
+}
 
 var (
 	defaultParser = parseRegexp()
@@ -1217,6 +1500,7 @@ var (
 
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
+
 
 func Trace[T any, P any, S any](
 	m string,
@@ -1261,21 +1545,23 @@ func SkipString(data string) c.Combinator[rune, int, struct{}] {
 	}
 }
 
-func parseRegexp(except ...rune) expressionParser {
-	var nestedRegexp expressionParser
+// TODO : return error for invalid escaped chars like '\x' (check on rubular)
+
+func parseRegexp() parser {
+	var parseExpression parser
+	var parseNestedExpression parser
 
 	sep := c.Eq[rune, int]('|')
 
-	// TODO : union without groups?
-	union := func(buf c.Buffer[rune, int]) ([]expression, error) {
-		result := make([]expression, 0, 1)
-
-		variant, err := nestedRegexp(buf)
+	// parse union
+	union := func(buf c.Buffer[rune, int]) (*union, error) {
+		variant, err := parseNestedExpression(buf)
 		if err != nil {
-			return result, nil
+			return nil, err
 		}
 
-		result = append(result, variant)
+		variants := make([]node, 0, 1)
+		variants = append(variants, variant)
 
 		for !buf.IsEOF() {
 			pos := buf.Position()
@@ -1283,70 +1569,147 @@ func parseRegexp(except ...rune) expressionParser {
 			_, err = sep(buf)
 			if err != nil {
 				buf.Seek(pos)
-				break
+				break // return error instead break?
 			}
 
-			variant, err = nestedRegexp(buf)
+			variant, err = parseNestedExpression(buf)
+			if err != nil {
+				buf.Seek(pos)
+				break // return error instead break?
+			}
+
+			variants = append(variants, variant)
+		}
+
+		// TODO : check length and eof
+
+		return newUnion(variants), nil
+	}
+
+	// TODO : return error for invalid escaped chars like '\x' (check on rubular)
+
+	// parse node
+	parseNode := parseOptionalQuantifier(
+		choice(
+			parseSet('|'),
+			parseNotCapturedGroup(union),
+			parseNamedGroup(union),
+			parseGroup(union),
+			parseInvalidQuantifier(),
+			parseEscapedMetaCharacters(),
+			parseMetaCharacters(),
+			parseEscapedSpecSymbols(),
+			parseCharacter('|'),
+		),
+	)
+
+	// parse node of nested expression
+	parseNestedNode := parseOptionalQuantifier(
+		choice(
+			parseSet('|', ')'),
+			parseNotCapturedGroup(union),
+			parseNamedGroup(union),
+			parseGroup(union),
+			parseInvalidQuantifier(),
+			parseEscapedMetaCharacters(),
+			parseMetaCharacters(),
+			parseEscapedSpecSymbols(),
+			parseCharacter('|', ')'),
+		),
+	)
+
+	parseExpression = func(buf c.Buffer[rune, int]) (node, error) {
+		first, err := parseNode(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		last := first
+
+		for !buf.IsEOF() {
+			pos := buf.Position()
+
+			next, err := parseNode(buf)
 			if err != nil {
 				buf.Seek(pos)
 				break
 			}
 
-			result = append(result, variant)
+			last.getNestedNodes()[next.getKey()] = next
+			last = next
 		}
 
-		return result, nil
+		return first, nil
 	}
 
-	groups := choice(
-		parseNotCapturedGroup(union),
-		parseNamedGroup(union),
-		parseGroup(union),
-	)
+	parseNestedExpression = func(buf c.Buffer[rune, int]) (node, error) {
+		first, err := parseNestedNode(buf)
+		if err != nil {
+			return nil, err
+		}
 
-	characters := choice(
-		parseInvalidQuantifier(),
-		parseEscapedMetaCharacters(),
-		parseMetaCharacters(),
-		parseEscapedSpecSymbols(),
-		parseCharacter(except...),
-	)
+		last := first
 
-	// TODO : return error for invalid escaped chars like '\x' (check on rubular)
+		for !buf.IsEOF() {
+			pos := buf.Position()
 
-	// is it possible for nested set?
-	setsCombinatrors := choice(
+			next, err := parseNestedNode(buf)
+			if err != nil {
+				buf.Seek(pos)
+				break
+			}
+
+			last.getNestedNodes()[next.getKey()] = next
+			last = next
+		}
+
+		return first, nil
+	}
+
+	// parse union or expression
+	return func(buf c.Buffer[rune, int]) (node, error) {
+		expression, err := parseExpression(buf)
+		if err != nil {
+			return nil, err
+		}
+		if buf.IsEOF() {
+			return expression, nil
+		}
+
+		variants := make([]node, 0, 1)
+		variants = append(variants, expression)
+
+		for !buf.IsEOF() {
+			_, err = sep(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			expression, err = parseExpression(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			variants = append(variants, expression)
+		}
+
+		return newUnion(variants), nil
+	}
+}
+
+func parseSet(except ...rune) parser {
+	// TODO : without except?
+	parseNode := choice(
 		parseRange(append(except, ']')...),
 		parseEscapedMetaCharacters(),
 		parseEscapedSpecSymbols(),
 		parseCharacter(append(except, ']')...),
 	)
 
-	sets := choice(
-		parseNegativeSet(setsCombinatrors),
-		parsePositiveSet(setsCombinatrors),
+	return choice(
+		parseNegativeSet(parseNode),
+		parsePositiveSet(parseNode),
 	)
-
-	regexp := c.Some(
-		1,
-		parseOptionalQuantifier(
-			choice(
-				sets,
-				groups,
-				characters,
-			),
-		),
-	)
-
-	if len(except) != 0 {
-		nestedRegexp = regexp
-	} else {
-		nestedRegexp = parseRegexp(append(except, ')', '|')...)
-	}
-
-	nestedRegexp = c.Try(nestedRegexp)
-
-	return regexp
 }
 
 func choice(parsers ...parser) parser {
@@ -1550,6 +1913,8 @@ func parseOptionalQuantifier(expression parser) parser {
 						return q, err
 					}
 
+					q.Expressions = make(dict, 0)
+
 					return q, nil
 				},
 			},
@@ -1570,6 +1935,7 @@ func parseOptionalQuantifier(expression parser) parser {
 
 		q.Value = x
 		q.Nested = make(index, 0)
+		q.Expressions = make(dict, 0)
 
 		return &q, nil
 	}
@@ -1586,6 +1952,7 @@ func parseCharacter(except ...rune) parser {
 
 		x := char{
 			Value:  string(c),
+			Expressions: make(dict, 0),
 			Nested: make(index, 0),
 		}
 
@@ -1598,6 +1965,7 @@ func parseMetaCharacters() parser {
 		map[rune]c.Combinator[rune, int, node]{
 			'.': func(buf c.Buffer[rune, int]) (node, error) {
 				x := dot{
+					Expressions: make(dict, 0),
 					Nested: make(index, 0),
 				}
 
@@ -1605,6 +1973,7 @@ func parseMetaCharacters() parser {
 			},
 			'^': func(buf c.Buffer[rune, int]) (node, error) {
 				x := startOfLine{
+					Expressions: make(dict, 0),
 					Nested: make(index, 0),
 				}
 
@@ -1612,6 +1981,7 @@ func parseMetaCharacters() parser {
 			},
 			'$': func(buf c.Buffer[rune, int]) (node, error) {
 				x := endOfLine{
+					Expressions: make(dict, 0),
 					Nested: make(index, 0),
 				}
 
@@ -1689,25 +2059,31 @@ func parseEscapedMetaCharacters() parser {
 	)
 }
 
-func parseGroup(union c.Combinator[rune, int, []expression]) parser {
+func parseGroup(parse c.Combinator[rune, int, *union]) parser {
 	return parens(
 		func(buf c.Buffer[rune, int]) (node, error) {
-			variants, err := union(buf)
+			value, err := parse(buf)
 			if err != nil {
 				return nil, err
 			}
 
-			x := group{
-				Value:  variants,
+			x := &group{
 				Nested: make(index, 0),
 			}
 
-			return &x, nil
+			// TODO : is it good enough for ID?
+			x.uniqID = fmt.Sprintf("%p", x)
+			x.Value = value
+			x.Expressions = make(dict, 0)
+
+			fmt.Println("group", x, x.getKey(), buf)
+
+			return x, nil
 		},
 	)
 }
 
-func parseNotCapturedGroup(union c.Combinator[rune, int, []expression]) parser {
+func parseNotCapturedGroup(parse c.Combinator[rune, int, *union]) parser {
 	before := SkipString("?:")
 
 	return parens(
@@ -1717,14 +2093,15 @@ func parseNotCapturedGroup(union c.Combinator[rune, int, []expression]) parser {
 				return nil, err
 			}
 
-			variants, err := union(buf)
+			value, err := parse(buf)
 			if err != nil {
 				return nil, err
 			}
 
 			x := notCapturedGroup{
-				Value:  variants,
+				Value: value,
 				Nested: make(index, 0),
+				Expressions: make(dict, 0),
 			}
 
 			return &x, nil
@@ -1732,7 +2109,7 @@ func parseNotCapturedGroup(union c.Combinator[rune, int, []expression]) parser {
 	)
 }
 
-func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune) parser {
+func parseNamedGroup(parse c.Combinator[rune, int, *union], except ...rune) parser {
 	groupName := c.Skip(
 		c.Eq[rune, int]('?'),
 		angles(
@@ -1750,7 +2127,7 @@ func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune
 				return nil, err
 			}
 
-			variants, err := union(buf)
+			variants, err := parse(buf)
 			if err != nil {
 				return nil, err
 			}
@@ -1759,6 +2136,7 @@ func parseNamedGroup(union c.Combinator[rune, int, []expression], except ...rune
 				Name:   string(name),
 				Value:  variants,
 				Nested: make(index, 0),
+				Expressions: make(dict, 0),
 			}
 
 			return &x, nil
@@ -1783,6 +2161,7 @@ func parseNegativeSet(expression parser) parser {
 		x := negativeSet{
 			Value:  set,
 			Nested: make(index, 0),
+			Expressions: make(dict, 0),
 		}
 
 		return &x, nil
@@ -1801,6 +2180,7 @@ func parsePositiveSet(expression parser) parser {
 		x := positiveSet{
 			Value:  set,
 			Nested: make(index, 0),
+			Expressions: make(dict, 0),
 		}
 
 		return &x, nil

@@ -8,7 +8,9 @@ import (
 
 func TestTrie(t *testing.T) {
 	tr, err := NewTrie(
+		"x",
 		"t",
+		"te",
 		"test",
 		"tost",
 		"tot",
@@ -32,16 +34,20 @@ func TestTrie(t *testing.T) {
 		"[0-9a-zxy\\d]",
 		"[^0-9a-zxy\\d]",
 		"(y)",
+		"(y|x)",
+		"(x|y)",
+		"x|y",
 		"(?:y)",
 		"(?<x>y)",
-		"(foo)",
+		"foo",
+		"(foo)", // TODO : fix key of union
 		"(f|b)",
-		"(foo|bar|baz)",
+		"(foo|bar|baz)", // TODO : fix key of union
 		"(foo|bar|baz)+",
 		"(?:foo|bar|baz)+",
 		"(?<name>x|y|z)",
 		"(?<name>y|x|z)",
-		"(?<test>foo|bar|baz)+",
+		"(?<test>foo|bar|baz)+", // TODO : where is bar?
 		"(?<test>foo|(ba|za|r)|baz)+",
 		"[^abc1-3]?",
 		"\\d*",
