@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"unicode"
 
 	c "github.com/okneniz/parsec/common"
 )
@@ -36,7 +37,14 @@ type Match interface {
 	Groups() []string
 }
 
+// TODO : rename interface?
+type input interface {
+	ReadAt(int) (rune, error)
+}
+
+// TODO : rename interface?
 type output interface {
+	input() input
 	yield(n node, from, to int, isLeaf, isEmpty bool)
 	position() int
 	rewind(size int)
@@ -44,9 +52,11 @@ type output interface {
 
 	startNamedGroup(name string, index int)
 	endNamedGroup(name string, index int)
+	deleteNamedGroup(name string)
 
 	startGroup(name string, index int)
 	endGroup(name string, index int)
+	deleteGroup(name string)
 }
 
 // buffer for groups captures
@@ -291,7 +301,7 @@ type match struct {
 }
 
 type fullScanner struct {
-	input   string
+	input   input
 	output  func(*FullMatch)
 	matches list[match]
 
@@ -300,9 +310,9 @@ type fullScanner struct {
 	callback    func(node, int, int)
 }
 
-func newScanner(input string, output func(*FullMatch), cb func(node, int, int)) *fullScanner {
+func newScanner(str string, output func(*FullMatch), cb func(node, int, int)) *fullScanner {
 	s := new(fullScanner)
-	s.input = input
+	s.input = newBuffer(str)
 	s.output = output
 	s.matches = *newList[match](100) // pointer?
 	s.callback = cb
@@ -332,7 +342,8 @@ func (s *fullScanner) yield(n node, from, to int, isLeaf, isEmpty bool) {
 		start := s.matches.first()
 
 		match := FullMatch{
-			data:        s.input,
+			// add subString method?
+			// data:        s.input,
 			from:        start.from,
 			to:          to,
 			node:        m.node,
@@ -377,12 +388,20 @@ func (s *fullScanner) endNamedGroup(name string, index int) {
 	s.namedGroups.To(name, index)
 }
 
+func (s *fullScanner) deleteNamedGroup(name string) {
+	s.namedGroups.Delete(name)
+}
+
 func (s *fullScanner) startGroup(name string, index int) {
 	s.groups.From(name, index)
 }
 
 func (s *fullScanner) endGroup(name string, index int) {
 	s.groups.To(name, index)
+}
+
+func (s *fullScanner) deleteGroup(name string) {
+	s.groups.Delete(name)
 }
 
 type node interface {
@@ -562,15 +581,28 @@ func (n *union) visit(output output, from, to int, f visitor) {
 	return
 }
 
-func (n *union) visitUnion(output output, id string, from, to int, f visitor) {
-	// todo : check length?
+func (n *union) visitUnion(
+	output output,
+	id string,
+	from, to int,
+	f visitor,
+	match func(string, int),
+) {
+	// TODO : check length?
 
 	n.visitVariants(output, from, to, func(variant node, vFrom, vTo int) {
-		// output.endGroup(id, groupTo)
+		match(id, vTo)
 
-		// if _, exists := n.lastNodes[matchedGroup]; exists {
-		// 	output.yield(matchedGroup, groupFrom, groupTo, n.isEnd())
-		// }
+		if _, exists := n.lastNodes[variant]; exists {
+			output.yield(variant, vFrom, vTo, n.isEnd(), false) // TODO : what is empty?
+			f(variant, vFrom, vTo)
+
+			// TODO : why + 1?
+			n.visitNested(output, vFrom, vTo + 1, func(nested node, nFrom, nTo int) {
+				f(nested, nFrom, nTo)
+				output.yield(nested, nFrom, nTo, n.isEnd(), false)
+			})
+		}
 	})
 }
 
@@ -581,6 +613,12 @@ func (n *union) visitVariants(output output, from, to int, f visitor) {
 		output.rewind(position)
 	}
 }
+
+func (n *union) visitNested(output output, from, to int, f visitor) {
+	// how to traverse nested without nested?
+	return
+}
+
 
 // is (foo|bar) is equal (bar|foo) ?
 // (fo|f)(o|oo)
@@ -623,8 +661,8 @@ func (n *group) walk(f func(node)) {
 
 func (n *group) visit(output output, from, to int, f visitor) {
 	output.startGroup(n.uniqID, from)
-	n.Value.visitUnion(output, n.uniqID, from, to, f)
-	output.endGroup(n.uniqID, to)
+	n.Value.visitUnion(output, n.uniqID, from, to, f, output.endGroup)
+	output.deleteGroup(n.uniqID)
 }
 
 type namedGroup struct {
@@ -665,8 +703,8 @@ func (n *namedGroup) walk(f func(node)) {
 
 func (n *namedGroup) visit(output output, from, to int, f visitor) {
 	output.startNamedGroup(n.Name, from)
-	n.Value.visitUnion(output, n.Name, from, to, f)
-	output.endNamedGroup(n.Name, to)
+	n.Value.visitUnion(output, n.Name, from, to, f, output.endNamedGroup)
+	output.deleteNamedGroup(n.Name)
 }
 
 type notCapturedGroup struct {
@@ -705,12 +743,12 @@ func (n *notCapturedGroup) walk(f func(node)) {
 }
 
 func (n *notCapturedGroup) visit(output output, from, to int, f visitor) {
-	// TODO : visit variants without groups?
-	n.Value.visitUnion(output, "", from, to, f)
+	// optimize and remove stub f?
+	n.Value.visitUnion(output, "", from, to, f, func(_ string, _ int) {})
 }
 
 type char struct {
-	Value       string `json:"value,omitempty"`
+	Value       rune `json:"value,omitempty"`
 	Expressions dict   `json:"expressions,omitempty"`
 	Nested      index  `json:"nested,omitempty"`
 }
@@ -745,8 +783,27 @@ func (n *char) walk(f func(node)) {
 }
 
 func (n *char) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if x == n.Value {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *char) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 // add something to empty json value, and in another spec symbols
@@ -785,9 +842,29 @@ func (n *dot) merge(other node) {
 }
 
 func (n *dot) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if x != '\n' {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
 }
+
+func (n *dot) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
+}
+
 
 type digit struct {
 	Expressions dict  `json:"expressions,omitempty"`
@@ -824,8 +901,27 @@ func (n *digit) merge(other node) {
 }
 
 func (n *digit) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if unicode.IsDigit(x) {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *digit) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type nonDigit struct {
@@ -863,8 +959,27 @@ func (n *nonDigit) merge(other node) {
 }
 
 func (n *nonDigit) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if !unicode.IsDigit(x) {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *nonDigit) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type word struct {
@@ -902,8 +1017,27 @@ func (n *word) merge(other node) {
 }
 
 func (n *word) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x) {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *word) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type nonWord struct {
@@ -941,8 +1075,27 @@ func (n *nonWord) merge(other node) {
 }
 
 func (n *nonWord) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if !(x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x)) {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *nonWord) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type space struct {
@@ -980,8 +1133,27 @@ func (n *space) merge(other node) {
 }
 
 func (n *space) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if unicode.IsSpace(x) {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *space) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type nonSpace struct {
@@ -1019,8 +1191,27 @@ func (n *nonSpace) merge(other node) {
 }
 
 func (n *nonSpace) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if !unicode.IsSpace(x) {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *nonSpace) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type startOfLine struct {
@@ -1058,8 +1249,34 @@ func (n *startOfLine) merge(other node) {
 }
 
 func (n *startOfLine) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	if from == 0 {
+		return
+	}
+
+	if from == 0 || n.isEndOfLine(output, from - 1) { // TODO : check \n\r too
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *startOfLine) isEndOfLine(output output, idx int) bool {
+	x, err := output.input().ReadAt(idx)
+	if err != nil {
+		// TODO : just ignore it?
+	}
+
+	return x == '\n'
+}
+
+func (n *startOfLine) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type endOfLine struct {
@@ -1136,8 +1353,21 @@ func (n *startOfString) merge(other node) {
 }
 
 func (n *startOfString) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	if from == 0 {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *startOfString) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type endOfString struct {
@@ -1176,7 +1406,14 @@ func (n *endOfString) merge(other node) {
 
 func (n *endOfString) visit(output output, from, to int, f visitor) {
 	// TODO : implement it
-	return
+}
+
+func (n *endOfString) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type rangeNode struct {
@@ -1216,8 +1453,27 @@ func (n *rangeNode) merge(other node) {
 }
 
 func (n *rangeNode) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	x, err := output.input().ReadAt(from)
+	if err != nil {
+		// TODO : just ignore it?
+		return
+	}
+
+	if x >= n.From && x <= n.To {
+		pos := output.position()
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from+1, to, f)
+		output.rewind(pos)
+	}
+}
+
+func (n *rangeNode) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type quantifier struct {
@@ -1290,8 +1546,73 @@ func (n *quantifier) merge(other node) {
 }
 
 func (n *quantifier) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	start := output.position()
+
+	n.recursiveVisit(1, output, from, to, func(match node, mFrom, mTo int) {
+		pos := output.position()
+		output.yield(n, from, mTo, n.isEnd(), false)
+		f(n, from, mTo)
+		n.visitNested(output, mTo + 1, to, f)
+		output.rewind(pos)
+	})
+
+	output.rewind(start)
+
+	if n.From == 0 && n.More {
+		// TODO : how to return zero match?
+		_, mTo := output.lastMatch()
+		ok := true
+
+		if ok {
+			output.yield(n, mTo, mTo, n.isEnd(), false)
+		} else {
+			output.yield(n, from, from, n.isEnd(), true)
+		}
+
+		n.visitNested(output, from, to, f)
+	}
+
+	output.rewind(start)
+}
+
+func (n *quantifier) recursiveVisit(count int, output output, from, to int, f visitor) {
+	n.Value.visit(output, from, to, func(match node, mFrom, mTo int) {
+		if n.To == nil || *n.To >= count {
+			if n.inBounds(count) {
+				f(match, mFrom, mTo)
+			}
+
+			next := count + 1
+
+			if n.To == nil || *n.To >= next {
+				n.recursiveVisit(next, output, mTo + 1, to, f)
+			}
+		}
+	})
+}
+
+func (n *quantifier) inBounds(q int) bool {
+	if n.From > q {
+		return false
+	}
+
+	if !n.More && n.From != q {
+		return false
+	}
+
+	if n.To != nil && *n.To > q {
+		return false
+	}
+
+	return true
+}
+
+func (n *quantifier) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type positiveSet struct {
@@ -1336,14 +1657,35 @@ func (n *positiveSet) walk(f func(node)) {
 	}
 }
 
-func (n *positiveSet) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
-}
-
 func (n *positiveSet) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
 	n.Expressions.merge(other.getExpressions())
+}
+
+func (n *positiveSet) visit(output output, from, to int, f visitor) {
+	// TODO : check size
+
+	// TODO : cache isEnd before loop?
+
+	for _, item := range n.Value {
+		pos := output.position()
+
+		item.visit(output, from, to, func(match node, mFrom, mTo int) {
+			output.yield(n, from, mTo, n.isEnd(), false)
+			f(n, from, mTo)
+			n.visitNested(output, mTo + 1, to, f)
+		})
+
+		output.rewind(pos)
+	}
+}
+
+func (n *positiveSet) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type negativeSet struct {
@@ -1394,8 +1736,37 @@ func (n *negativeSet) merge(other node) {
 }
 
 func (n *negativeSet) visit(output output, from, to int, f visitor) {
-	// TODO : implement it
-	return
+	// TODO : check size
+
+	// TODO : cache isEnd before loop?
+
+	for _, item := range n.Value {
+		pos := output.position()
+		matched := false
+
+		item.visit(output, from, to, func(_ node, _, _ int) {
+			matched = true
+		})
+
+		if matched {
+			output.rewind(pos)
+			return
+		}
+
+		output.yield(n, from, from, n.isEnd(), false)
+		f(n, from, from)
+		n.visitNested(output, from + 1, to, f)
+
+		output.rewind(pos)
+	}
+}
+
+func (n *negativeSet) visitNested(output output, from, to int, f visitor) {
+	for _, nested := range n.Nested {
+		pos := output.position()
+		nested.visit(output, from, to, f)
+		output.rewind(pos)
+	}
 }
 
 type simpleBuffer struct {
@@ -1421,6 +1792,14 @@ func (b *simpleBuffer) Read(greedy bool) (rune, error) {
 	return x, nil
 }
 
+func (b *simpleBuffer) ReadAt(idx int) (rune, error) {
+	if idx >= len(b.data) {
+		return -1, errors.New("out of bounds")
+	}
+
+	return b.data[idx], nil
+}
+
 // Seek - change buffer position
 func (b *simpleBuffer) Seek(x int) {
 	b.position = x
@@ -1437,7 +1816,10 @@ func (b *simpleBuffer) IsEOF() bool {
 }
 
 // newBuffer - make buffer which can read text on input
-func newBuffer(str string) c.Buffer[rune, int] {
+
+var _ c.Buffer[rune, int] = &simpleBuffer{}
+
+func newBuffer(str string) *simpleBuffer {
 	b := new(simpleBuffer)
 	b.data = []rune(str)
 	b.position = 0
@@ -1781,10 +2163,10 @@ func parseEscapedSpecSymbols() parser {
 	symbols := ".?+*^$[]{}()"
 	cases := make(map[rune]parser)
 
-	for _, symbol := range symbols {
-		cases[symbol] = func(buf c.Buffer[rune, int]) (node, error) {
+	for _, r := range symbols {
+		cases[r] = func(buf c.Buffer[rune, int]) (node, error) {
 			x := char{
-				Value:       string(symbol),
+				Value:       r,
 				Nested:      make(index, 0),
 				Expressions: make(dict, 0),
 			}
@@ -1944,7 +2326,7 @@ func parseCharacter(except ...rune) parser {
 		}
 
 		x := char{
-			Value:       string(c),
+			Value:       c,
 			Expressions: make(dict, 0),
 			Nested:      make(index, 0),
 		}
