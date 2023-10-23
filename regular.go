@@ -37,27 +37,29 @@ type Match interface {
 	Groups() []string
 }
 
-// TODO : rename interface?
-type input interface {
+type TextReader interface {
 	ReadAt(int) (rune, error)
 }
 
-// TODO : rename interface?
-type output interface {
-	input() input
-	yield(n node, from, to int, isLeaf, isEmpty bool)
-	position() int
-	rewind(size int)
-	lastMatch() (int, int)
+type Handler interface {
+	Input() TextReader
+	Position() int
+	FirstMatch() (int, int)
+	LastMatch() (int, int)
 
-	startNamedGroup(name string, index int)
-	endNamedGroup(name string, index int)
-	deleteNamedGroup(name string)
+	Rewind(size int)
+	Match(n node, from, to int, isLeaf, isEmpty bool)
 
-	startGroup(name string, index int)
-	endGroup(name string, index int)
-	deleteGroup(name string)
+	StartNamedGroup(name string, index int)
+	EndNamedGroup(name string, index int)
+	DeleteNamedGroup(name string)
+
+	StartGroup(name string, index int)
+	EndGroup(name string, index int)
+	DeleteGroup(name string)
 }
+
+type Callback func(x node, from int, to int)
 
 // buffer for groups captures
 type captures struct {
@@ -66,15 +68,23 @@ type captures struct {
 	order []string
 }
 
-func (c *captures) IsEmpty() bool {
+func newCaptures() captures {
+	return captures{
+		from: make(map[string]int),
+		to: make(map[string]int),
+		order: make([]string, 0),
+	}
+}
+
+func (c captures) IsEmpty() bool {
 	return len(c.order) == 0
 }
 
-func (c *captures) Size() int {
+func (c captures) Size() int {
 	return len(c.order)
 }
 
-func (c *captures) From(name string, index int) {
+func (c captures) From(name string, index int) {
 	if _, exists := c.from[name]; exists {
 		return
 	}
@@ -83,13 +93,13 @@ func (c *captures) From(name string, index int) {
 	c.order = append(c.order, name)
 }
 
-func (c *captures) To(name string, index int) {
+func (c captures) To(name string, index int) {
 	if _, exists := c.from[name]; exists {
 		c.to[name] = index
 	}
 }
 
-func (c *captures) Delete(name string) {
+func (c captures) Delete(name string) {
 	delete(c.from, name)
 	delete(c.to, name)
 	// TODO : maybe use map + slice for faster remove?
@@ -97,7 +107,7 @@ func (c *captures) Delete(name string) {
 }
 
 // TODO : check defaultFinish must be optional?
-func (c *captures) ToSlice(defaultFinish int) []bounds {
+func (c captures) ToSlice(defaultFinish int) []bounds {
 	result := make([]bounds, 0, len(c.to))
 
 	var (
@@ -125,7 +135,7 @@ func (c *captures) ToSlice(defaultFinish int) []bounds {
 }
 
 // TODO : rename method to lower case?
-func (c *captures) ToMap(defaultFinish int) map[string]bounds {
+func (c captures) ToMap(defaultFinish int) map[string]bounds {
 	result := make(map[string]bounds, len(c.to))
 
 	var (
@@ -163,7 +173,7 @@ func newList[T any](cap int) *list[T] {
 	return l
 }
 
-func (l list[T]) push(item T) {
+func (l list[T]) append(item T) {
 	if l.pos >= len(l.data) {
 		l.data = append(l.data, item)
 	} else {
@@ -216,6 +226,7 @@ func remove[T comparable](l []T, item T) []T {
 	return l
 }
 
+// TODO : use bounds in quantifiers?
 type bounds struct {
 	from, to int
 }
@@ -301,70 +312,40 @@ type match struct {
 }
 
 type fullScanner struct {
-	input   input
-	output  func(*FullMatch)
+	onMatch func(node, int, int)
 	matches list[match]
-
 	groups      captures
 	namedGroups captures
-	callback    func(node, int, int)
 }
 
-func newScanner(str string, output func(*FullMatch), cb func(node, int, int)) *fullScanner {
+func newFullScanner(onMatch func(node, int, int)) *fullScanner {
 	s := new(fullScanner)
-	s.input = newBuffer(str)
-	s.output = output
+	s.onMatch = onMatch
 	s.matches = *newList[match](100) // pointer?
-	s.callback = cb
+	s.groups = newCaptures()
+	s.namedGroups = newCaptures()
 	return s
 }
 
-type FullMatch struct {
-	data        string
-	from        int
-	to          int
-	node        node
-	groups      []bounds
-	namedGroups map[string]bounds
-	empty       bool
-}
-
-func (s *fullScanner) yield(n node, from, to int, isLeaf, isEmpty bool) {
+func (s *fullScanner) Match(n node, from, to int, isLeaf, isEmpty bool) {
 	m := match{
 		from: from,
 		to:   to,
 		node: n,
 	}
 
-	s.matches.push(m)
+	s.matches.append(m)
 
 	if isLeaf {
-		start := s.matches.first()
-
-		match := FullMatch{
-			// add subString method?
-			// data:        s.input,
-			from:        start.from,
-			to:          to,
-			node:        m.node,
-			groups:      s.groups.ToSlice(m.to),
-			namedGroups: s.groups.ToMap(m.to),
-			empty:       isEmpty,
-		}
-
-		if s.callback != nil {
-			s.callback(n, from, to)
-		}
-
-		s.output(&match)
+		s.onMatch(n, from, to)
 	}
 }
 
-func (s *fullScanner) position() int {
+func (s *fullScanner) Position() int {
 	return s.matches.size()
 }
 
-func (s *fullScanner) rewind(size int) {
+func (s *fullScanner) Rewind(size int) {
 	if s.matches.size() < size {
 		return
 	}
@@ -372,7 +353,16 @@ func (s *fullScanner) rewind(size int) {
 	s.matches.truncate(size)
 }
 
-func (s *fullScanner) lastMatch() *match {
+func (s *fullScanner) FirstMatch() *match {
+	if s.matches.size() > 0 {
+		return s.matches.first()
+	}
+
+	return nil
+}
+
+// TODO : add second result like (*match, bool) ?
+func (s *fullScanner) LastMatch() *match {
 	if s.matches.size() > 0 {
 		return s.matches.last()
 	}
@@ -380,27 +370,29 @@ func (s *fullScanner) lastMatch() *match {
 	return nil
 }
 
-func (s *fullScanner) startNamedGroup(name string, index int) {
+func (s *fullScanner) StartNamedGroup(name string, index int) {
 	s.namedGroups.From(name, index)
 }
 
-func (s *fullScanner) endNamedGroup(name string, index int) {
+// TODO : rename to matchNamedGroup?
+func (s *fullScanner) EndNamedGroup(name string, index int) {
 	s.namedGroups.To(name, index)
 }
 
-func (s *fullScanner) deleteNamedGroup(name string) {
+func (s *fullScanner) DeleteNamedGroup(name string) {
 	s.namedGroups.Delete(name)
 }
 
-func (s *fullScanner) startGroup(name string, index int) {
+func (s *fullScanner) StartGroup(name string, index int) {
 	s.groups.From(name, index)
 }
 
-func (s *fullScanner) endGroup(name string, index int) {
+// TODO : rename to matchGroup?
+func (s *fullScanner) EndGroup(name string, index int) {
 	s.groups.To(name, index)
 }
 
-func (s *fullScanner) deleteGroup(name string) {
+func (s *fullScanner) DeleteGroup(name string) {
 	s.groups.Delete(name)
 }
 
@@ -410,12 +402,12 @@ type node interface {
 	getNestedNodes() index
 	isEnd() bool
 
-	visit(output, int, int, visitor)
+	match(Handler, int, int, Callback)
 	merge(node)
 	walk(func(node))
 }
 
-type visitor func(node, int, int)
+type scanor func(node, int, int)
 
 type trie struct {
 	nodes index
@@ -463,9 +455,9 @@ func (t *trie) Size() int {
 }
 
 func (t *trie) MarshalJSON() ([]byte, error) {
-	output := bytes.NewBuffer(nil)
+	scanner := bytes.NewBuffer(nil)
 
-	encoder := json.NewEncoder(output)
+	encoder := json.NewEncoder(scanner)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", " ")
 	err := encoder.Encode(t.nodes)
@@ -473,7 +465,7 @@ func (t *trie) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	return output.Bytes(), nil
+	return scanner.Bytes(), nil
 }
 
 func (t *trie) String() string {
@@ -499,6 +491,71 @@ func (t *trie) addExpression(str string, newNode node) {
 	} else {
 		t.nodes[key] = newNode
 	}
+}
+
+func (t *trie) Match(text string) ([]FullMatch, error) {
+	if len(text) == 0 {
+		return nil, nil
+	}
+
+	// out := func(match *FullMatch) {
+	// 	return nil
+	// }
+
+	// cb := func(n node, from int, to int) {
+
+	// }
+
+	// scanner := newScanner(exp, scanner, cb)
+
+	return nil, nil
+}
+
+type FullMatch struct {
+	data        string
+	from        int
+	to          int
+	groups      []bounds
+	namedGroups map[string]bounds
+	empty       bool
+}
+
+func (t *trie) scan(onMatch scanor) {
+	// start := s.matches.first()
+
+	// match := FullMatch{
+	// 	// add subString method?
+	// 	// data:        s.input,
+	// 	from:        start.from,
+	// 	to:          to,
+	// 	node:        m.node,
+	// 	groups:      s.groups.ToSlice(m.to),
+	// 	namedGroups: s.groups.ToMap(m.to),
+	// 	empty:       isEmpty,
+	// }
+
+	// out := func(n node, from, to int) {
+	// 	start := 1
+
+	// 	match := FullMatch{
+	// 		// add subString method?
+	// 		// data:        s.input,
+	// 		from:        start.from,
+	// 		to:          to,
+	// 		node:        m.node,
+	// 		groups:      s.groups.ToSlice(m.to),
+	// 		namedGroups: s.groups.ToMap(m.to),
+	// 		empty:       isEmpty,
+	// 	}
+
+	// 	return nil
+	// }
+
+	// cb := func(n node, from int, to int) {
+
+	// }
+
+	// scanner := newScanner(exp, scanner)
 }
 
 type union struct {
@@ -576,45 +633,45 @@ func (n *union) merge(x node) {
 	panic(fmt.Sprintf("union can't be merged with : %v", x))
 }
 
-func (n *union) visit(output output, from, to int, f visitor) {
+func (n *union) match(handler Handler, from, to int, f Callback) {
 	// TODO : implement it
 	return
 }
 
-func (n *union) visitUnion(
-	output output,
+func (n *union) matchUnion(
+	handler Handler,
 	id string,
 	from, to int,
-	f visitor,
-	match func(string, int),
+	onMatch Callback,
+	onMatchVariant func(string, int),
 ) {
 	// TODO : check length?
 
-	n.visitVariants(output, from, to, func(variant node, vFrom, vTo int) {
-		match(id, vTo)
+	n.scanVariants(handler, from, to, func(variant node, vFrom, vTo int) {
+		onMatchVariant(id, vTo)
 
 		if _, exists := n.lastNodes[variant]; exists {
-			output.yield(variant, vFrom, vTo, n.isEnd(), false) // TODO : what is empty?
-			f(variant, vFrom, vTo)
+			handler.Match(variant, vFrom, vTo, n.isEnd(), false) // TODO : what is empty?
+			onMatch(variant, vFrom, vTo)
 
 			// TODO : why + 1?
-			n.visitNested(output, vFrom, vTo+1, func(nested node, nFrom, nTo int) {
-				f(nested, nFrom, nTo)
-				output.yield(nested, nFrom, nTo, n.isEnd(), false)
+			n.matchNested(handler, vFrom, vTo+1, func(nested node, nFrom, nTo int) {
+				onMatch(nested, nFrom, nTo)
+				handler.Match(nested, nFrom, nTo, n.isEnd(), false)
 			})
 		}
 	})
 }
 
-func (n *union) visitVariants(output output, from, to int, f visitor) {
+func (n *union) scanVariants(handler Handler, from, to int, f Callback) {
 	for _, variant := range n.Value {
-		position := output.position()
-		variant.visit(output, from, to, f)
-		output.rewind(position)
+		position := handler.Position()
+		variant.match(handler, from, to, f)
+		handler.Rewind(position)
 	}
 }
 
-func (n *union) visitNested(output output, from, to int, f visitor) {
+func (n *union) matchNested(handler Handler, from, to int, f Callback) {
 	// how to traverse nested without nested?
 	return
 }
@@ -658,10 +715,10 @@ func (n *group) walk(f func(node)) {
 	}
 }
 
-func (n *group) visit(output output, from, to int, f visitor) {
-	output.startGroup(n.uniqID, from)
-	n.Value.visitUnion(output, n.uniqID, from, to, f, output.endGroup)
-	output.deleteGroup(n.uniqID)
+func (n *group) match(handler Handler, from, to int, f Callback) {
+	handler.StartGroup(n.uniqID, from)
+	n.Value.matchUnion(handler, n.uniqID, from, to, f, handler.EndNamedGroup)
+	handler.DeleteGroup(n.uniqID)
 }
 
 type namedGroup struct {
@@ -700,10 +757,10 @@ func (n *namedGroup) walk(f func(node)) {
 	}
 }
 
-func (n *namedGroup) visit(output output, from, to int, f visitor) {
-	output.startNamedGroup(n.Name, from)
-	n.Value.visitUnion(output, n.Name, from, to, f, output.endNamedGroup)
-	output.deleteNamedGroup(n.Name)
+func (n *namedGroup) match(handler Handler, from, to int, f Callback) {
+	handler.StartNamedGroup(n.Name, from)
+	n.Value.matchUnion(handler, n.Name, from, to, f, handler.EndNamedGroup)
+	handler.DeleteNamedGroup(n.Name)
 }
 
 type notCapturedGroup struct {
@@ -741,9 +798,9 @@ func (n *notCapturedGroup) walk(f func(node)) {
 	}
 }
 
-func (n *notCapturedGroup) visit(output output, from, to int, f visitor) {
+func (n *notCapturedGroup) match(handler Handler, from, to int, f Callback) {
 	// optimize and remove stub f?
-	n.Value.visitUnion(output, "", from, to, f, func(_ string, _ int) {})
+	n.Value.matchUnion(handler, "", from, to, f, func(_ string, _ int) {})
 }
 
 type char struct {
@@ -781,27 +838,27 @@ func (n *char) walk(f func(node)) {
 	}
 }
 
-func (n *char) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *char) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if x == n.Value {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *char) visitNested(output output, from, to int, f visitor) {
+func (n *char) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -840,27 +897,27 @@ func (n *dot) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *dot) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *dot) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if x != '\n' {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *dot) visitNested(output output, from, to int, f visitor) {
+func (n *dot) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -898,27 +955,27 @@ func (n *digit) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *digit) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *digit) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if unicode.IsDigit(x) {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *digit) visitNested(output output, from, to int, f visitor) {
+func (n *digit) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -956,27 +1013,27 @@ func (n *nonDigit) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *nonDigit) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *nonDigit) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if !unicode.IsDigit(x) {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *nonDigit) visitNested(output output, from, to int, f visitor) {
+func (n *nonDigit) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1014,27 +1071,27 @@ func (n *word) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *word) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *word) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x) {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *word) visitNested(output output, from, to int, f visitor) {
+func (n *word) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1072,27 +1129,27 @@ func (n *nonWord) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *nonWord) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *nonWord) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if !(x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x)) {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *nonWord) visitNested(output output, from, to int, f visitor) {
+func (n *nonWord) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1130,27 +1187,27 @@ func (n *space) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *space) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *space) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if unicode.IsSpace(x) {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *space) visitNested(output output, from, to int, f visitor) {
+func (n *space) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1188,27 +1245,27 @@ func (n *nonSpace) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *nonSpace) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *nonSpace) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if !unicode.IsSpace(x) {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *nonSpace) visitNested(output output, from, to int, f visitor) {
+func (n *nonSpace) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1246,22 +1303,22 @@ func (n *startOfLine) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *startOfLine) visit(output output, from, to int, f visitor) {
+func (n *startOfLine) match(handler Handler, from, to int, f Callback) {
 	if from == 0 {
 		return
 	}
 
-	if from == 0 || n.isEndOfLine(output, from-1) { // TODO : check \n\r too
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+	if from == 0 || n.isEndOfLine(handler, from-1) { // TODO : check \n\r too
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *startOfLine) isEndOfLine(output output, idx int) bool {
-	x, err := output.input().ReadAt(idx)
+func (n *startOfLine) isEndOfLine(handler Handler, idx int) bool {
+	x, err := handler.Input().ReadAt(idx)
 	if err != nil {
 		// TODO : just ignore it?
 	}
@@ -1269,11 +1326,11 @@ func (n *startOfLine) isEndOfLine(output output, idx int) bool {
 	return x == '\n'
 }
 
-func (n *startOfLine) visitNested(output output, from, to int, f visitor) {
+func (n *startOfLine) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1311,7 +1368,7 @@ func (n *endOfLine) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *endOfLine) visit(output output, from, to int, f visitor) {
+func (n *endOfLine) match(handler Handler, from, to int, f Callback) {
 	// TODO : implement it
 	return
 }
@@ -1350,21 +1407,21 @@ func (n *startOfString) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *startOfString) visit(output output, from, to int, f visitor) {
+func (n *startOfString) match(handler Handler, from, to int, f Callback) {
 	if from == 0 {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *startOfString) visitNested(output output, from, to int, f visitor) {
+func (n *startOfString) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1402,15 +1459,15 @@ func (n *endOfString) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *endOfString) visit(output output, from, to int, f visitor) {
+func (n *endOfString) match(handler Handler, from, to int, f Callback) {
 	// TODO : implement it
 }
 
-func (n *endOfString) visitNested(output output, from, to int, f visitor) {
+func (n *endOfString) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1450,27 +1507,27 @@ func (n *rangeNode) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *rangeNode) visit(output output, from, to int, f visitor) {
-	x, err := output.input().ReadAt(from)
+func (n *rangeNode) match(handler Handler, from, to int, f Callback) {
+	x, err := handler.Input().ReadAt(from)
 	if err != nil {
 		// TODO : just ignore it?
 		return
 	}
 
 	if x >= n.From && x <= n.To {
-		pos := output.position()
-		output.yield(n, from, from, n.isEnd(), false)
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, from+1, to, f)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *rangeNode) visitNested(output output, from, to int, f visitor) {
+func (n *rangeNode) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1543,38 +1600,38 @@ func (n *quantifier) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *quantifier) visit(output output, from, to int, f visitor) {
-	start := output.position()
+func (n *quantifier) match(handler Handler, from, to int, f Callback) {
+	start := handler.Position()
 
-	n.recursiveVisit(1, output, from, to, func(match node, mFrom, mTo int) {
-		pos := output.position()
-		output.yield(n, from, mTo, n.isEnd(), false)
+	n.recursiveMatch(1, handler, from, to, func(match node, mFrom, mTo int) {
+		pos := handler.Position()
+		handler.Match(n, from, mTo, n.isEnd(), false)
 		f(n, from, mTo)
-		n.visitNested(output, mTo+1, to, f)
-		output.rewind(pos)
+		n.matchNested(handler, mTo+1, to, f)
+		handler.Rewind(pos)
 	})
 
-	output.rewind(start)
+	handler.Rewind(start)
 
 	if n.From == 0 && n.More {
 		// TODO : how to return zero match?
-		_, mTo := output.lastMatch()
+		_, mTo := handler.LastMatch()
 		ok := true
 
 		if ok {
-			output.yield(n, mTo, mTo, n.isEnd(), false)
+			handler.Match(n, mTo, mTo, n.isEnd(), false)
 		} else {
-			output.yield(n, from, from, n.isEnd(), true)
+			handler.Match(n, from, from, n.isEnd(), true)
 		}
 
-		n.visitNested(output, from, to, f)
+		n.matchNested(handler, from, to, f)
 	}
 
-	output.rewind(start)
+	handler.Rewind(start)
 }
 
-func (n *quantifier) recursiveVisit(count int, output output, from, to int, f visitor) {
-	n.Value.visit(output, from, to, func(match node, mFrom, mTo int) {
+func (n *quantifier) recursiveMatch(count int, handler Handler, from, to int, f Callback) {
+	n.Value.match(handler, from, to, func(match node, mFrom, mTo int) {
 		if n.To == nil || *n.To >= count {
 			if n.inBounds(count) {
 				f(match, mFrom, mTo)
@@ -1583,7 +1640,7 @@ func (n *quantifier) recursiveVisit(count int, output output, from, to int, f vi
 			next := count + 1
 
 			if n.To == nil || *n.To >= next {
-				n.recursiveVisit(next, output, mTo+1, to, f)
+				n.recursiveMatch(next, handler, mTo+1, to, f)
 			}
 		}
 	})
@@ -1605,11 +1662,11 @@ func (n *quantifier) inBounds(q int) bool {
 	return true
 }
 
-func (n *quantifier) visitNested(output output, from, to int, f visitor) {
+func (n *quantifier) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1660,29 +1717,28 @@ func (n *positiveSet) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *positiveSet) visit(output output, from, to int, f visitor) {
+func (n *positiveSet) match(handler Handler, from, to int, f Callback) {
 	// TODO : check size
-
 	// TODO : cache isEnd before loop?
 
 	for _, item := range n.Value {
-		pos := output.position()
+		pos := handler.Position()
 
-		item.visit(output, from, to, func(match node, mFrom, mTo int) {
-			output.yield(n, from, mTo, n.isEnd(), false)
+		item.match(handler, from, to, func(match node, mFrom, mTo int) {
+			handler.Match(n, from, mTo, n.isEnd(), false)
 			f(n, from, mTo)
-			n.visitNested(output, mTo+1, to, f)
+			n.matchNested(handler, mTo+1, to, f)
 		})
 
-		output.rewind(pos)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *positiveSet) visitNested(output output, from, to int, f visitor) {
+func (n *positiveSet) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1733,37 +1789,37 @@ func (n *negativeSet) merge(other node) {
 	n.Expressions.merge(other.getExpressions())
 }
 
-func (n *negativeSet) visit(output output, from, to int, f visitor) {
+func (n *negativeSet) match(handler Handler, from, to int, f Callback) {
 	// TODO : check size
-
 	// TODO : cache isEnd before loop?
 
 	for _, item := range n.Value {
-		pos := output.position()
+		pos := handler.Position()
 		matched := false
 
-		item.visit(output, from, to, func(_ node, _, _ int) {
+		item.match(handler, from, to, func(_ node, _, _ int) {
+			// TODO : how to propper stop it to avoid pointless iteration?
 			matched = true
 		})
 
 		if matched {
-			output.rewind(pos)
+			handler.Rewind(pos)
 			return
 		}
 
-		output.yield(n, from, from, n.isEnd(), false)
+		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from+1, to, f)
+		n.matchNested(handler, from+1, to, f)
 
-		output.rewind(pos)
+		handler.Rewind(pos)
 	}
 }
 
-func (n *negativeSet) visitNested(output output, from, to int, f visitor) {
+func (n *negativeSet) matchNested(handler Handler, from, to int, f Callback) {
 	for _, nested := range n.Nested {
-		pos := output.position()
-		nested.visit(output, from, to, f)
-		output.rewind(pos)
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
 	}
 }
 
@@ -1828,8 +1884,9 @@ type Trie interface {
 	Add(...string) error
 	Size() int
 	MarshalJSON() ([]byte, error)
+	String() string
+	Match(string) ([]FullMatch, error)
 	// IsInclude(string) bool
-	// Match(string) (MatchedData, error)
 	// IsMatched(string) (bool, error)
 }
 
