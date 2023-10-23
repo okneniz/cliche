@@ -598,7 +598,7 @@ func (n *union) visitUnion(
 			f(variant, vFrom, vTo)
 
 			// TODO : why + 1?
-			n.visitNested(output, vFrom, vTo + 1, func(nested node, nFrom, nTo int) {
+			n.visitNested(output, vFrom, vTo+1, func(nested node, nFrom, nTo int) {
 				f(nested, nFrom, nTo)
 				output.yield(nested, nFrom, nTo, n.isEnd(), false)
 			})
@@ -618,7 +618,6 @@ func (n *union) visitNested(output output, from, to int, f visitor) {
 	// how to traverse nested without nested?
 	return
 }
-
 
 // is (foo|bar) is equal (bar|foo) ?
 // (fo|f)(o|oo)
@@ -748,9 +747,9 @@ func (n *notCapturedGroup) visit(output output, from, to int, f visitor) {
 }
 
 type char struct {
-	Value       rune `json:"value,omitempty"`
-	Expressions dict   `json:"expressions,omitempty"`
-	Nested      index  `json:"nested,omitempty"`
+	Value       rune  `json:"value,omitempty"`
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
 }
 
 func (n *char) getKey() string {
@@ -864,7 +863,6 @@ func (n *dot) visitNested(output output, from, to int, f visitor) {
 		output.rewind(pos)
 	}
 }
-
 
 type digit struct {
 	Expressions dict  `json:"expressions,omitempty"`
@@ -1253,7 +1251,7 @@ func (n *startOfLine) visit(output output, from, to int, f visitor) {
 		return
 	}
 
-	if from == 0 || n.isEndOfLine(output, from - 1) { // TODO : check \n\r too
+	if from == 0 || n.isEndOfLine(output, from-1) { // TODO : check \n\r too
 		pos := output.position()
 		output.yield(n, from, from, n.isEnd(), false)
 		f(n, from, from)
@@ -1552,7 +1550,7 @@ func (n *quantifier) visit(output output, from, to int, f visitor) {
 		pos := output.position()
 		output.yield(n, from, mTo, n.isEnd(), false)
 		f(n, from, mTo)
-		n.visitNested(output, mTo + 1, to, f)
+		n.visitNested(output, mTo+1, to, f)
 		output.rewind(pos)
 	})
 
@@ -1585,7 +1583,7 @@ func (n *quantifier) recursiveVisit(count int, output output, from, to int, f vi
 			next := count + 1
 
 			if n.To == nil || *n.To >= next {
-				n.recursiveVisit(next, output, mTo + 1, to, f)
+				n.recursiveVisit(next, output, mTo+1, to, f)
 			}
 		}
 	})
@@ -1673,7 +1671,7 @@ func (n *positiveSet) visit(output output, from, to int, f visitor) {
 		item.visit(output, from, to, func(match node, mFrom, mTo int) {
 			output.yield(n, from, mTo, n.isEnd(), false)
 			f(n, from, mTo)
-			n.visitNested(output, mTo + 1, to, f)
+			n.visitNested(output, mTo+1, to, f)
 		})
 
 		output.rewind(pos)
@@ -1755,7 +1753,7 @@ func (n *negativeSet) visit(output output, from, to int, f visitor) {
 
 		output.yield(n, from, from, n.isEnd(), false)
 		f(n, from, from)
-		n.visitNested(output, from + 1, to, f)
+		n.visitNested(output, from+1, to, f)
 
 		output.rewind(pos)
 	}
