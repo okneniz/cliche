@@ -32,20 +32,23 @@ import (
 type Match interface {
 	From() int
 	To() int
-	String() string
-	NamedGroups() map[string]string
-	Groups() []string
+	Size() int
+	// String() string
+	// NamedGroups() map[string]string
+	// Groups() []string
 }
 
-type TextReader interface {
+type TextBuffer interface {
 	ReadAt(int) (rune, error)
+	Size() int
+	Substring(int, int) (string, error)
 }
 
 type Handler interface {
-	Input() TextReader
+	Input() TextBuffer
 	Position() int
-	FirstMatch() (int, int)
-	LastMatch() (int, int)
+	// FirstMatch() (int, int)
+	LastMatch() *match // todo use (int, int) instead?
 
 	Rewind(size int)
 	Match(n node, from, to int, isLeaf, isEmpty bool)
@@ -62,6 +65,7 @@ type Handler interface {
 type Callback func(x node, from int, to int)
 
 // buffer for groups captures
+// TODO : use pointers instead string for unnamed groups?
 type captures struct {
 	from  map[string]int
 	to    map[string]int
@@ -238,13 +242,11 @@ func (b bounds) size() int {
 type boundsList struct {
 	data map[int]Match
 	max  Match
-	f    func(Match) bounds // TODO : is it really required?
 }
 
-func newBoundsList(f func(Match) bounds) *boundsList {
+func newBoundsList() *boundsList {
 	b := new(boundsList)
 	b.data = make(map[int]Match)
-	b.f = f
 	return b
 }
 
@@ -258,12 +260,10 @@ func (b *boundsList) clear() {
 }
 
 func (b *boundsList) push(newMatch Match) {
-	x := b.f(newMatch)
-
-	if prevMatch, exists := b.data[x.from]; exists {
-		b.data[x.from] = b.longestMatch(prevMatch, newMatch)
+	if prevMatch, exists := b.data[newMatch.From()]; exists {
+		b.data[newMatch.From()] = b.longestMatch(prevMatch, newMatch)
 	} else {
-		b.data[x.from] = newMatch
+		b.data[newMatch.From()] = newMatch
 	}
 
 	if b.max == nil {
@@ -277,27 +277,22 @@ func (b *boundsList) maximum() Match {
 	return b.max
 }
 
-// TODO : rename to earlist or longest match?
 func (b *boundsList) longestMatch(x, y Match) Match {
-	xBounds := b.f(x)
-	yBounds := b.f(y)
-
-	// TODO : without bounds? only match? without b.f ?
-
-	if xBounds.from < yBounds.from {
+	if x.From() < y.From() {
 		return x
 	}
 
-	if xBounds.size() > yBounds.size() {
+	if x.Size() > y.Size() {
 		return x
 	}
 
-	if xBounds.from == yBounds.from {
+	if x.From() == y.From() {
 		return y
 	}
 
-	// is it duplication?
-	if xBounds.size() > yBounds.size() {
+	// looks like duplication
+	// just remove it?
+	if x.Size() > y.Size() {
 		return x
 	}
 
@@ -311,20 +306,40 @@ type match struct {
 	node node
 }
 
+func (m match) From() int {
+	return m.from
+}
+
+func (m match) To() int {
+	return m.to
+}
+
+func (m match) Size() int {
+	return m.to - m.from
+}
+
 type fullScanner struct {
+	input TextBuffer
 	onMatch func(node, int, int)
 	matches list[match]
 	groups      captures
 	namedGroups captures
 }
 
-func newFullScanner(onMatch func(node, int, int)) *fullScanner {
+var _ Handler = new(fullScanner)
+
+func newFullScanner(text TextBuffer, onMatch func(node, int, int)) *fullScanner {
 	s := new(fullScanner)
+	s.input = text
 	s.onMatch = onMatch
 	s.matches = *newList[match](100) // pointer?
 	s.groups = newCaptures()
 	s.namedGroups = newCaptures()
 	return s
+}
+
+func (s *fullScanner) Input() TextBuffer {
+	return s.input
 }
 
 func (s *fullScanner) Match(n node, from, to int, isLeaf, isEmpty bool) {
@@ -407,7 +422,7 @@ type node interface {
 	walk(func(node))
 }
 
-type scanor func(node, int, int)
+type scaner func(node, int, int)
 
 type trie struct {
 	nodes index
@@ -498,64 +513,91 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 		return nil, nil
 	}
 
-	// out := func(match *FullMatch) {
-	// 	return nil
-	// }
+	input := newBuffer(text)
 
-	// cb := func(n node, from int, to int) {
+	t.Scan(input, func(x node, from, to int) {
+		fmt.Println("match", x, from, to)
+	})
 
-	// }
+	return nil, nil
+}
 
-	// scanner := newScanner(exp, scanner, cb)
+func (t *trie) Scan(buffer TextBuffer, onMatch Callback) ([]FullMatch, error) {
+	list := newBoundsList()
+	scanner := newFullScanner(buffer, onMatch)
+
+	from := 0
+	to := buffer.Size() - 1
+
+	for _, n := range t.nodes {
+		nextFrom := from
+		nextTo := to
+
+		for nextFrom <= nextTo {
+			n.match(scanner, nextFrom, nextTo, func(n node, from, to int) {
+				list.push(
+					match{
+						from: from,
+						to: to,
+						node: n,
+					},
+				)
+
+				onMatch(n, from, to)
+			})
+
+			longestMatch := list.maximum()
+
+			if longestMatch != nil {
+				nextFrom = longestMatch.To() + 1
+			} else {
+				nextFrom += 1
+			}
+
+			scanner.Rewind(0)
+			list.clear()
+		}
+	}
 
 	return nil, nil
 }
 
 type FullMatch struct {
-	data        string
+	subString   string
 	from        int
 	to          int
-	groups      []bounds
-	namedGroups map[string]bounds
-	empty       bool
+	groups      []string
+	namedGroups map[string]string
+	// is it really required?
+	empty       bool // required for empty matches like .? or .*
 }
 
-func (t *trie) scan(onMatch scanor) {
-	// start := s.matches.first()
+func (m *FullMatch) From() int {
+	return m.from
+}
 
-	// match := FullMatch{
-	// 	// add subString method?
-	// 	// data:        s.input,
-	// 	from:        start.from,
-	// 	to:          to,
-	// 	node:        m.node,
-	// 	groups:      s.groups.ToSlice(m.to),
-	// 	namedGroups: s.groups.ToMap(m.to),
-	// 	empty:       isEmpty,
-	// }
+func (m *FullMatch) To() int{
+	return m.to
+}
 
-	// out := func(n node, from, to int) {
-	// 	start := 1
+func (m *FullMatch) Size() int {
+	if m.empty {
+		return 0
+	}
 
-	// 	match := FullMatch{
-	// 		// add subString method?
-	// 		// data:        s.input,
-	// 		from:        start.from,
-	// 		to:          to,
-	// 		node:        m.node,
-	// 		groups:      s.groups.ToSlice(m.to),
-	// 		namedGroups: s.groups.ToMap(m.to),
-	// 		empty:       isEmpty,
-	// 	}
+	return m.to - m.from
+}
 
-	// 	return nil
-	// }
+func (m *FullMatch) String() string{
+	return m.subString
+}
 
-	// cb := func(n node, from int, to int) {
+func (m *FullMatch) NamedGroups() map[string]string{
+	return m.namedGroups
+}
 
-	// }
-
-	// scanner := newScanner(exp, scanner)
+func (m *FullMatch) Groups() []string{
+	return m.groups
 }
 
 type union struct {
@@ -651,7 +693,7 @@ func (n *union) matchUnion(
 		onMatchVariant(id, vTo)
 
 		if _, exists := n.lastNodes[variant]; exists {
-			handler.Match(variant, vFrom, vTo, n.isEnd(), false) // TODO : what is empty?
+			handler.Match(variant, vFrom, vTo, n.isEnd(), false)
 			onMatch(variant, vFrom, vTo)
 
 			// TODO : why + 1?
@@ -1613,13 +1655,12 @@ func (n *quantifier) match(handler Handler, from, to int, f Callback) {
 
 	handler.Rewind(start)
 
+	// for zero matches like .? or .* or .{0,X}
 	if n.From == 0 && n.More {
-		// TODO : how to return zero match?
-		_, mTo := handler.LastMatch()
-		ok := true
+		m := handler.LastMatch()
 
-		if ok {
-			handler.Match(n, mTo, mTo, n.isEnd(), false)
+		if m != nil {
+			handler.Match(n, m.to, m.to, n.isEnd(), false)
 		} else {
 			handler.Match(n, from, from, n.isEnd(), true)
 		}
@@ -1854,6 +1895,18 @@ func (b *simpleBuffer) ReadAt(idx int) (rune, error) {
 	return b.data[idx], nil
 }
 
+func (b *simpleBuffer) Size() int { // TODO : check for another runes
+	return len(b.data)
+}
+
+func (b *simpleBuffer) Substring(from, to int) (string, error) {
+	if from < 0 || from < to || from >= len(b.data) || to >= len(b.data) {
+		return "", errors.New("out of bounds buffer")
+	}
+
+	return string(b.data[from:to]), nil
+}
+
 // Seek - change buffer position
 func (b *simpleBuffer) Seek(x int) {
 	b.position = x
@@ -1886,8 +1939,6 @@ type Trie interface {
 	MarshalJSON() ([]byte, error)
 	String() string
 	Match(string) ([]FullMatch, error)
-	// IsInclude(string) bool
-	// IsMatched(string) (bool, error)
 }
 
 var _ Trie = new(trie)
