@@ -33,9 +33,6 @@ type Match interface {
 	From() int
 	To() int
 	Size() int
-	// String() string
-	// NamedGroups() map[string]string
-	// Groups() []string
 }
 
 type TextBuffer interface {
@@ -45,13 +42,18 @@ type TextBuffer interface {
 }
 
 type Handler interface {
-	Input() TextBuffer
-	Position() int
-	// FirstMatch() (int, int)
-	LastMatch() *match // todo use (int, int) instead?
+	Input() TextBuffer // TODO : add like argument to match function?
 
-	Rewind(size int)
 	Match(n node, from, to int, isLeaf, isEmpty bool)
+
+	FirstMatch() *match
+
+	// TODO : how to remove it?
+	// required only for quantifier
+	LastMatch() *match // TODO : use (int, int) instead?
+
+	Position() int
+	Rewind(size int)
 
 	StartNamedGroup(name string, index int)
 	EndNamedGroup(name string, index int)
@@ -72,23 +74,23 @@ type captures struct {
 	order []string
 }
 
-func newCaptures() captures {
-	return captures{
+func newCaptures() *captures {
+	return &captures{
 		from: make(map[string]int),
 		to: make(map[string]int),
 		order: make([]string, 0),
 	}
 }
 
-func (c captures) IsEmpty() bool {
+func (c *captures) IsEmpty() bool {
 	return len(c.order) == 0
 }
 
-func (c captures) Size() int {
+func (c *captures) Size() int {
 	return len(c.order)
 }
 
-func (c captures) From(name string, index int) {
+func (c *captures) From(name string, index int) {
 	if _, exists := c.from[name]; exists {
 		return
 	}
@@ -97,13 +99,13 @@ func (c captures) From(name string, index int) {
 	c.order = append(c.order, name)
 }
 
-func (c captures) To(name string, index int) {
+func (c *captures) To(name string, index int) {
 	if _, exists := c.from[name]; exists {
 		c.to[name] = index
 	}
 }
 
-func (c captures) Delete(name string) {
+func (c *captures) Delete(name string) {
 	delete(c.from, name)
 	delete(c.to, name)
 	// TODO : maybe use map + slice for faster remove?
@@ -111,7 +113,7 @@ func (c captures) Delete(name string) {
 }
 
 // TODO : check defaultFinish must be optional?
-func (c captures) ToSlice(defaultFinish int) []bounds {
+func (c *captures) ToSlice(defaultFinish int) []bounds {
 	result := make([]bounds, 0, len(c.to))
 
 	var (
@@ -139,7 +141,7 @@ func (c captures) ToSlice(defaultFinish int) []bounds {
 }
 
 // TODO : rename method to lower case?
-func (c captures) ToMap(defaultFinish int) map[string]bounds {
+func (c *captures) ToMap(defaultFinish int) map[string]bounds {
 	result := make(map[string]bounds, len(c.to))
 
 	var (
@@ -177,7 +179,7 @@ func newList[T any](cap int) *list[T] {
 	return l
 }
 
-func (l list[T]) append(item T) {
+func (l *list[T]) append(item T) {
 	if l.pos >= len(l.data) {
 		l.data = append(l.data, item)
 	} else {
@@ -187,19 +189,19 @@ func (l list[T]) append(item T) {
 	l.pos++
 }
 
-func (l list[T]) size() int {
+func (l *list[T]) size() int {
 	return len(l.data)
 }
 
-func (l list[T]) truncate(pos int) {
-	if pos <= 0 {
+func (l *list[T]) truncate(pos int) {
+	if pos < 0 {
 		panic(fmt.Sprintf("invalid position for truncate: %d", pos))
 	}
 
 	l.pos = pos
 }
 
-func (l list[T]) first() *T {
+func (l *list[T]) first() *T {
 	if len(l.data) == 0 {
 		return nil
 	}
@@ -207,7 +209,7 @@ func (l list[T]) first() *T {
 	return &l.data[0]
 }
 
-func (l list[T]) last() *T {
+func (l *list[T]) last() *T {
 	if len(l.data) == 0 {
 		return nil
 	}
@@ -216,7 +218,7 @@ func (l list[T]) last() *T {
 }
 
 // TODO : check bounds in the tests
-func (l list[T]) toSlize() []T {
+func (l *list[T]) toSlize() []T {
 	return l.data[0:l.pos]
 }
 
@@ -320,21 +322,26 @@ func (m match) Size() int {
 
 type fullScanner struct {
 	input TextBuffer
+	groups      *captures
+	namedGroups *captures
 	onMatch func(node, int, int)
 	matches list[match]
-	groups      captures
-	namedGroups captures
 }
 
 var _ Handler = new(fullScanner)
 
-func newFullScanner(text TextBuffer, onMatch func(node, int, int)) *fullScanner {
+func newFullScanner(
+	input TextBuffer,
+	captures *captures,
+	namedCaptures *captures,
+	onMatch func(node, int, int),
+) *fullScanner {
 	s := new(fullScanner)
-	s.input = text
+	s.input = input
+	s.groups = captures
+	s.namedGroups = namedCaptures
 	s.onMatch = onMatch
 	s.matches = *newList[match](100) // pointer?
-	s.groups = newCaptures()
-	s.namedGroups = newCaptures()
 	return s
 }
 
@@ -514,39 +521,72 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 	}
 
 	input := newBuffer(text)
+	matches := newBoundsList()
+	groups := newCaptures()
+	namedGroups := newCaptures()
 
-	t.Scan(input, func(x node, from, to int) {
-		fmt.Println("match", x, from, to)
-	})
+	// DS for best matches - https://web.engr.oregonstate.edu/~erwig/diet/
+	// result := make(map[string]*boundsList)
 
-	return nil, nil
-}
+	var scanner *fullScanner
 
-func (t *trie) Scan(buffer TextBuffer, onMatch Callback) ([]FullMatch, error) {
-	list := newBoundsList()
-	scanner := newFullScanner(buffer, onMatch)
+	scanner = newFullScanner(
+		input,
+		groups,
+		namedGroups,
+		func(n node, from, to int) {
+			fmt.Println("match", n, from, to)
+
+			matches.push(
+				match{
+					from: from,
+					to: to,
+					node: n,
+				},
+			)
+
+			begin := scanner.FirstMatch()
+			end := scanner.LastMatch()
+
+			subStringFrom := begin.From()
+			subStringTo := end.To()
+
+			subString, err := input.Substring(subStringFrom, subStringTo)
+			if err != nil {
+				// TODO : how to handle error
+				fmt.Println("error", err)
+			}
+
+			m := FullMatch{
+				expressions: n.getExpressions().toSlice(),
+				subString: subString,
+				from: subStringFrom,
+				to: subStringTo,
+				groups: groups.ToSlice(0), // TODO : default start?
+				namedGroups: namedGroups.ToMap(0),
+				// empty       bool // TODO : handle it too!
+			}
+
+			fmt.Println("full match", m)
+		},
+	)
 
 	from := 0
-	to := buffer.Size() - 1
+	to := input.Size() - 1
+
+	fmt.Println("input", input.data)
 
 	for _, n := range t.nodes {
 		nextFrom := from
 		nextTo := to
 
+		fmt.Printf("scan '%s' from %d to %d\n", n.getKey(), nextFrom, nextTo)
+
 		for nextFrom <= nextTo {
-			n.match(scanner, nextFrom, nextTo, func(n node, from, to int) {
-				list.push(
-					match{
-						from: from,
-						to: to,
-						node: n,
-					},
-				)
-
-				onMatch(n, from, to)
+			n.match(scanner, nextFrom, nextTo, func(x node, f, t int) {
+				// fmt.Println("wtf", n, f, t, n.isEnd())
 			})
-
-			longestMatch := list.maximum()
+			longestMatch := matches.maximum() // maybe rename to best?
 
 			if longestMatch != nil {
 				nextFrom = longestMatch.To() + 1
@@ -555,7 +595,7 @@ func (t *trie) Scan(buffer TextBuffer, onMatch Callback) ([]FullMatch, error) {
 			}
 
 			scanner.Rewind(0)
-			list.clear()
+			matches.clear()
 		}
 	}
 
@@ -563,11 +603,12 @@ func (t *trie) Scan(buffer TextBuffer, onMatch Callback) ([]FullMatch, error) {
 }
 
 type FullMatch struct {
+	expressions []string
 	subString   string
 	from        int
 	to          int
-	groups      []string
-	namedGroups map[string]string
+	groups      []bounds
+	namedGroups map[string]bounds
 	// is it really required?
 	empty       bool // required for empty matches like .? or .*
 }
@@ -592,11 +633,11 @@ func (m *FullMatch) String() string{
 	return m.subString
 }
 
-func (m *FullMatch) NamedGroups() map[string]string{
+func (m *FullMatch) NamedGroups() map[string]bounds {
 	return m.namedGroups
 }
 
-func (m *FullMatch) Groups() []string{
+func (m *FullMatch) Groups() []bounds {
 	return m.groups
 }
 
@@ -741,7 +782,7 @@ func (n *group) getExpressions() dict {
 }
 
 func (n *group) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *group) merge(other node) {
@@ -783,7 +824,7 @@ func (n *namedGroup) getExpressions() dict {
 }
 
 func (n *namedGroup) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *namedGroup) merge(other node) {
@@ -824,7 +865,7 @@ func (n *notCapturedGroup) getExpressions() dict {
 }
 
 func (n *notCapturedGroup) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *notCapturedGroup) merge(other node) {
@@ -864,7 +905,7 @@ func (n *char) getExpressions() dict {
 }
 
 func (n *char) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *char) merge(other node) {
@@ -923,7 +964,7 @@ func (n *dot) getExpressions() dict {
 }
 
 func (n *dot) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *dot) walk(f func(node)) {
@@ -981,7 +1022,7 @@ func (n *digit) getExpressions() dict {
 }
 
 func (n *digit) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *digit) walk(f func(node)) {
@@ -1039,7 +1080,7 @@ func (n *nonDigit) getExpressions() dict {
 }
 
 func (n *nonDigit) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *nonDigit) walk(f func(node)) {
@@ -1097,7 +1138,7 @@ func (n *word) getExpressions() dict {
 }
 
 func (n *word) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *word) walk(f func(node)) {
@@ -1155,7 +1196,7 @@ func (n *nonWord) getExpressions() dict {
 }
 
 func (n *nonWord) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *nonWord) walk(f func(node)) {
@@ -1213,7 +1254,7 @@ func (n *space) getExpressions() dict {
 }
 
 func (n *space) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *space) walk(f func(node)) {
@@ -1271,7 +1312,7 @@ func (n *nonSpace) getExpressions() dict {
 }
 
 func (n *nonSpace) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *nonSpace) walk(f func(node)) {
@@ -1329,7 +1370,7 @@ func (n *startOfLine) getExpressions() dict {
 }
 
 func (n *startOfLine) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *startOfLine) walk(f func(node)) {
@@ -1394,7 +1435,7 @@ func (n *endOfLine) getExpressions() dict {
 }
 
 func (n *endOfLine) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *endOfLine) walk(f func(node)) {
@@ -1433,7 +1474,7 @@ func (n *startOfString) getExpressions() dict {
 }
 
 func (n *startOfString) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *startOfString) walk(f func(node)) {
@@ -1485,7 +1526,7 @@ func (n *endOfString) getExpressions() dict {
 }
 
 func (n *endOfString) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *endOfString) walk(f func(node)) {
@@ -1533,7 +1574,7 @@ func (n *rangeNode) getExpressions() dict {
 }
 
 func (n *rangeNode) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *rangeNode) walk(f func(node)) {
@@ -1626,7 +1667,7 @@ func (n *quantifier) getExpressions() dict {
 }
 
 func (n *quantifier) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *quantifier) walk(f func(node)) {
@@ -1742,7 +1783,7 @@ func (n *positiveSet) getExpressions() dict {
 }
 
 func (n *positiveSet) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *positiveSet) walk(f func(node)) {
@@ -1814,7 +1855,7 @@ func (n *negativeSet) getExpressions() dict {
 }
 
 func (n *negativeSet) isEnd() bool {
-	return len(n.Expressions) == 0
+	return len(n.Expressions) != 0
 }
 
 func (n *negativeSet) walk(f func(node)) {
@@ -1872,6 +1913,17 @@ type simpleBuffer struct {
 	// positions []int (stack of last positions)
 }
 
+// newBuffer - make buffer which can read text on input
+
+var _ c.Buffer[rune, int] = &simpleBuffer{}
+
+func newBuffer(str string) *simpleBuffer {
+	b := new(simpleBuffer)
+	b.data = []rune(str)
+	b.position = 0
+	return b
+}
+
 // Read - read next item, if greedy buffer keep position after reading.
 func (b *simpleBuffer) Read(greedy bool) (rune, error) {
 	if b.IsEOF() {
@@ -1922,16 +1974,6 @@ func (b *simpleBuffer) IsEOF() bool {
 	return b.position >= len(b.data)
 }
 
-// newBuffer - make buffer which can read text on input
-
-var _ c.Buffer[rune, int] = &simpleBuffer{}
-
-func newBuffer(str string) *simpleBuffer {
-	b := new(simpleBuffer)
-	b.data = []rune(str)
-	b.position = 0
-	return b
-}
 
 type Trie interface {
 	Add(...string) error
@@ -1973,6 +2015,16 @@ func (d dict) merge(other dict) {
 			d[key] = value
 		}
 	}
+}
+
+func (d dict) toSlice() []string {
+	result := make([]string, len(d))
+	i := 0
+	for key, _ := range d {
+		result[i] = key
+		i++
+	}
+	return result
 }
 
 var (

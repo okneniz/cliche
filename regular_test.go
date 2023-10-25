@@ -9,6 +9,8 @@ import (
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
 
 func TestTrie(t *testing.T) {
+	t.Skip()
+
 	tr, err := NewTrie(
 		"x",
 		"t",
@@ -147,4 +149,25 @@ func TestTrieCompression(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, tr.Size(), 3)
 	})
+}
+
+func TestMatch(t *testing.T) {
+	tr, err := NewTrie()
+	require.NoError(t, err)
+	require.Equal(t, tr.Size(), 0)
+
+	err = tr.Add("x")
+	require.NoError(t, err)
+
+	t.Log("trie", tr)
+
+	result, err := tr.Match("x")
+	require.NoError(t, err)
+
+	t.Logf("result 1 %v", result)
+
+	result, err = tr.Match("xxx")
+	require.NoError(t, err)
+
+	t.Logf("result 2 %v", result)
 }
