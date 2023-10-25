@@ -163,11 +163,14 @@ func TestMatch(t *testing.T) {
 
 	result, err := tr.Match("x")
 	require.NoError(t, err)
-
 	t.Logf("result 1 %v", result)
+	require.Len(t, result, 1)
 
 	result, err = tr.Match("xxx")
 	require.NoError(t, err)
-
 	t.Logf("result 2 %v", result)
+	require.Len(t, result, 1) // captured only max - only first?
+	// require.Len(t, result, 3)
+
+
 }

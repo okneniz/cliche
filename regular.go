@@ -241,27 +241,27 @@ func (b bounds) size() int {
 	return b.to - b.from
 }
 
-type boundsList struct {
-	data map[int]Match
-	max  Match
+type boundsList[T Match] struct {
+	data map[int]T
+	max  *T
 }
 
-func newBoundsList() *boundsList {
-	b := new(boundsList)
-	b.data = make(map[int]Match)
+func newBoundsList[T Match]() *boundsList[T] {
+	b := new(boundsList[T])
+	b.data = make(map[int]T)
 	return b
 }
 
-func (b *boundsList) clear() {
+func (b *boundsList[T]) clear() {
 	// for key, _ := range b.data {
 	// 	delete(b.data, key)
 	// }
 
-	b.data = make(map[int]Match, len(b.data))
+	b.data = make(map[int]T, len(b.data))
 	b.max = nil
 }
 
-func (b *boundsList) push(newMatch Match) {
+func (b *boundsList[T]) push(newMatch T) {
 	if prevMatch, exists := b.data[newMatch.From()]; exists {
 		b.data[newMatch.From()] = b.longestMatch(prevMatch, newMatch)
 	} else {
@@ -269,17 +269,18 @@ func (b *boundsList) push(newMatch Match) {
 	}
 
 	if b.max == nil {
-		b.max = newMatch
+		b.max = &newMatch
 	} else {
-		b.max = b.longestMatch(b.max, newMatch)
+		newMax := b.longestMatch(*b.max, newMatch)
+		b.max = &newMax
 	}
 }
 
-func (b *boundsList) maximum() Match {
+func (b *boundsList[T]) maximum() *T {
 	return b.max
 }
 
-func (b *boundsList) longestMatch(x, y Match) Match {
+func (b *boundsList[T]) longestMatch(x, y T) T {
 	if x.From() < y.From() {
 		return x
 	}
@@ -521,12 +522,12 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 	}
 
 	input := newBuffer(text)
-	matches := newBoundsList()
+	matches := newBoundsList[match]()
 	groups := newCaptures()
 	namedGroups := newCaptures()
 
 	// DS for best matches - https://web.engr.oregonstate.edu/~erwig/diet/
-	// result := make(map[string]*boundsList)
+	acc := make(map[string]*boundsList[*FullMatch])
 
 	var scanner *fullScanner
 
@@ -557,7 +558,7 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 				fmt.Println("error", err)
 			}
 
-			m := FullMatch{
+			m := &FullMatch{
 				expressions: n.getExpressions().toSlice(),
 				subString: subString,
 				from: subStringFrom,
@@ -568,6 +569,14 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 			}
 
 			fmt.Println("full match", m)
+
+			if list, exists := acc[m.subString]; exists {
+				list.push(m)
+			} else {
+				newList := newBoundsList[*FullMatch]()
+				newList.push(m)
+				acc[m.subString] = newList
+			}
 		},
 	)
 
@@ -599,7 +608,15 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 		}
 	}
 
-	return nil, nil
+	result := make([]FullMatch, len(acc))
+	i := 0
+	for _, list := range acc {
+		mx := list.maximum()
+		result[i] = **mx
+		i++
+	}
+
+	return result, nil
 }
 
 type FullMatch struct {
