@@ -172,5 +172,4 @@ func TestMatch(t *testing.T) {
 	require.Len(t, result, 1) // captured only max - only first?
 	// require.Len(t, result, 3)
 
-
 }

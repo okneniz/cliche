@@ -76,8 +76,8 @@ type captures struct {
 
 func newCaptures() *captures {
 	return &captures{
-		from: make(map[string]int),
-		to: make(map[string]int),
+		from:  make(map[string]int),
+		to:    make(map[string]int),
 		order: make([]string, 0),
 	}
 }
@@ -322,11 +322,11 @@ func (m match) Size() int {
 }
 
 type fullScanner struct {
-	input TextBuffer
+	input       TextBuffer
 	groups      *captures
 	namedGroups *captures
-	onMatch func(node, int, int)
-	matches list[match]
+	onMatch     func(node, int, int)
+	matches     list[match]
 }
 
 var _ Handler = new(fullScanner)
@@ -429,8 +429,6 @@ type node interface {
 	merge(node)
 	walk(func(node))
 }
-
-type scaner func(node, int, int)
 
 type trie struct {
 	nodes index
@@ -541,7 +539,7 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 			matches.push(
 				match{
 					from: from,
-					to: to,
+					to:   to,
 					node: n,
 				},
 			)
@@ -560,10 +558,10 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 
 			m := &FullMatch{
 				expressions: n.getExpressions().toSlice(),
-				subString: subString,
-				from: subStringFrom,
-				to: subStringTo,
-				groups: groups.ToSlice(0), // TODO : default start?
+				subString:   subString,
+				from:        subStringFrom,
+				to:          subStringTo,
+				groups:      groups.ToSlice(0), // TODO : default start?
 				namedGroups: namedGroups.ToMap(0),
 				// empty       bool // TODO : handle it too!
 			}
@@ -627,14 +625,14 @@ type FullMatch struct {
 	groups      []bounds
 	namedGroups map[string]bounds
 	// is it really required?
-	empty       bool // required for empty matches like .? or .*
+	empty bool // required for empty matches like .? or .*
 }
 
 func (m *FullMatch) From() int {
 	return m.from
 }
 
-func (m *FullMatch) To() int{
+func (m *FullMatch) To() int {
 	return m.to
 }
 
@@ -646,7 +644,7 @@ func (m *FullMatch) Size() int {
 	return m.to - m.from
 }
 
-func (m *FullMatch) String() string{
+func (m *FullMatch) String() string {
 	return m.subString
 }
 
@@ -734,8 +732,7 @@ func (n *union) merge(x node) {
 }
 
 func (n *union) match(handler Handler, from, to int, f Callback) {
-	// TODO : implement it
-	return
+	panic("not implemented")
 }
 
 func (n *union) matchUnion(
@@ -772,8 +769,7 @@ func (n *union) scanVariants(handler Handler, from, to int, f Callback) {
 }
 
 func (n *union) matchNested(handler Handler, from, to int, f Callback) {
-	// how to traverse nested without nested?
-	return
+	panic("not implemented")
 }
 
 // is (foo|bar) is equal (bar|foo) ?
@@ -1420,6 +1416,7 @@ func (n *startOfLine) match(handler Handler, from, to int, f Callback) {
 func (n *startOfLine) isEndOfLine(handler Handler, idx int) bool {
 	x, err := handler.Input().ReadAt(idx)
 	if err != nil {
+		panic("but how to handle it?")
 		// TODO : just ignore it?
 	}
 
@@ -1469,8 +1466,7 @@ func (n *endOfLine) merge(other node) {
 }
 
 func (n *endOfLine) match(handler Handler, from, to int, f Callback) {
-	// TODO : implement it
-	return
+	panic("not implemented")
 }
 
 type startOfString struct {
@@ -1560,7 +1556,8 @@ func (n *endOfString) merge(other node) {
 }
 
 func (n *endOfString) match(handler Handler, from, to int, f Callback) {
-	// TODO : implement it
+	n.matchNested(handler, from, to, f)
+	panic("not implemented")
 }
 
 func (n *endOfString) matchNested(handler Handler, from, to int, f Callback) {
@@ -1991,7 +1988,6 @@ func (b *simpleBuffer) IsEOF() bool {
 	return b.position >= len(b.data)
 }
 
-
 type Trie interface {
 	Add(...string) error
 	Size() int
@@ -2037,7 +2033,7 @@ func (d dict) merge(other dict) {
 func (d dict) toSlice() []string {
 	result := make([]string, len(d))
 	i := 0
-	for key, _ := range d {
+	for key := range d {
 		result[i] = key
 		i++
 	}
