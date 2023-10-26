@@ -218,7 +218,7 @@ func (l *list[T]) last() *T {
 }
 
 // TODO : check bounds in the tests
-func (l *list[T]) toSlize() []T {
+func (l *list[T]) toSlise() []T {
 	return l.data[0:l.pos]
 }
 
@@ -278,6 +278,10 @@ func (b *boundsList[T]) push(newMatch T) {
 
 func (b *boundsList[T]) maximum() *T {
 	return b.max
+}
+
+func (b *boundsList[T]) toMap() map[int]T {
+	return b.data
 }
 
 func (b *boundsList[T]) longestMatch(x, y T) T {
@@ -514,9 +518,9 @@ func (t *trie) addExpression(str string, newNode node) {
 	}
 }
 
-func (t *trie) Match(text string) ([]FullMatch, error) {
+func (t *trie) Match(text string) []*FullMatch {
 	if len(text) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	input := newBuffer(text)
@@ -534,7 +538,7 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 		groups,
 		namedGroups,
 		func(n node, from, to int) {
-			fmt.Println("match", n, from, to)
+			// fmt.Println("match", n, from, to)
 
 			matches.push(
 				match{
@@ -566,7 +570,7 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 				// empty       bool // TODO : handle it too!
 			}
 
-			fmt.Println("full match", m)
+			// fmt.Println("full match", m.from, m.to, m.String())
 
 			if list, exists := acc[m.subString]; exists {
 				list.push(m)
@@ -581,13 +585,13 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 	from := 0
 	to := input.Size() - 1
 
-	fmt.Println("input", input.data)
+	// fmt.Println("input", input.data)
 
 	for _, n := range t.nodes {
 		nextFrom := from
 		nextTo := to
 
-		fmt.Printf("scan '%s' from %d to %d\n", n.getKey(), nextFrom, nextTo)
+		// fmt.Printf("scan '%s' from %d to %d\n", n.getKey(), nextFrom, nextTo)
 
 		for nextFrom <= nextTo {
 			n.match(scanner, nextFrom, nextTo, func(x node, f, t int) {
@@ -606,15 +610,14 @@ func (t *trie) Match(text string) ([]FullMatch, error) {
 		}
 	}
 
-	result := make([]FullMatch, len(acc))
-	i := 0
+	result := make([]*FullMatch, 0, len(acc))
 	for _, list := range acc {
-		mx := list.maximum()
-		result[i] = **mx
-		i++
+		for _, item := range list.toMap() {
+			result = append(result, item)
+		}
 	}
 
-	return result, nil
+	return result
 }
 
 type FullMatch struct {
@@ -646,6 +649,10 @@ func (m *FullMatch) Size() int {
 
 func (m *FullMatch) String() string {
 	return m.subString
+}
+
+func (m *FullMatch) Expressions() []string {
+	return m.expressions
 }
 
 func (m *FullMatch) NamedGroups() map[string]bounds {
@@ -1966,11 +1973,25 @@ func (b *simpleBuffer) Size() int { // TODO : check for another runes
 }
 
 func (b *simpleBuffer) Substring(from, to int) (string, error) {
-	if from < 0 || from < to || from >= len(b.data) || to >= len(b.data) {
-		return "", errors.New("out of bounds buffer")
+	if from > to {
+		return "", fmt.Errorf(
+			"invalid bounds for substring: from=%d to=%d size=%d",
+			from,
+			to,
+			len(b.data),
+		)
 	}
 
-	return string(b.data[from:to]), nil
+	if from < 0 || from >= len(b.data) || to >= len(b.data) {
+		return "", fmt.Errorf(
+			"out of bounds buffer: from=%d to=%d size=%d",
+			from,
+			to,
+			len(b.data),
+		)
+	}
+
+	return string(b.data[from : to+1]), nil
 }
 
 // Seek - change buffer position
@@ -1993,7 +2014,7 @@ type Trie interface {
 	Size() int
 	MarshalJSON() ([]byte, error)
 	String() string
-	Match(string) ([]FullMatch, error)
+	Match(string) []*FullMatch
 }
 
 var _ Trie = new(trie)

@@ -1,6 +1,7 @@
 package regular
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -152,24 +153,232 @@ func TestTrieCompression(t *testing.T) {
 }
 
 func TestMatch(t *testing.T) {
-	tr, err := NewTrie()
-	require.NoError(t, err)
-	require.Equal(t, tr.Size(), 0)
+	t.Run("simple", func(t *testing.T) {
+		tr, err := NewTrie(
+			"te",
+			"toast",
+			"toaster",
+			"word",
+			"strong",
+			"wizard",
+			"test",
+			"string",
+			"s",
+			"ing",
+		)
+		require.NoError(t, err)
 
-	err = tr.Add("x")
-	require.NoError(t, err)
+		t.Log(tr.String())
 
-	t.Log("trie", tr)
+		examples := map[string][]*FullMatch{
+			"testing string test ssss word words": {
 
-	result, err := tr.Match("x")
-	require.NoError(t, err)
-	t.Logf("result 1 %v", result)
-	require.Len(t, result, 1)
+				// [te test s ing s string ing te test s s s s s word word s]
+				{
+					subString: "te",
+					from:      0,
+					to:        1,
+					expressions: []string{
+						"te",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "test",
+					from:      0,
+					to:        3,
+					expressions: []string{
+						"test",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "s",
+					from:      2,
+					to:        2,
+					expressions: []string{
+						"s",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "ing",
+					from:      4,
+					to:        6,
+					expressions: []string{
+						"ing",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "s",
+					from:      8,
+					to:        8,
+					expressions: []string{
+						"s",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "string",
+					from:      8,
+					to:        13,
+					expressions: []string{
+						"string",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "ing",
+					from:      11,
+					to:        13,
+					expressions: []string{
+						"ing",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "te",
+					from:      15,
+					to:        16,
+					expressions: []string{
+						"te",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "test",
+					from:      15,
+					to:        18,
+					expressions: []string{
+						"test",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "s",
+					from:      17,
+					to:        17,
+					expressions: []string{
+						"s",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "s",
+					from:      20,
+					to:        20,
+					expressions: []string{
+						"s",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "s",
+					from:      21,
+					to:        21,
+					expressions: []string{
+						"s",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "s",
+					from:      22,
+					to:        22,
+					expressions: []string{
+						"s",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "s",
+					from:      23,
+					to:        23,
+					expressions: []string{
+						"s",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "word",
+					from:      25,
+					to:        28,
+					expressions: []string{
+						"word",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "word",
+					from:      30,
+					to:        33,
+					expressions: []string{
+						"word",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+				{
+					subString: "s",
+					from:      34,
+					to:        34,
+					expressions: []string{
+						"s",
+					},
+					namedGroups: map[string]bounds{},
+					groups:      []bounds{},
+				},
+			},
+		}
 
-	result, err = tr.Match("xxx")
-	require.NoError(t, err)
-	t.Logf("result 2 %v", result)
-	require.Len(t, result, 1) // captured only max - only first?
-	// require.Len(t, result, 3)
+		for in, ex := range examples {
+			expected := ex
+			input := in
 
+			sort.SliceStable(expected, func(i, j int) bool {
+				return comparator(expected[i], expected[j])
+			})
+
+			t.Run(input, func(t *testing.T) {
+				t.Logf("input: '%s'", string(input))
+
+				actual := tr.Match(input)
+				require.NoError(t, err)
+
+				sort.SliceStable(actual, func(i, j int) bool {
+					return comparator(actual[i], actual[j])
+				})
+
+				require.EqualValues(t, expected, actual)
+			})
+		}
+	})
+}
+
+func comparator(x, y *FullMatch) bool {
+	if x.From() != y.From() {
+		return x.From() < y.From()
+	}
+
+	if x.To() != y.To() {
+		return x.To() < y.To()
+	}
+
+	return x.String() < y.String()
 }
