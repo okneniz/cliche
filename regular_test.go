@@ -344,7 +344,7 @@ func TestMatch(t *testing.T) {
 				},
 			},
 			{
-				name:    "match '.' case 1",
+				name:    "match '.'",
 				regexps: []string{"t."},
 				input:   "testing string test ssss word words",
 				output: []*FullMatch{
@@ -401,7 +401,7 @@ func TestMatch(t *testing.T) {
 				},
 			},
 			{
-				name:    "match '.' case 2",
+				name:    "match multiple '.'", // TODO : move to another group?
 				regexps: []string{"t.."},
 				input:   "testing string test ssss word words",
 				output: []*FullMatch{
@@ -835,6 +835,190 @@ func TestMatch(t *testing.T) {
 					},
 				},
 			},
+			{
+				name:    "match '\\s'",
+				regexps: []string{"\\s"},
+				input:   "asd 1 jsdfk 4234",
+				output: []*FullMatch{
+					{
+						subString: " ",
+						from:      3,
+						to:        3,
+						expressions: []string{
+							"\\s",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: " ",
+						from:      5,
+						to:        5,
+						expressions: []string{
+							"\\s",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: " ",
+						from:      11,
+						to:        11,
+						expressions: []string{
+							"\\s",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+				},
+			},
+			{
+				name:    "match '\\S'",
+				regexps: []string{"\\S"},
+				input:   "asd 1 jsdfk 4234!",
+				output: []*FullMatch{
+					{
+						subString: "a",
+						from:      0,
+						to:        0,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "s",
+						from:      1,
+						to:        1,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "d",
+						from:      2,
+						to:        2,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "1",
+						from:      4,
+						to:        4,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "j",
+						from:      6,
+						to:        6,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "s",
+						from:      7,
+						to:        7,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "d",
+						from:      8,
+						to:        8,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "f",
+						from:      9,
+						to:        9,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "k",
+						from:      10,
+						to:        10,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "4",
+						from:      12,
+						to:        12,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "2",
+						from:      13,
+						to:        13,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "3",
+						from:      14,
+						to:        14,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "4",
+						from:      15,
+						to:        15,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "!",
+						from:      16,
+						to:        16,
+						expressions: []string{
+							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+				},
+			},
 		},
 	}
 
@@ -846,8 +1030,8 @@ func TestMatch(t *testing.T) {
 					tr, err := NewTrie(test.regexps...)
 					require.NoError(t, err)
 
-					// t.Log(tr.String())
-					// t.Logf("input: '%s'", string(test.input))
+					t.Log(tr.String())
+					t.Logf("input: '%s'", string(test.input))
 
 					sort.SliceStable(test.output, func(i, j int) bool {
 						return comparator(test.output[i], test.output[j])
