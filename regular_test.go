@@ -2,6 +2,7 @@ package regular
 
 import (
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -153,6 +154,8 @@ func TestTrieCompression(t *testing.T) {
 }
 
 func TestMatch(t *testing.T) {
+	// t.Parallel()
+
 	examples := map[string][]example{
 		"simple": {
 			{
@@ -1020,6 +1023,43 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
+		"groups": { // TODO : unions
+			{
+				name:    "unnamed groups",
+				regexps: []string{
+					"fo(o|b)",
+					"f(o|b)o",
+					// "(f|b)(o|a)(o|r|z)", // TODO : wtf is (f|b)(o|a)(o|r|z|) ??
+				},
+				input:   "foo bar baz",
+				output: []*FullMatch{
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"fo(o|b)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 2, to: 2},
+						},
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"f(o|b)o",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 1, to: 1},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for groupName, subGroups := range examples {
@@ -1044,7 +1084,13 @@ func TestMatch(t *testing.T) {
 						return comparator(actual[i], actual[j])
 					})
 
-					require.EqualValues(t, test.output, actual)
+					if len(test.output) != len(actual) {
+						require.Equal(t, test.output, actual)
+					}
+
+					for i, _ := range test.output {
+						require.Equalf(t, *test.output[i], *actual[i], "compare %d match", i)
+					}
 				})
 			}
 		})
@@ -1067,5 +1113,17 @@ func comparator(x, y *FullMatch) bool {
 		return x.To() < y.To()
 	}
 
-	return x.String() < y.String()
+	if x.String() != y.String() {
+		return x.String() < y.String()
+	}
+
+	sort.Slice(x.expressions, func(i, j int) bool {
+		return x.expressions[i] < x.expressions[j]
+	})
+
+	sort.Slice(y.expressions, func(i, j int) bool {
+		return y.expressions[i] < y.expressions[j]
+	})
+
+	return strings.Join(x.expressions, ", ") < strings.Join(y.expressions, ", ")
 }

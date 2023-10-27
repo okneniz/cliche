@@ -91,6 +91,8 @@ func (c *captures) Size() int {
 }
 
 func (c *captures) From(name string, index int) {
+	fmt.Println("set from", name, index)
+
 	if _, exists := c.from[name]; exists {
 		return
 	}
@@ -103,9 +105,12 @@ func (c *captures) To(name string, index int) {
 	if _, exists := c.from[name]; exists {
 		c.to[name] = index
 	}
+	fmt.Println("set to", name, index, c.from, c.to)
 }
 
 func (c *captures) Delete(name string) {
+	fmt.Println("delete capture", name, c.from, c.to)
+
 	delete(c.from, name)
 	delete(c.to, name)
 	// TODO : maybe use map + slice for faster remove?
@@ -122,13 +127,15 @@ func (c *captures) ToSlice(defaultFinish int) []bounds {
 		exists bool
 	)
 
+	fmt.Printf("captures to slice: %#v\n", c)
+
 	for _, name := range c.order {
-		if _, exists := c.from[name]; !exists {
-			break
+		if start, exists = c.from[name]; !exists {
+			break // TODO : or continue?
 		}
 
 		if finish, exists = c.to[name]; !exists {
-			finish = defaultFinish
+			finish = defaultFinish // TODO : remove it?
 		}
 
 		result = append(result, bounds{
@@ -397,6 +404,7 @@ func (s *fullScanner) LastMatch() *match {
 	return nil
 }
 
+// TODO : rename to AddNamedGroup
 func (s *fullScanner) StartNamedGroup(name string, index int) {
 	s.namedGroups.From(name, index)
 }
@@ -426,6 +434,7 @@ func (s *fullScanner) DeleteGroup(name string) {
 type node interface {
 	getKey() string
 	getExpressions() dict
+	addExpression(string)
 	getNestedNodes() index
 	isEnd() bool
 
@@ -505,7 +514,7 @@ func (t *trie) String() string {
 func (t *trie) addExpression(str string, newNode node) {
 	newNode.walk(func(x node) {
 		if len(x.getNestedNodes()) == 0 {
-			x.getExpressions().add(str)
+			x.addExpression(str)
 		}
 	})
 
@@ -529,7 +538,7 @@ func (t *trie) Match(text string) []*FullMatch {
 	namedGroups := newCaptures()
 
 	// DS for best matches - https://web.engr.oregonstate.edu/~erwig/diet/
-	acc := make(map[string]*boundsList[*FullMatch])
+	acc := make(map[node]*boundsList[*FullMatch])
 
 	var scanner *fullScanner
 
@@ -570,14 +579,15 @@ func (t *trie) Match(text string) []*FullMatch {
 				// empty       bool // TODO : handle it too!
 			}
 
-			// fmt.Println("full match", m.from, m.to, m.String())
+			fmt.Printf("full match: %v\n\n", m)
 
-			if list, exists := acc[m.subString]; exists {
+			if list, exists := acc[n]; exists {
 				list.push(m)
 			} else {
+				// fmt.Println("is new match - create list")
 				newList := newBoundsList[*FullMatch]()
 				newList.push(m)
-				acc[m.subString] = newList
+				acc[n] = newList
 			}
 		},
 	)
@@ -725,6 +735,12 @@ func (n *union) getExpressions() dict {
 	return nil
 }
 
+func (n *union) addExpression(exp string) {
+	for _, x := range n.Value {
+		x.addExpression(exp)
+	}
+}
+
 func (n *union) getNestedNodes() index {
 	return nil
 }
@@ -734,7 +750,6 @@ func (n *union) isEnd() bool {
 }
 
 func (n *union) merge(x node) {
-	// just ignore it?
 	panic(fmt.Sprintf("union can't be merged with : %v", x))
 }
 
@@ -744,25 +759,12 @@ func (n *union) match(handler Handler, from, to int, f Callback) {
 
 func (n *union) matchUnion(
 	handler Handler,
-	id string,
 	from, to int,
-	onMatch Callback,
-	onMatchVariant func(string, int),
+	f Callback,
 ) {
-	// TODO : check length?
-
 	n.scanVariants(handler, from, to, func(variant node, vFrom, vTo int) {
-		onMatchVariant(id, vTo)
-
 		if _, exists := n.lastNodes[variant]; exists {
-			handler.Match(variant, vFrom, vTo, n.isEnd(), false)
-			onMatch(variant, vFrom, vTo)
-
-			// TODO : why + 1?
-			n.matchNested(handler, vFrom, vTo+1, func(nested node, nFrom, nTo int) {
-				onMatch(nested, nFrom, nTo)
-				handler.Match(nested, nFrom, nTo, n.isEnd(), false)
-			})
+			f(variant, vFrom, vTo)
 		}
 	})
 }
@@ -775,17 +777,13 @@ func (n *union) scanVariants(handler Handler, from, to int, f Callback) {
 	}
 }
 
-func (n *union) matchNested(handler Handler, from, to int, f Callback) {
-	panic("not implemented")
-}
-
 // is (foo|bar) is equal (bar|foo) ?
 // (fo|f)(o|oo)
 
 type group struct {
 	uniqID      string
-	Value       *union
-	Expressions dict  `json:"expression,omitempty"`
+	Value       *union `json:"value,omitempty"`
+	Expressions dict   `json:"expressions,omitempty"`
 	Nested      index `json:"nested,omitempty"`
 }
 
@@ -801,13 +799,26 @@ func (n *group) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *group) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *group) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *group) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *group) walk(f func(node)) {
@@ -820,8 +831,32 @@ func (n *group) walk(f func(node)) {
 
 func (n *group) match(handler Handler, from, to int, f Callback) {
 	handler.StartGroup(n.uniqID, from)
-	n.Value.matchUnion(handler, n.uniqID, from, to, f, handler.EndNamedGroup)
+	n.Value.matchUnion(
+		handler,
+		from,
+		to,
+		func(variant node, vFrom, vTo int) {
+			fmt.Println("match group", n.Expressions)
+			handler.EndGroup(n.uniqID, vTo)
+			handler.Match(n, from, vTo, n.isEnd(), false)
+			f(variant, from, to)
+			n.matchNested(handler, vTo+1, to, func(nested node, nFrom, nTo int) {
+				// TODO : is it really required?
+				// TODO : is it doublication match in handler?
+				handler.Match(nested, nFrom, nTo, n.isEnd(), false)
+				f(nested, nFrom, nTo)
+			})
+		},
+	)
 	handler.DeleteGroup(n.uniqID)
+}
+
+func (n *group) matchNested(handler Handler, from, to int, f Callback) {
+	for _, nested := range n.Nested {
+		pos := handler.Position()
+		nested.match(handler, from, to, f)
+		handler.Rewind(pos)
+	}
 }
 
 type namedGroup struct {
@@ -843,13 +878,17 @@ func (n *namedGroup) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *namedGroup) addExpression(exp string) {
+	n.Value.addExpression(exp)
+}
+
 func (n *namedGroup) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Value.isEnd()
 }
 
 func (n *namedGroup) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+	n.Value.getExpressions().merge(other.getExpressions())
 }
 
 func (n *namedGroup) walk(f func(node)) {
@@ -862,7 +901,7 @@ func (n *namedGroup) walk(f func(node)) {
 
 func (n *namedGroup) match(handler Handler, from, to int, f Callback) {
 	handler.StartNamedGroup(n.Name, from)
-	n.Value.matchUnion(handler, n.Name, from, to, f, handler.EndNamedGroup)
+	n.Value.matchUnion(handler, from, to, f)
 	handler.DeleteNamedGroup(n.Name)
 }
 
@@ -884,13 +923,17 @@ func (n *notCapturedGroup) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *notCapturedGroup) addExpression(exp string) {
+	n.Value.addExpression(exp)
+}
+
 func (n *notCapturedGroup) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Value.isEnd()
 }
 
 func (n *notCapturedGroup) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+	n.Value.getExpressions().merge(other.getExpressions())
 }
 
 func (n *notCapturedGroup) walk(f func(node)) {
@@ -903,7 +946,7 @@ func (n *notCapturedGroup) walk(f func(node)) {
 
 func (n *notCapturedGroup) match(handler Handler, from, to int, f Callback) {
 	// optimize and remove stub f?
-	n.Value.matchUnion(handler, "", from, to, f, func(_ string, _ int) {})
+	n.Value.matchUnion(handler, from, to, f)
 }
 
 type char struct {
@@ -924,13 +967,26 @@ func (n *char) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *char) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *char) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *char) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *char) walk(f func(node)) {
@@ -983,8 +1039,16 @@ func (n *dot) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *dot) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *dot) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *dot) walk(f func(node)) {
@@ -997,7 +1061,12 @@ func (n *dot) walk(f func(node)) {
 
 func (n *dot) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *dot) match(handler Handler, from, to int, f Callback) {
@@ -1041,8 +1110,16 @@ func (n *digit) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *digit) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *digit) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *digit) walk(f func(node)) {
@@ -1055,7 +1132,12 @@ func (n *digit) walk(f func(node)) {
 
 func (n *digit) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *digit) match(handler Handler, from, to int, f Callback) {
@@ -1099,8 +1181,16 @@ func (n *nonDigit) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *nonDigit) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *nonDigit) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *nonDigit) walk(f func(node)) {
@@ -1113,7 +1203,12 @@ func (n *nonDigit) walk(f func(node)) {
 
 func (n *nonDigit) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *nonDigit) match(handler Handler, from, to int, f Callback) {
@@ -1157,8 +1252,16 @@ func (n *word) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *word) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *word) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *word) walk(f func(node)) {
@@ -1171,7 +1274,12 @@ func (n *word) walk(f func(node)) {
 
 func (n *word) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *word) match(handler Handler, from, to int, f Callback) {
@@ -1215,8 +1323,16 @@ func (n *nonWord) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *nonWord) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *nonWord) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *nonWord) walk(f func(node)) {
@@ -1229,7 +1345,12 @@ func (n *nonWord) walk(f func(node)) {
 
 func (n *nonWord) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *nonWord) match(handler Handler, from, to int, f Callback) {
@@ -1273,8 +1394,16 @@ func (n *space) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *space) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *space) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *space) walk(f func(node)) {
@@ -1287,7 +1416,12 @@ func (n *space) walk(f func(node)) {
 
 func (n *space) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *space) match(handler Handler, from, to int, f Callback) {
@@ -1331,8 +1465,16 @@ func (n *nonSpace) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *nonSpace) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *nonSpace) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *nonSpace) walk(f func(node)) {
@@ -1345,7 +1487,12 @@ func (n *nonSpace) walk(f func(node)) {
 
 func (n *nonSpace) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *nonSpace) match(handler Handler, from, to int, f Callback) {
@@ -1389,8 +1536,16 @@ func (n *startOfLine) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *startOfLine) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *startOfLine) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *startOfLine) walk(f func(node)) {
@@ -1403,7 +1558,12 @@ func (n *startOfLine) walk(f func(node)) {
 
 func (n *startOfLine) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *startOfLine) match(handler Handler, from, to int, f Callback) {
@@ -1455,8 +1615,16 @@ func (n *endOfLine) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *endOfLine) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *endOfLine) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *endOfLine) walk(f func(node)) {
@@ -1469,7 +1637,12 @@ func (n *endOfLine) walk(f func(node)) {
 
 func (n *endOfLine) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *endOfLine) match(handler Handler, from, to int, f Callback) {
@@ -1493,8 +1666,16 @@ func (n *startOfString) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *startOfString) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *startOfString) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *startOfString) walk(f func(node)) {
@@ -1507,7 +1688,12 @@ func (n *startOfString) walk(f func(node)) {
 
 func (n *startOfString) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *startOfString) match(handler Handler, from, to int, f Callback) {
@@ -1545,8 +1731,16 @@ func (n *endOfString) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *endOfString) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *endOfString) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *endOfString) walk(f func(node)) {
@@ -1559,7 +1753,12 @@ func (n *endOfString) walk(f func(node)) {
 
 func (n *endOfString) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *endOfString) match(handler Handler, from, to int, f Callback) {
@@ -1594,8 +1793,16 @@ func (n *rangeNode) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *rangeNode) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp) // TODO : is it possible?
+}
+
 func (n *rangeNode) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *rangeNode) walk(f func(node)) {
@@ -1608,7 +1815,12 @@ func (n *rangeNode) walk(f func(node)) {
 
 func (n *rangeNode) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *rangeNode) match(handler Handler, from, to int, f Callback) {
@@ -1687,8 +1899,16 @@ func (n *quantifier) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *quantifier) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *quantifier) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *quantifier) walk(f func(node)) {
@@ -1701,7 +1921,12 @@ func (n *quantifier) walk(f func(node)) {
 
 func (n *quantifier) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *quantifier) match(handler Handler, from, to int, f Callback) {
@@ -1803,8 +2028,16 @@ func (n *positiveSet) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *positiveSet) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *positiveSet) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *positiveSet) walk(f func(node)) {
@@ -1817,7 +2050,12 @@ func (n *positiveSet) walk(f func(node)) {
 
 func (n *positiveSet) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *positiveSet) match(handler Handler, from, to int, f Callback) {
@@ -1875,8 +2113,16 @@ func (n *negativeSet) getExpressions() dict {
 	return n.Expressions
 }
 
+func (n *negativeSet) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
 func (n *negativeSet) isEnd() bool {
-	return len(n.Expressions) != 0
+	return n.Expressions != nil
 }
 
 func (n *negativeSet) walk(f func(node)) {
@@ -1889,7 +2135,12 @@ func (n *negativeSet) walk(f func(node)) {
 
 func (n *negativeSet) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Expressions.merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *negativeSet) match(handler Handler, from, to int, f Callback) {
@@ -2360,7 +2611,6 @@ func parseEscapedSpecSymbols() parser {
 			x := char{
 				Value:       r,
 				Nested:      make(index, 0),
-				Expressions: make(dict, 0),
 			}
 
 			return &x, nil
@@ -2480,8 +2730,6 @@ func parseOptionalQuantifier(expression parser) parser {
 						return q, err
 					}
 
-					q.Expressions = make(dict, 0)
-
 					return q, nil
 				},
 			},
@@ -2502,7 +2750,6 @@ func parseOptionalQuantifier(expression parser) parser {
 
 		q.Value = x
 		q.Nested = make(index, 0)
-		q.Expressions = make(dict, 0)
 
 		return &q, nil
 	}
@@ -2519,7 +2766,6 @@ func parseCharacter(except ...rune) parser {
 
 		x := char{
 			Value:       c,
-			Expressions: make(dict, 0),
 			Nested:      make(index, 0),
 		}
 
@@ -2532,7 +2778,6 @@ func parseMetaCharacters() parser {
 		map[rune]c.Combinator[rune, int, node]{
 			'.': func(buf c.Buffer[rune, int]) (node, error) {
 				x := dot{
-					Expressions: make(dict, 0),
 					Nested:      make(index, 0),
 				}
 
@@ -2540,7 +2785,6 @@ func parseMetaCharacters() parser {
 			},
 			'^': func(buf c.Buffer[rune, int]) (node, error) {
 				x := startOfLine{
-					Expressions: make(dict, 0),
 					Nested:      make(index, 0),
 				}
 
@@ -2548,7 +2792,6 @@ func parseMetaCharacters() parser {
 			},
 			'$': func(buf c.Buffer[rune, int]) (node, error) {
 				x := endOfLine{
-					Expressions: make(dict, 0),
 					Nested:      make(index, 0),
 				}
 
@@ -2567,7 +2810,6 @@ func parseEscapedMetaCharacters() parser {
 				'd': func(buf c.Buffer[rune, int]) (node, error) {
 					x := digit{
 						Nested:      make(index, 0),
-						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2575,7 +2817,6 @@ func parseEscapedMetaCharacters() parser {
 				'D': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonDigit{
 						Nested:      make(index, 0),
-						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2583,7 +2824,6 @@ func parseEscapedMetaCharacters() parser {
 				'w': func(buf c.Buffer[rune, int]) (node, error) {
 					x := word{
 						Nested:      make(index, 0),
-						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2591,7 +2831,6 @@ func parseEscapedMetaCharacters() parser {
 				'W': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonWord{
 						Nested:      make(index, 0),
-						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2599,7 +2838,6 @@ func parseEscapedMetaCharacters() parser {
 				's': func(buf c.Buffer[rune, int]) (node, error) {
 					x := space{
 						Nested:      make(index, 0),
-						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2607,7 +2845,6 @@ func parseEscapedMetaCharacters() parser {
 				'S': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonSpace{
 						Nested:      make(index, 0),
-						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2615,7 +2852,6 @@ func parseEscapedMetaCharacters() parser {
 				'A': func(buf c.Buffer[rune, int]) (node, error) {
 					x := startOfString{
 						Nested:      make(index, 0),
-						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2623,7 +2859,6 @@ func parseEscapedMetaCharacters() parser {
 				'z': func(buf c.Buffer[rune, int]) (node, error) {
 					x := endOfString{
 						Nested:      make(index, 0),
-						Expressions: make(dict, 0),
 					}
 
 					return &x, nil
@@ -2649,7 +2884,6 @@ func parseGroup(parse c.Combinator[rune, int, *union]) parser {
 			// TODO : is it good enough for ID?
 			x.uniqID = fmt.Sprintf("%p", x)
 			x.Value = value
-			x.Expressions = make(dict, 0)
 
 			return x, nil
 		},
@@ -2674,7 +2908,6 @@ func parseNotCapturedGroup(parse c.Combinator[rune, int, *union]) parser {
 			x := notCapturedGroup{
 				Value:       value,
 				Nested:      make(index, 0),
-				Expressions: make(dict, 0),
 			}
 
 			return &x, nil
@@ -2709,7 +2942,6 @@ func parseNamedGroup(parse c.Combinator[rune, int, *union], except ...rune) pars
 				Name:        string(name),
 				Value:       variants,
 				Nested:      make(index, 0),
-				Expressions: make(dict, 0),
 			}
 
 			return &x, nil
@@ -2734,7 +2966,6 @@ func parseNegativeSet(expression parser) parser {
 		x := negativeSet{
 			Value:       set,
 			Nested:      make(index, 0),
-			Expressions: make(dict, 0),
 		}
 
 		return &x, nil
@@ -2753,7 +2984,6 @@ func parsePositiveSet(expression parser) parser {
 		x := positiveSet{
 			Value:       set,
 			Nested:      make(index, 0),
-			Expressions: make(dict, 0),
 		}
 
 		return &x, nil
