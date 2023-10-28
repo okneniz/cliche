@@ -1105,7 +1105,6 @@ func TestMatch(t *testing.T) {
 							{from: 10, to: 10},
 						},
 					},
-
 					{
 						subString: "foo",
 						from:      0,
@@ -1163,8 +1162,60 @@ func TestMatch(t *testing.T) {
 						},
 					},
 				},
-				// TODO : add cases with nested groups
 			},
+			{
+				name: "chars matching and capturing with nested groups",
+				regexps: []string{
+					"f(o(o))",
+					"(b(a(r)))",
+					"((b)az)",
+				},
+				input: "foo bar baz",
+				output: []*FullMatch{
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"f(o(o))",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 1, to: 2},
+							{from: 2, to: 2},
+						},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(b(a(r)))",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 4, to: 6},
+							{from: 5, to: 6},
+							{from: 6, to: 6},
+						},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"((b)az)",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 8, to: 10},
+							{from: 8, to: 8},
+						},
+					},
+				},
+			},
+		},
+		"named groups": { // TODO : unions
 			{
 				name: "strings matching and capturing",
 				regexps: []string{
@@ -1299,7 +1350,57 @@ func TestMatch(t *testing.T) {
 						},
 						groups: []bounds{},
 					},
-					// TODO : add cases with nested groups
+				},
+			},
+			{
+				name: "chars matching and capturing with nested groups",
+				regexps: []string{
+					"f(?<first>o(?<second>o))",
+					"(?<first>b(?<second>a(?<third>r)))",
+					"(?<first>(?<second>b)az)",
+				},
+				input: "foo bar baz",
+				output: []*FullMatch{
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"f(?<first>o(?<second>o))",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 1, to: 2},
+							"second": {from: 2, to: 2},
+						},
+						groups: []bounds{},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(?<first>b(?<second>a(?<third>r)))",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 4, to: 6},
+							"second": {from: 5, to: 6},
+							"third":  {from: 6, to: 6},
+						},
+						groups: []bounds{},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(?<first>(?<second>b)az)",
+						},
+						namedGroups: map[string]bounds{
+							"second": {from: 8, to: 8},
+							"first":  {from: 8, to: 10},
+						},
+						groups: []bounds{},
+					},
 				},
 			},
 		},
