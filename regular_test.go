@@ -1404,6 +1404,152 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
+		"not captured groups": { // TODO : unions
+			{
+				name: "strings matching and capturing",
+				regexps: []string{
+					"fo(?:o|b)",
+					"f(?:o|b)o",
+					"(?:f|b)(?:o|a)(?:o|r|z)",
+					"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+					"(?:f)(?:o)(?:o)",
+				},
+				input: "foo bar baz",
+				output: []*FullMatch{
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"fo(?:o|b)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"f(?:o|b)o",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(?:f|b)(?:o|a)(?:o|r|z)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(?:f|b)(?:o|a)(?:o|r|z)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(?:f|b)(?:o|a)(?:o|r|z)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(?:f)(?:o)(?:o)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+				},
+			},
+			{
+				name: "chars matching and capturing with nested groups",
+				regexps: []string{
+					"f(?:o(?:o))",
+					"(?:b(?:a(?:r)))",
+					"(?:(?:b)az)",
+				},
+				input: "foo bar baz",
+				output: []*FullMatch{
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"f(?:o(?:o))",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(?:b(?:a(?:r)))",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(?:(?:b)az)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+				},
+			},
+		},
 	}
 
 	for groupName, subGroups := range examples {

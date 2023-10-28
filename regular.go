@@ -990,16 +990,25 @@ func (n *notCapturedGroup) getExpressions() dict {
 }
 
 func (n *notCapturedGroup) addExpression(exp string) {
-	n.Value.addExpression(exp)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
 }
 
 func (n *notCapturedGroup) isEnd() bool {
-	return n.Value.isEnd()
+	return n.Expressions != nil
 }
 
 func (n *notCapturedGroup) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Value.getExpressions().merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *notCapturedGroup) walk(f func(node)) {
@@ -1011,8 +1020,25 @@ func (n *notCapturedGroup) walk(f func(node)) {
 }
 
 func (n *notCapturedGroup) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	// optimize and remove stub f?
-	n.Value.matchUnion(handler, input, from, to, f)
+	n.Value.matchUnion(
+		handler,
+		input,
+		from,
+		to,
+		func(_ node, vFrom, vTo int) {
+			handler.Match(n, from, vTo, n.isEnd(), false)
+			f(n, from, vTo) // TODO : realy from, vTo
+			n.matchNested(handler, input, vTo+1, to, f)
+		},
+	)
+}
+
+func (n *notCapturedGroup) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	for _, nested := range n.Nested {
+		pos := handler.Position() // TODO : move before loop
+		nested.match(handler, input, from, to, f)
+		handler.Rewind(pos)
+	}
 }
 
 type char struct {
