@@ -1025,10 +1025,17 @@ func TestMatch(t *testing.T) {
 		},
 		"groups": { // TODO : unions
 			{
-				name:    "unnamed groups",
+				// cases which brouk something :
+				// - (f|b)(o|a)(o|\\w|\\D
+				// - (f|b)(o|a)(o|r|z|)
+
+				name:    "chars matching and capturing",
 				regexps: []string{
 					"fo(o|b)",
 					"f(o|b)o",
+					"(f|b)(o|a)(o|r|z)",
+					"(f|b)(o|a)(o|\\w|\\D)",
+					"(f)(o)(o)",
 				},
 				input:   "foo bar baz",
 				output: []*FullMatch{
@@ -1056,31 +1063,142 @@ func TestMatch(t *testing.T) {
 							{from: 1, to: 1},
 						},
 					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(f|b)(o|a)(o|r|z)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 0, to: 0},
+							{from: 1, to: 1},
+							{from: 2, to: 2},
+						},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(f|b)(o|a)(o|r|z)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 4, to: 4},
+							{from: 5, to: 5},
+							{from: 6, to: 6},
+						},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(f|b)(o|a)(o|r|z)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 8, to: 8},
+							{from: 9, to: 9},
+							{from: 10, to: 10},
+						},
+					},
+
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(f|b)(o|a)(o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 0, to: 0},
+							{from: 1, to: 1},
+							{from: 2, to: 2},
+						},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(f|b)(o|a)(o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 4, to: 4},
+							{from: 5, to: 5},
+							{from: 6, to: 6},
+						},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(f|b)(o|a)(o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 8, to: 8},
+							{from: 9, to: 9},
+							{from: 10, to: 10},
+						},
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(f)(o)(o)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 0, to: 0},
+							{from: 1, to: 1},
+							{from: 2, to: 2},
+						},
+					},
 				},
 			},
-			// {
-			// 	name:    "unnamed groups 2",
-			// 	regexps: []string{
-			// 		"(f|b)(o|a)(o|r|z)", // TODO : wtf is (f|b)(o|a)(o|r|z|) ??
-			// 	},
-			// 	input:   "foo bar baz",
-			// 	output: []*FullMatch{
-			// 		{
-			// 			subString: "foo",
-			// 			from:      0,
-			// 			to:        2,
-			// 			expressions: []string{
-			// 				"(f|b)(o|a)(o|r|z)",
-			// 			},
-			// 			namedGroups: map[string]bounds{},
-			// 			groups:      []bounds{
-			// 				{from: 0, to: 0},
-			// 				{from: 1, to: 1},
-			// 				{from: 2, to: 2},
-			// 			},
-			// 		},
-			// 	},
-			// },
+			{
+				name:    "strings matching and capturing",
+				regexps: []string{
+					"(test|word)(ing|s)",
+				},
+				input:   "testing test words",
+				output: []*FullMatch{
+					{
+						subString: "testing",
+						from:      0,
+						to:        6,
+						expressions: []string{
+							"(test|word)(ing|s)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 0, to: 3},
+							{from: 4, to: 6},
+						},
+					},
+					{
+						subString: "words",
+						from:      13,
+						to:        17,
+						expressions: []string{
+							"(test|word)(ing|s)",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from: 13, to: 16},
+							{from: 17, to: 17},
+						},
+					},
+				},
+			},
 		},
 	}
 

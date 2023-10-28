@@ -43,7 +43,7 @@ type TextBuffer interface {
 	String() string
 }
 
-type Handler interface {
+type Handler interface { // TODO : should be generic type for different type of matches?
 	// String() string // TODO : implement it for debug
 
 	Match(n node, from, to int, isLeaf, isEmpty bool)
@@ -84,6 +84,20 @@ func newCaptures() *captures {
 	}
 }
 
+func (c *captures) String() string {
+	x := make(map[string]interface{})
+	x["from"] = c.from
+	x["to"] = c.to
+	x["order"] = c.order
+
+	js, err := json.Marshal(x)
+	if err != nil {
+		return err.Error()
+	}
+
+	return string(js)
+}
+
 func (c *captures) IsEmpty() bool {
 	return len(c.order) == 0
 }
@@ -93,7 +107,7 @@ func (c *captures) Size() int {
 }
 
 func (c *captures) From(name string, index int) {
-	fmt.Println("set from", name, index)
+	// fmt.Println("set from", name, index)
 
 	if _, exists := c.from[name]; exists {
 		return
@@ -107,11 +121,11 @@ func (c *captures) To(name string, index int) {
 	if _, exists := c.from[name]; exists {
 		c.to[name] = index
 	}
-	fmt.Println("set to", name, index, c.from, c.to)
+	// fmt.Println("set to", name, index, c.from, c.to)
 }
 
 func (c *captures) Delete(name string) {
-	fmt.Println("delete capture", name, c.from, c.to)
+	// fmt.Println("delete capture", name, c.from, c.to)
 
 	delete(c.from, name)
 	delete(c.to, name)
@@ -129,7 +143,7 @@ func (c *captures) ToSlice(defaultFinish int) []bounds {
 		exists bool
 	)
 
-	fmt.Printf("captures to slice: %#v\n", c)
+	// fmt.Printf("captures to slice: %#v\n", c)
 
 	for _, name := range c.order {
 		if start, exists = c.from[name]; !exists {
@@ -177,12 +191,12 @@ func (c *captures) ToMap(defaultFinish int) map[string]bounds {
 	return result
 }
 
-type list[T any] struct {
+type list[T fmt.Stringer] struct {
 	data []T
 	pos  int
 }
 
-func newList[T any](cap int) *list[T] {
+func newList[T fmt.Stringer](cap int) *list[T] {
 	l := new(list[T])
 	l.data = make([]T, 0, cap)
 	return l
@@ -199,7 +213,7 @@ func (l *list[T]) append(item T) {
 }
 
 func (l *list[T]) size() int {
-	return len(l.data)
+	return l.pos
 }
 
 func (l *list[T]) truncate(pos int) {
@@ -231,6 +245,14 @@ func (l *list[T]) toSlise() []T {
 	return l.data[0:l.pos]
 }
 
+func (l *list[T]) String() string {
+	items := make([]string, l.pos)
+	for i := 0; i < l.pos; i++ {
+		items[i] = l.data[i].String()
+	}
+	return strings.Join(items, ", ")
+}
+
 func remove[T comparable](l []T, item T) []T {
 	for i, other := range l {
 		if other == item {
@@ -244,6 +266,10 @@ func remove[T comparable](l []T, item T) []T {
 // TODO : use bounds in quantifiers?
 type bounds struct {
 	from, to int
+}
+
+func (b bounds) String() string {
+	return fmt.Sprintf("%d-%d", b.from, b.to)
 }
 
 func (b bounds) size() int {
@@ -331,7 +357,7 @@ func (m match) To() int {
 }
 
 func (m match) String() string {
-	return fmt.Sprintf("%s (%d..%d)", m.node.getKey(), m.from, m.to)
+	return fmt.Sprintf("%s - [%d..%d]", m.node.getKey(), m.from, m.to)
 }
 
 func (m match) Size() int {
@@ -359,6 +385,15 @@ func newFullScanner(
 	s.onMatch = onMatch
 	s.matches = *newList[match](100) // pointer?
 	return s
+}
+
+func (s *fullScanner) String() string {
+	return fmt.Sprintf(
+		"Scanner(matches=%s, groups=%s, namedGroups=%s)",
+		s.matches.String(),
+		s.groups.String(),
+		s.namedGroups.String(),
+	)
 }
 
 func (s *fullScanner) Match(n node, from, to int, isLeaf, isEmpty bool) {
@@ -531,7 +566,7 @@ func (t *trie) Match(text string) []*FullMatch {
 
 	input := newBuffer(text)
 	matches := newBoundsList[match]()
-	groups := newCaptures()
+	groups := newCaptures() // TODO : use node as key for unnamed groups to avoid generate string ID
 	namedGroups := newCaptures()
 
 	// DS for best matches - https://web.engr.oregonstate.edu/~erwig/diet/
@@ -543,7 +578,7 @@ func (t *trie) Match(text string) []*FullMatch {
 		groups,
 		namedGroups,
 		func(n node, from, to int) {
-			fmt.Println("match", n, from, to)
+			// fmt.Println("match", n, from, to)
 
 			matches.push(
 				match{
@@ -595,19 +630,18 @@ func (t *trie) Match(text string) []*FullMatch {
 	from := 0
 	to := input.Size() - 1
 
-	// fmt.Println("input", input.data)
-
 	for _, n := range t.nodes {
 		nextFrom := from
 		nextTo := to
 
-		// fmt.Printf("scan '%s' from %d to %d\n", n.getKey(), nextFrom, nextTo)
 
 		for nextFrom <= nextTo {
+			fmt.Printf("scan '%s' from %d to %d\n", n.getKey(), nextFrom, nextTo)
+
 			n.match(scanner, input, nextFrom, nextTo, func(x node, f, t int) {
 				// fmt.Println("wtf", n, f, t, n.isEnd())
 			})
-			longestMatch := matches.maximum() // maybe rename to best?
+			longestMatch := matches.maximum() // maybe rename to best?)
 
 			if longestMatch != nil {
 				nextFrom = longestMatch.To() + 1
@@ -617,6 +651,8 @@ func (t *trie) Match(text string) []*FullMatch {
 
 			scanner.Rewind(0)
 			matches.clear()
+
+			fmt.Println("after matches clear", matches)
 		}
 	}
 
@@ -637,7 +673,6 @@ type FullMatch struct {
 	to          int
 	groups      []bounds
 	namedGroups map[string]bounds
-	// is it really required?
 	empty bool // required for empty matches like .? or .*
 }
 
@@ -658,7 +693,14 @@ func (m *FullMatch) Size() int {
 }
 
 func (m *FullMatch) String() string {
-	return m.subString
+	return fmt.Sprintf(
+		"match(string=%s, from=%d, to=%d, groups=%s, namedGroup=%s)",
+		m.subString,
+		m.from,
+		m.to,
+		m.groups,
+		m.namedGroups,
+	)
 }
 
 func (m *FullMatch) Expressions() []string {
@@ -837,17 +879,11 @@ func (n *group) match(handler Handler, input TextBuffer, from, to int, f Callbac
 		input,
 		from,
 		to,
-		func(variant node, vFrom, vTo int) {
-			fmt.Println("match group", n.Expressions)
+		func(_ node, vFrom, vTo int) {
 			handler.MatchGroup(n.uniqID, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
-			f(variant, from, to)
-			n.matchNested(handler, input, vTo+1, to, func(nested node, nFrom, nTo int) {
-				// TODO : is it really required?
-				// TODO : is it doublication match in handler?
-				handler.Match(nested, nFrom, nTo, n.isEnd(), false)
-				f(nested, nFrom, nTo)
-			})
+			f(n, vFrom, vTo)
+			n.matchNested(handler, input, vTo+1, to, f)
 		},
 	)
 	handler.DeleteGroup(n.uniqID)
