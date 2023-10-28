@@ -44,7 +44,7 @@ type TextBuffer interface {
 }
 
 type Handler interface {
-	// String() string TODO : implement it for debug
+	// String() string // TODO : implement it for debug
 
 	Match(n node, from, to int, isLeaf, isEmpty bool)
 
@@ -57,12 +57,12 @@ type Handler interface {
 	Position() int
 	Rewind(size int)
 
-	StartNamedGroup(name string, index int)
-	EndNamedGroup(name string, index int)
+	AddNamedGroup(name string, index int)
+	MatchNamedGroup(name string, index int)
 	DeleteNamedGroup(name string)
 
-	StartGroup(name string, index int)
-	EndGroup(name string, index int)
+	AddGroup(name string, index int)
+	MatchGroup(name string, index int)
 	DeleteGroup(name string)
 }
 
@@ -404,13 +404,11 @@ func (s *fullScanner) LastMatch() *match {
 	return nil
 }
 
-// TODO : rename to AddNamedGroup
-func (s *fullScanner) StartNamedGroup(name string, index int) {
+func (s *fullScanner) AddNamedGroup(name string, index int) {
 	s.namedGroups.From(name, index)
 }
 
-// TODO : rename to matchNamedGroup?
-func (s *fullScanner) EndNamedGroup(name string, index int) {
+func (s *fullScanner) MatchNamedGroup(name string, index int) {
 	s.namedGroups.To(name, index)
 }
 
@@ -418,12 +416,11 @@ func (s *fullScanner) DeleteNamedGroup(name string) {
 	s.namedGroups.Delete(name)
 }
 
-func (s *fullScanner) StartGroup(name string, index int) {
+func (s *fullScanner) AddGroup(name string, index int) {
 	s.groups.From(name, index)
 }
 
-// TODO : rename to matchGroup?
-func (s *fullScanner) EndGroup(name string, index int) {
+func (s *fullScanner) MatchGroup(name string, index int) {
 	s.groups.To(name, index)
 }
 
@@ -834,7 +831,7 @@ func (n *group) walk(f func(node)) {
 }
 
 func (n *group) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	handler.StartGroup(n.uniqID, from)
+	handler.AddGroup(n.uniqID, from)
 	n.Value.matchUnion(
 		handler,
 		input,
@@ -842,7 +839,7 @@ func (n *group) match(handler Handler, input TextBuffer, from, to int, f Callbac
 		to,
 		func(variant node, vFrom, vTo int) {
 			fmt.Println("match group", n.Expressions)
-			handler.EndGroup(n.uniqID, vTo)
+			handler.MatchGroup(n.uniqID, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
 			f(variant, from, to)
 			n.matchNested(handler, input, vTo+1, to, func(nested node, nFrom, nTo int) {
@@ -905,7 +902,7 @@ func (n *namedGroup) walk(f func(node)) {
 }
 
 func (n *namedGroup) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	handler.StartNamedGroup(n.Name, from)
+	handler.AddNamedGroup(n.Name, from)
 	n.Value.matchUnion(handler, input, from, to, f)
 	handler.DeleteNamedGroup(n.Name)
 }
