@@ -1029,7 +1029,7 @@ func TestMatch(t *testing.T) {
 				// - (f|b)(o|a)(o|\\w|\\D
 				// - (f|b)(o|a)(o|r|z|)
 
-				name:    "chars matching and capturing",
+				name: "chars matching and capturing",
 				regexps: []string{
 					"fo(o|b)",
 					"f(o|b)o",
@@ -1037,7 +1037,7 @@ func TestMatch(t *testing.T) {
 					"(f|b)(o|a)(o|\\w|\\D)",
 					"(f)(o)(o)",
 				},
-				input:   "foo bar baz",
+				input: "foo bar baz",
 				output: []*FullMatch{
 					{
 						subString: "foo",
@@ -1047,7 +1047,7 @@ func TestMatch(t *testing.T) {
 							"fo(o|b)",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 2, to: 2},
 						},
 					},
@@ -1059,7 +1059,7 @@ func TestMatch(t *testing.T) {
 							"f(o|b)o",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 1, to: 1},
 						},
 					},
@@ -1071,7 +1071,7 @@ func TestMatch(t *testing.T) {
 							"(f|b)(o|a)(o|r|z)",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 0, to: 0},
 							{from: 1, to: 1},
 							{from: 2, to: 2},
@@ -1085,7 +1085,7 @@ func TestMatch(t *testing.T) {
 							"(f|b)(o|a)(o|r|z)",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 4, to: 4},
 							{from: 5, to: 5},
 							{from: 6, to: 6},
@@ -1099,7 +1099,7 @@ func TestMatch(t *testing.T) {
 							"(f|b)(o|a)(o|r|z)",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 8, to: 8},
 							{from: 9, to: 9},
 							{from: 10, to: 10},
@@ -1114,7 +1114,7 @@ func TestMatch(t *testing.T) {
 							"(f|b)(o|a)(o|\\w|\\D)",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 0, to: 0},
 							{from: 1, to: 1},
 							{from: 2, to: 2},
@@ -1128,7 +1128,7 @@ func TestMatch(t *testing.T) {
 							"(f|b)(o|a)(o|\\w|\\D)",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 4, to: 4},
 							{from: 5, to: 5},
 							{from: 6, to: 6},
@@ -1142,7 +1142,7 @@ func TestMatch(t *testing.T) {
 							"(f|b)(o|a)(o|\\w|\\D)",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 8, to: 8},
 							{from: 9, to: 9},
 							{from: 10, to: 10},
@@ -1156,47 +1156,150 @@ func TestMatch(t *testing.T) {
 							"(f)(o)(o)",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
+						groups: []bounds{
 							{from: 0, to: 0},
 							{from: 1, to: 1},
 							{from: 2, to: 2},
 						},
 					},
 				},
+				// TODO : add cases with nested groups
 			},
 			{
-				name:    "strings matching and capturing",
+				name: "strings matching and capturing",
 				regexps: []string{
-					"(test|word)(ing|s)",
+					"fo(?<name>o|b)",
+					"f(?<name>o|b)o",
+					"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+					"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
+					"(?<first>f)(?<second>o)(?<third>o)",
 				},
-				input:   "testing test words",
+				input: "foo bar baz",
 				output: []*FullMatch{
 					{
-						subString: "testing",
+						subString: "foo",
 						from:      0,
-						to:        6,
+						to:        2,
 						expressions: []string{
-							"(test|word)(ing|s)",
+							"fo(?<name>o|b)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{
-							{from: 0, to: 3},
-							{from: 4, to: 6},
+						namedGroups: map[string]bounds{
+							"name": {from: 2, to: 2},
 						},
+						groups: []bounds{},
 					},
 					{
-						subString: "words",
-						from:      13,
-						to:        17,
+						subString: "foo",
+						from:      0,
+						to:        2,
 						expressions: []string{
-							"(test|word)(ing|s)",
+							"f(?<name>o|b)o",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{
-							{from: 13, to: 16},
-							{from: 17, to: 17},
+						namedGroups: map[string]bounds{
+							"name": {from: 1, to: 1},
 						},
+						groups: []bounds{},
 					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 0, to: 0},
+							"second": {from: 1, to: 1},
+							"third":  {from: 2, to: 2},
+						},
+						groups: []bounds{},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 4, to: 4},
+							"second": {from: 5, to: 5},
+							"third":  {from: 6, to: 6},
+						},
+						groups: []bounds{},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 8, to: 8},
+							"second": {from: 9, to: 9},
+							"third":  {from: 10, to: 10},
+						},
+						groups: []bounds{},
+					},
+
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 0, to: 0},
+							"second": {from: 1, to: 1},
+							"third":  {from: 2, to: 2},
+						},
+						groups: []bounds{},
+					},
+					{
+						subString: "bar",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 4, to: 4},
+							"second": {from: 5, to: 5},
+							"third":  {from: 6, to: 6},
+						},
+						groups: []bounds{},
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 8, to: 8},
+							"second": {from: 9, to: 9},
+							"third":  {from: 10, to: 10},
+						},
+						groups: []bounds{},
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(?<first>f)(?<second>o)(?<third>o)",
+						},
+						namedGroups: map[string]bounds{
+							"first":  {from: 0, to: 0},
+							"second": {from: 1, to: 1},
+							"third":  {from: 2, to: 2},
+						},
+						groups: []bounds{},
+					},
+					// TODO : add cases with nested groups
 				},
 			},
 		},
@@ -1228,7 +1331,7 @@ func TestMatch(t *testing.T) {
 						require.Equal(t, test.output, actual)
 					}
 
-					for i, _ := range test.output {
+					for i := range test.output {
 						require.Equalf(t, *test.output[i], *actual[i], "compare %d match", i)
 					}
 				})

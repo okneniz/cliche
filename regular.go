@@ -174,7 +174,7 @@ func (c *captures) ToMap(defaultFinish int) map[string]bounds {
 	)
 
 	for _, name := range c.order {
-		if _, exists := c.from[name]; !exists {
+		if start, exists = c.from[name]; !exists {
 			break
 		}
 
@@ -365,7 +365,6 @@ func (m match) Size() int {
 }
 
 type fullScanner struct {
-	input       TextBuffer
 	groups      *captures
 	namedGroups *captures
 	onMatch     func(node, int, int)
@@ -444,7 +443,9 @@ func (s *fullScanner) AddNamedGroup(name string, index int) {
 }
 
 func (s *fullScanner) MatchNamedGroup(name string, index int) {
+	fmt.Println("named groups before", s.namedGroups)
 	s.namedGroups.To(name, index)
+	fmt.Println("named groups after", s.namedGroups)
 }
 
 func (s *fullScanner) DeleteNamedGroup(name string) {
@@ -634,7 +635,6 @@ func (t *trie) Match(text string) []*FullMatch {
 		nextFrom := from
 		nextTo := to
 
-
 		for nextFrom <= nextTo {
 			fmt.Printf("scan '%s' from %d to %d\n", n.getKey(), nextFrom, nextTo)
 
@@ -673,7 +673,7 @@ type FullMatch struct {
 	to          int
 	groups      []bounds
 	namedGroups map[string]bounds
-	empty bool // required for empty matches like .? or .*
+	empty       bool // required for empty matches like .? or .*
 }
 
 func (m *FullMatch) From() int {
@@ -827,7 +827,7 @@ type group struct {
 	uniqID      string
 	Value       *union `json:"value,omitempty"`
 	Expressions dict   `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	Nested      index  `json:"nested,omitempty"`
 }
 
 func (n *group) getKey() string {
@@ -882,7 +882,7 @@ func (n *group) match(handler Handler, input TextBuffer, from, to int, f Callbac
 		func(_ node, vFrom, vTo int) {
 			handler.MatchGroup(n.uniqID, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
-			f(n, vFrom, vTo)
+			f(n, from, vTo) // TODO : realy from, vTo
 			n.matchNested(handler, input, vTo+1, to, f)
 		},
 	)
@@ -917,16 +917,25 @@ func (n *namedGroup) getExpressions() dict {
 }
 
 func (n *namedGroup) addExpression(exp string) {
-	n.Value.addExpression(exp)
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
 }
 
 func (n *namedGroup) isEnd() bool {
-	return n.Value.isEnd()
+	return n.Expressions != nil
 }
 
 func (n *namedGroup) merge(other node) {
 	n.Nested.merge(other.getNestedNodes())
-	n.Value.getExpressions().merge(other.getExpressions())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
 }
 
 func (n *namedGroup) walk(f func(node)) {
@@ -939,8 +948,27 @@ func (n *namedGroup) walk(f func(node)) {
 
 func (n *namedGroup) match(handler Handler, input TextBuffer, from, to int, f Callback) {
 	handler.AddNamedGroup(n.Name, from)
-	n.Value.matchUnion(handler, input, from, to, f)
+	n.Value.matchUnion(
+		handler,
+		input,
+		from,
+		to,
+		func(_ node, vFrom, vTo int) {
+			handler.MatchNamedGroup(n.Name, vTo)
+			handler.Match(n, from, vTo, n.isEnd(), false)
+			f(n, from, vTo) // TODO : realy from, vTo
+			n.matchNested(handler, input, vTo+1, to, f)
+		},
+	)
 	handler.DeleteNamedGroup(n.Name)
+}
+
+func (n *namedGroup) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	for _, nested := range n.Nested {
+		pos := handler.Position() // TODO : move before loop
+		nested.match(handler, input, from, to, f)
+		handler.Rewind(pos)
+	}
 }
 
 type notCapturedGroup struct {
@@ -2657,8 +2685,8 @@ func parseEscapedSpecSymbols() parser {
 	for _, r := range symbols {
 		cases[r] = func(buf c.Buffer[rune, int]) (node, error) {
 			x := char{
-				Value:       r,
-				Nested:      make(index, 0),
+				Value:  r,
+				Nested: make(index, 0),
 			}
 
 			return &x, nil
@@ -2813,8 +2841,8 @@ func parseCharacter(except ...rune) parser {
 		}
 
 		x := char{
-			Value:       c,
-			Nested:      make(index, 0),
+			Value:  c,
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
@@ -2826,21 +2854,21 @@ func parseMetaCharacters() parser {
 		map[rune]c.Combinator[rune, int, node]{
 			'.': func(buf c.Buffer[rune, int]) (node, error) {
 				x := dot{
-					Nested:      make(index, 0),
+					Nested: make(index, 0),
 				}
 
 				return &x, nil
 			},
 			'^': func(buf c.Buffer[rune, int]) (node, error) {
 				x := startOfLine{
-					Nested:      make(index, 0),
+					Nested: make(index, 0),
 				}
 
 				return &x, nil
 			},
 			'$': func(buf c.Buffer[rune, int]) (node, error) {
 				x := endOfLine{
-					Nested:      make(index, 0),
+					Nested: make(index, 0),
 				}
 
 				return &x, nil
@@ -2857,56 +2885,56 @@ func parseEscapedMetaCharacters() parser {
 			map[rune]c.Combinator[rune, int, node]{
 				'd': func(buf c.Buffer[rune, int]) (node, error) {
 					x := digit{
-						Nested:      make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'D': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonDigit{
-						Nested:      make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'w': func(buf c.Buffer[rune, int]) (node, error) {
 					x := word{
-						Nested:      make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'W': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonWord{
-						Nested:      make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				's': func(buf c.Buffer[rune, int]) (node, error) {
 					x := space{
-						Nested:      make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'S': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonSpace{
-						Nested:      make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'A': func(buf c.Buffer[rune, int]) (node, error) {
 					x := startOfString{
-						Nested:      make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
 				},
 				'z': func(buf c.Buffer[rune, int]) (node, error) {
 					x := endOfString{
-						Nested:      make(index, 0),
+						Nested: make(index, 0),
 					}
 
 					return &x, nil
@@ -2954,8 +2982,8 @@ func parseNotCapturedGroup(parse c.Combinator[rune, int, *union]) parser {
 			}
 
 			x := notCapturedGroup{
-				Value:       value,
-				Nested:      make(index, 0),
+				Value:  value,
+				Nested: make(index, 0),
 			}
 
 			return &x, nil
@@ -2987,9 +3015,9 @@ func parseNamedGroup(parse c.Combinator[rune, int, *union], except ...rune) pars
 			}
 
 			x := namedGroup{
-				Name:        string(name),
-				Value:       variants,
-				Nested:      make(index, 0),
+				Name:   string(name),
+				Value:  variants,
+				Nested: make(index, 0),
 			}
 
 			return &x, nil
@@ -3012,8 +3040,8 @@ func parseNegativeSet(expression parser) parser {
 		}
 
 		x := negativeSet{
-			Value:       set,
-			Nested:      make(index, 0),
+			Value:  set,
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
@@ -3030,8 +3058,8 @@ func parsePositiveSet(expression parser) parser {
 		}
 
 		x := positiveSet{
-			Value:       set,
-			Nested:      make(index, 0),
+			Value:  set,
+			Nested: make(index, 0),
 		}
 
 		return &x, nil
