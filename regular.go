@@ -813,8 +813,9 @@ func (n *union) matchUnion(
 }
 
 func (n *union) scanVariants(handler Handler, input TextBuffer, from, to int, f Callback) {
+	position := handler.Position()
+
 	for _, variant := range n.Value {
-		position := handler.Position()
 		variant.match(handler, input, from, to, f)
 		handler.Rewind(position)
 	}
@@ -890,8 +891,9 @@ func (n *group) match(handler Handler, input TextBuffer, from, to int, f Callbac
 }
 
 func (n *group) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -964,8 +966,9 @@ func (n *namedGroup) match(handler Handler, input TextBuffer, from, to int, f Ca
 }
 
 func (n *namedGroup) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position() // TODO : move before loop
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1034,8 +1037,9 @@ func (n *notCapturedGroup) match(handler Handler, input TextBuffer, from, to int
 }
 
 func (n *notCapturedGroup) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position() // TODO : move before loop
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1106,8 +1110,9 @@ func (n *char) match(handler Handler, input TextBuffer, from, to int, f Callback
 }
 
 func (n *char) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1178,8 +1183,9 @@ func (n *dot) match(handler Handler, input TextBuffer, from, to int, f Callback)
 }
 
 func (n *dot) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1249,8 +1255,9 @@ func (n *digit) match(handler Handler, input TextBuffer, from, to int, f Callbac
 }
 
 func (n *digit) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1320,8 +1327,9 @@ func (n *nonDigit) match(handler Handler, input TextBuffer, from, to int, f Call
 }
 
 func (n *nonDigit) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1391,8 +1399,9 @@ func (n *word) match(handler Handler, input TextBuffer, from, to int, f Callback
 }
 
 func (n *word) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1462,8 +1471,9 @@ func (n *nonWord) match(handler Handler, input TextBuffer, from, to int, f Callb
 }
 
 func (n *nonWord) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1533,8 +1543,9 @@ func (n *space) match(handler Handler, input TextBuffer, from, to int, f Callbac
 }
 
 func (n *space) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1604,8 +1615,9 @@ func (n *nonSpace) match(handler Handler, input TextBuffer, from, to int, f Call
 }
 
 func (n *nonSpace) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1683,8 +1695,9 @@ func (n *startOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 }
 
 func (n *startOfLine) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1799,8 +1812,9 @@ func (n *startOfString) match(handler Handler, input TextBuffer, from, to int, f
 }
 
 func (n *startOfString) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1859,8 +1873,9 @@ func (n *endOfString) match(handler Handler, input TextBuffer, from, to int, f C
 }
 
 func (n *endOfString) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -1932,8 +1947,9 @@ func (n *rangeNode) match(handler Handler, input TextBuffer, from, to int, f Cal
 }
 
 func (n *rangeNode) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -2089,8 +2105,9 @@ func (n *quantifier) inBounds(q int) bool {
 }
 
 func (n *quantifier) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -2160,9 +2177,9 @@ func (n *positiveSet) match(handler Handler, input TextBuffer, from, to int, f C
 	// TODO : check size
 	// TODO : cache isEnd before loop?
 
-	for _, item := range n.Value {
-		pos := handler.Position()
+	pos := handler.Position()
 
+	for _, item := range n.Value {
 		item.match(handler, input, from, to, func(match node, mFrom, mTo int) {
 			handler.Match(n, from, mTo, n.isEnd(), false)
 			f(n, from, mTo)
@@ -2174,8 +2191,9 @@ func (n *positiveSet) match(handler Handler, input TextBuffer, from, to int, f C
 }
 
 func (n *positiveSet) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
@@ -2245,8 +2263,9 @@ func (n *negativeSet) match(handler Handler, input TextBuffer, from, to int, f C
 	// TODO : check size
 	// TODO : cache isEnd before loop?
 
+	pos := handler.Position()
+
 	for _, item := range n.Value {
-		pos := handler.Position()
 		matched := false
 
 		item.match(handler, input, from, to, func(_ node, _, _ int) {
@@ -2268,8 +2287,9 @@ func (n *negativeSet) match(handler Handler, input TextBuffer, from, to int, f C
 }
 
 func (n *negativeSet) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
 	for _, nested := range n.Nested {
-		pos := handler.Position()
 		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}

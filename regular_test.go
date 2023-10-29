@@ -1550,6 +1550,17 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
+		// "quantifiers": {
+		// 	{
+		// 		name: "optional",
+		// 		regexps: []string{
+		// 			"",
+		// 		},
+		// 		input: "foo bar baz",
+		// 		output: []*FullMatch{
+		// 		},
+		// 	},
+		// },
 	}
 
 	for groupName, subGroups := range examples {
