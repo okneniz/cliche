@@ -1864,6 +1864,90 @@ func TestMatch(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "endless quantifier",
+				regexps: []string{
+					"x{2,}",
+				},
+				input: "xx xxx x",
+				output: []*FullMatch{
+					{
+						subString: "xx",
+						from:      0,
+						to:        1	,
+						expressions: []string{
+							"x{2,}",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "xxx",
+						from:      3,
+						to:        5	,
+						expressions: []string{
+							"x{2,}",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+				},
+			},
+			{
+				name: "limited quantifier",
+				regexps: []string{
+					"x{2,4}",
+				},
+				input: "xx xxx x xxxxxx",
+				output: []*FullMatch{
+					{
+						subString: "xx",
+						from:      0,
+						to:        1	,
+						expressions: []string{
+							"x{2,4}",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "xxx",
+						from:      3,
+						to:        5	,
+						expressions: []string{
+							"x{2,4}",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "xxxx",
+						from:      9,
+						to:        12	,
+						expressions: []string{
+							"x{2,4}",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "xx",
+						from:      13,
+						to:        14	,
+						expressions: []string{
+							"x{2,4}",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+				},
+			},
 		},
 	}
 
