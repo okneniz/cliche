@@ -66,7 +66,7 @@ type Handler interface { // TODO : should be generic type for different type of 
 	DeleteGroup(name string)
 }
 
-type Callback func(x node, from int, to int)
+type Callback func(x node, from int, to int, empty bool)
 
 // buffer for groups captures
 // TODO : use pointers instead string for unnamed groups?
@@ -320,20 +320,14 @@ func (b *boundsList[T]) toMap() map[int]T {
 }
 
 func (b *boundsList[T]) longestMatch(x, y T) T {
-	if x.From() < y.From() {
-		return x
-	}
+	if x.Size() == y.Size() {
+		if x.From() < y.From() {
+			return x
+		}
 
-	if x.Size() > y.Size() {
-		return x
-	}
-
-	if x.From() == y.From() {
 		return y
 	}
 
-	// looks like duplication
-	// just remove it?
 	if x.Size() > y.Size() {
 		return x
 	}
@@ -367,7 +361,7 @@ func (m match) Size() int {
 type fullScanner struct {
 	groups      *captures
 	namedGroups *captures
-	onMatch     func(node, int, int)
+	onMatch     Callback
 	matches     list[match]
 }
 
@@ -376,7 +370,7 @@ var _ Handler = new(fullScanner)
 func newFullScanner(
 	captures *captures,
 	namedCaptures *captures,
-	onMatch func(node, int, int),
+	onMatch Callback,
 ) *fullScanner {
 	s := new(fullScanner)
 	s.groups = captures
@@ -395,7 +389,7 @@ func (s *fullScanner) String() string {
 	)
 }
 
-func (s *fullScanner) Match(n node, from, to int, isLeaf, isEmpty bool) {
+func (s *fullScanner) Match(n node, from, to int, leaf, empty bool) {
 	m := match{
 		from: from,
 		to:   to,
@@ -404,8 +398,8 @@ func (s *fullScanner) Match(n node, from, to int, isLeaf, isEmpty bool) {
 
 	s.matches.append(m)
 
-	if isLeaf {
-		s.onMatch(n, from, to)
+	if leaf {
+		s.onMatch(n, from, to, empty)
 	}
 }
 
@@ -578,7 +572,7 @@ func (t *trie) Match(text string) []*FullMatch {
 	scanner = newFullScanner(
 		groups,
 		namedGroups,
-		func(n node, from, to int) {
+		func(n node, from, to int, empty bool) {
 			// fmt.Println("match", n, from, to)
 
 			matches.push(
@@ -597,10 +591,17 @@ func (t *trie) Match(text string) []*FullMatch {
 			subStringFrom := begin.From()
 			subStringTo := end.To()
 
-			subString, err := input.Substring(subStringFrom, subStringTo)
-			if err != nil {
-				// TODO : how to handle error
-				fmt.Println("error", err)
+			var (
+				subString string
+				err       error
+			)
+
+			if !empty {
+				subString, err = input.Substring(subStringFrom, subStringTo)
+				if err != nil {
+					// TODO : how to handle error
+					fmt.Println("error", err)
+				}
 			}
 
 			m := &FullMatch{
@@ -610,7 +611,7 @@ func (t *trie) Match(text string) []*FullMatch {
 				to:          subStringTo,
 				groups:      groups.ToSlice(0), // TODO : default start?
 				namedGroups: namedGroups.ToMap(0),
-				// empty       bool // TODO : handle it too!
+				empty:       empty,
 			}
 
 			fmt.Printf("full match: %v\n", m)
@@ -638,7 +639,7 @@ func (t *trie) Match(text string) []*FullMatch {
 		for nextFrom <= nextTo {
 			fmt.Printf("scan '%s' from %d to %d\n", n.getKey(), nextFrom, nextTo)
 
-			n.match(scanner, input, nextFrom, nextTo, func(x node, f, t int) {
+			n.match(scanner, input, nextFrom, nextTo, func(x node, f, t int, _ bool) {
 				// fmt.Println("wtf", n, f, t, n.isEnd())
 			})
 			longestMatch := matches.maximum() // maybe rename to best?)
@@ -685,11 +686,7 @@ func (m *FullMatch) To() int {
 }
 
 func (m *FullMatch) Size() int {
-	if m.empty {
-		return 0
-	}
-
-	return m.to - m.from
+	return len(m.subString)
 }
 
 func (m *FullMatch) String() string {
@@ -805,9 +802,9 @@ func (n *union) matchUnion(
 	from, to int,
 	f Callback,
 ) {
-	n.scanVariants(handler, input, from, to, func(variant node, vFrom, vTo int) {
+	n.scanVariants(handler, input, from, to, func(variant node, vFrom, vTo int, empty bool) {
 		if _, exists := n.lastNodes[variant]; exists {
-			f(variant, vFrom, vTo)
+			f(variant, vFrom, vTo, empty)
 		}
 	})
 }
@@ -880,10 +877,10 @@ func (n *group) match(handler Handler, input TextBuffer, from, to int, f Callbac
 		input,
 		from,
 		to,
-		func(_ node, vFrom, vTo int) {
+		func(_ node, vFrom, vTo int, empty bool) {
 			handler.MatchGroup(n.uniqID, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
-			f(n, from, vTo) // TODO : realy from, vTo
+			f(n, from, vTo, empty) // TODO : realy from, vTo
 			n.matchNested(handler, input, vTo+1, to, f)
 		},
 	)
@@ -955,10 +952,10 @@ func (n *namedGroup) match(handler Handler, input TextBuffer, from, to int, f Ca
 		input,
 		from,
 		to,
-		func(_ node, vFrom, vTo int) {
+		func(_ node, vFrom, vTo int, empty bool) {
 			handler.MatchNamedGroup(n.Name, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
-			f(n, from, vTo) // TODO : realy from, vTo
+			f(n, from, vTo, empty) // TODO : realy from, vTo
 			n.matchNested(handler, input, vTo+1, to, f)
 		},
 	)
@@ -1028,9 +1025,9 @@ func (n *notCapturedGroup) match(handler Handler, input TextBuffer, from, to int
 		input,
 		from,
 		to,
-		func(_ node, vFrom, vTo int) {
+		func(_ node, vFrom, vTo int, empty bool) {
 			handler.Match(n, from, vTo, n.isEnd(), false)
-			f(n, from, vTo) // TODO : realy from, vTo
+			f(n, from, vTo, empty) // TODO : realy from, vTo
 			n.matchNested(handler, input, vTo+1, to, f)
 		},
 	)
@@ -1103,7 +1100,7 @@ func (n *char) match(handler Handler, input TextBuffer, from, to int, f Callback
 	if x == n.Value {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1176,7 +1173,7 @@ func (n *dot) match(handler Handler, input TextBuffer, from, to int, f Callback)
 	if x != '\n' {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1248,7 +1245,7 @@ func (n *digit) match(handler Handler, input TextBuffer, from, to int, f Callbac
 	if unicode.IsDigit(x) {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1320,7 +1317,7 @@ func (n *nonDigit) match(handler Handler, input TextBuffer, from, to int, f Call
 	if !unicode.IsDigit(x) {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1392,7 +1389,7 @@ func (n *word) match(handler Handler, input TextBuffer, from, to int, f Callback
 	if x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x) {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1464,7 +1461,7 @@ func (n *nonWord) match(handler Handler, input TextBuffer, from, to int, f Callb
 	if !(x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x)) {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1536,7 +1533,7 @@ func (n *space) match(handler Handler, input TextBuffer, from, to int, f Callbac
 	if unicode.IsSpace(x) {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1608,7 +1605,7 @@ func (n *nonSpace) match(handler Handler, input TextBuffer, from, to int, f Call
 	if !unicode.IsSpace(x) {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1679,7 +1676,7 @@ func (n *startOfLine) match(handler Handler, input TextBuffer, from, to int, f C
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1806,7 +1803,7 @@ func (n *startOfString) match(handler Handler, input TextBuffer, from, to int, f
 	if from == 0 {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -1941,7 +1938,7 @@ func (n *rangeNode) match(handler Handler, input TextBuffer, from, to int, f Cal
 	if x >= n.From && x <= n.To {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 		handler.Rewind(pos)
 	}
@@ -2041,11 +2038,11 @@ func (n *quantifier) merge(other node) {
 func (n *quantifier) match(handler Handler, input TextBuffer, from, to int, f Callback) {
 	start := handler.Position()
 
-	n.recursiveMatch(1, handler, input, from, to, func(match node, mFrom, mTo int) {
+	n.recursiveMatch(1, handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
 		fmt.Println("quantifier match", match, mFrom, mTo)
 		pos := handler.Position()
 		handler.Match(n, from, mTo, n.isEnd(), false)
-		f(n, from, mTo)
+		f(n, from, mTo, empty)
 		n.matchNested(handler, input, mTo+1, to, f)
 		handler.Rewind(pos)
 	})
@@ -2053,7 +2050,7 @@ func (n *quantifier) match(handler Handler, input TextBuffer, from, to int, f Ca
 	handler.Rewind(start)
 
 	// for zero matches like .? or .* or .{0,X}
-	if n.From == 0 && n.More {
+	if n.From == 0 {
 		m := handler.LastMatch()
 
 		if m != nil {
@@ -2076,7 +2073,7 @@ func (n *quantifier) recursiveMatch(
 	from, to int,
 	f Callback,
 ) {
-	n.Value.match(handler, input, from, to, func(match node, mFrom, mTo int) {
+	n.Value.match(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
 		fmt.Println("recursive match", match, mFrom, mTo, match.isEnd())
 		fmt.Printf("bounds %v %#v %v - %v\n", n.From, n.To, n.More, n.getKey())
 
@@ -2084,7 +2081,7 @@ func (n *quantifier) recursiveMatch(
 			fmt.Println("in bounds", count, n.inBounds(count))
 
 			if n.inBounds(count) {
-				f(match, mFrom, mTo)
+				f(match, mFrom, mTo, empty)
 			}
 
 			next := count + 1
@@ -2194,9 +2191,9 @@ func (n *positiveSet) match(handler Handler, input TextBuffer, from, to int, f C
 	pos := handler.Position()
 
 	for _, item := range n.Value {
-		item.match(handler, input, from, to, func(match node, mFrom, mTo int) {
+		item.match(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
 			handler.Match(n, from, mTo, n.isEnd(), false)
-			f(n, from, mTo)
+			f(n, from, mTo, empty)
 			n.matchNested(handler, input, mTo+1, to, f)
 		})
 
@@ -2282,7 +2279,7 @@ func (n *negativeSet) match(handler Handler, input TextBuffer, from, to int, f C
 	for _, item := range n.Value {
 		matched := false
 
-		item.match(handler, input, from, to, func(_ node, _, _ int) {
+		item.match(handler, input, from, to, func(_ node, _, _ int, _ bool) {
 			// TODO : how to propper stop it to avoid pointless iteration?
 			matched = true
 		})
@@ -2293,7 +2290,7 @@ func (n *negativeSet) match(handler Handler, input TextBuffer, from, to int, f C
 		}
 
 		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from)
+		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 
 		handler.Rewind(pos)

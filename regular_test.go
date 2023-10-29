@@ -1562,27 +1562,93 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
-		// "quantifiers": {
-		// 	{
-		// 		name: "optional",
-		// 		regexps: []string{
-		// 			"s?",
-		// 		},
-		// 		input: "is",
-		// 		output: []*FullMatch{
-		// 			{
-		// 				subString: "s",
-		// 				from:      1,
-		// 				to:        1,
-		// 				expressions: []string{
-		// 					"s?",
-		// 				},
-		// 				namedGroups: map[string]bounds{},
-		// 				groups:      []bounds{},
-		// 			},
-		// 		},
-		// 	},
-		// },
+		"quantifiers": {
+			{
+				name: "optional",
+				regexps: []string{
+					"c?",
+					"pics?",
+					"pi.?c",
+					"....?",
+					"...?.",
+				},
+				input: "pic",
+				output: []*FullMatch{
+					{
+						subString: "",
+						from:      0,
+						to:        0,
+						expressions: []string{
+							"c?",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       true,
+					},
+					{
+						subString: "",
+						from:      1,
+						to:        1,
+						expressions: []string{
+							"c?",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       true,
+					},
+					{
+						subString: "c",
+						from:      2,
+						to:        2,
+						expressions: []string{
+							"c?",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "pic",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"pics?",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "pic",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"pi.?c",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "pic",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"....?",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "pic",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"...?.",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+				},
+			},
+		},
 	}
 
 	for groupName, subGroups := range examples {
@@ -1938,97 +2004,96 @@ func TestQuantifierBounds(t *testing.T) {
 
 func TestQuantifier_getKey(t *testing.T) {
 	type example struct {
-		name string
-		expression string
-		key string
+		expression    string
+		key           string
 		notQuantifier bool
-		from int
-		to *int
-		more bool
+		from          int
+		to            *int
+		more          bool
 	}
 
 	examples := []example{
 		{
 			expression: "x?",
-			key: "x?",
-			from: 0,
-			to: pointer(1),
-			more: false,
+			key:        "x?",
+			from:       0,
+			to:         pointer(1),
+			more:       false,
 		},
 		{
 			expression: "x{0,1}",
-			key: "x?",
-			from: 0,
-			to: pointer(1),
-			more: false,
+			key:        "x?",
+			from:       0,
+			to:         pointer(1),
+			more:       false,
 		},
 		{
 			expression: "x+",
-			key: "x+",
-			from: 1,
-			to: nil,
-			more: true,
+			key:        "x+",
+			from:       1,
+			to:         nil,
+			more:       true,
 		},
 		{
 			expression: "x{1,}",
-			key: "x+",
-			from: 1,
-			to: nil,
-			more: true,
+			key:        "x+",
+			from:       1,
+			to:         nil,
+			more:       true,
 		},
 		{
 			expression: "x*",
-			key: "x*",
-			from: 0,
-			to: nil,
-			more: true,
+			key:        "x*",
+			from:       0,
+			to:         nil,
+			more:       true,
 		},
 		{
 			expression: "x{0,}",
-			key: "x*",
-			from: 0,
-			to: nil,
-			more: true,
+			key:        "x*",
+			from:       0,
+			to:         nil,
+			more:       true,
 		},
 		{
 			expression: "x{1,1}",
-			key: "x{1}",
-			from: 1,
-			to: nil,
-			more: false,
+			key:        "x{1}",
+			from:       1,
+			to:         nil,
+			more:       false,
 		},
 		{
 			expression: "x{2,}",
-			key: "x{2,}",
-			from: 2,
-			to: nil,
-			more: true,
+			key:        "x{2,}",
+			from:       2,
+			to:         nil,
+			more:       true,
 		},
 		{
 			expression: "x{2}",
-			key: "x{2}",
-			from: 2,
-			to: nil,
-			more: false,
+			key:        "x{2}",
+			from:       2,
+			to:         nil,
+			more:       false,
 		},
 		{
-			expression: "x{3,2}",
+			expression:    "x{3,2}",
 			notQuantifier: true,
 		},
 		{
-			expression: "x{,2}",
+			expression:    "x{,2}",
 			notQuantifier: true,
 		},
 		{
-			expression: "x{2,2,}",
+			expression:    "x{2,2,}",
 			notQuantifier: true,
 		},
 		{
-			expression: "x{0}",
+			expression:    "x{0}",
 			notQuantifier: true,
 		},
 		{
-			expression: "x{0,0}",
+			expression:    "x{0,0}",
 			notQuantifier: true,
 		},
 	}
