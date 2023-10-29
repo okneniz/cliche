@@ -1951,38 +1951,65 @@ func TestQuantifier_getKey(t *testing.T) {
 		{
 			expression: "x?",
 			key: "x?",
+			from: 0,
+			to: pointer(1),
+			more: false,
 		},
 		{
 			expression: "x{0,1}",
 			key: "x?",
+			from: 0,
+			to: pointer(1),
+			more: false,
 		},
 		{
 			expression: "x+",
 			key: "x+",
+			from: 1,
+			to: nil,
+			more: true,
 		},
 		{
 			expression: "x{1,}",
 			key: "x+",
+			from: 1,
+			to: nil,
+			more: true,
 		},
 		{
 			expression: "x*",
 			key: "x*",
+			from: 0,
+			to: nil,
+			more: true,
 		},
 		{
 			expression: "x{0,}",
 			key: "x*",
+			from: 0,
+			to: nil,
+			more: true,
 		},
 		{
 			expression: "x{1,1}",
 			key: "x{1}",
+			from: 1,
+			to: nil,
+			more: false,
 		},
 		{
 			expression: "x{2,}",
 			key: "x{2,}",
+			from: 2,
+			to: nil,
+			more: true,
 		},
 		{
 			expression: "x{2}",
 			key: "x{2}",
+			from: 2,
+			to: nil,
+			more: false,
 		},
 		{
 			expression: "x{3,2}",
@@ -2031,6 +2058,44 @@ func TestQuantifier_getKey(t *testing.T) {
 						"expected key %v, actual key %v",
 						q.getKey(),
 						test.key,
+					)
+				}
+
+				if q.From != test.from {
+					t.Fatalf(
+						"expected 'from' %v, actual %v",
+						q.From,
+						test.from,
+					)
+				}
+
+				if test.to != nil && q.To == nil {
+					t.Fatalf(
+						"expected 'to' equal %v, actual is nil",
+						*test.to,
+					)
+				}
+
+				if test.to == nil && q.To != nil {
+					t.Fatalf(
+						"expected nil 'to', actual is %v",
+						*q.To,
+					)
+				}
+
+				if test.to != nil && q.To != nil && *test.to != *q.To {
+					t.Fatalf(
+						"expected 'to' %v, actual %v",
+						*test.to,
+						*q.To,
+					)
+				}
+
+				if test.more != q.More {
+					t.Fatalf(
+						"expected 'more' %v, actual %v",
+						test.more,
+						&q.More,
 					)
 				}
 			} else if !test.notQuantifier {
