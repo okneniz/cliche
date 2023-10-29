@@ -2829,6 +2829,11 @@ func parseOptionalQuantifier(expression parser) parser {
 
 					_, err = comma(buf)
 					if err != nil {
+						if from == 0 {
+							// TODO : or better special parsing error?
+							return q, c.NothingMatched
+						}
+
 						_, err = rightBrace(buf)
 						if err != nil {
 							return q, err
@@ -2850,14 +2855,11 @@ func parseOptionalQuantifier(expression parser) parser {
 					q.To = &to
 					q.More = false
 
-					// TODO : check it
-					if from == 0 && to == 0 {
-						// TODO : or invalid quantifier?
+					if (from == 0 && to == 0) || (from > to) {
+						// TODO : or better special parsing error?
 						return q, c.NothingMatched
 					}
 
-					// TODO : add this to compression test
-					// compact {1,1} to {1}
 					if from == to {
 						q.To = nil
 					}

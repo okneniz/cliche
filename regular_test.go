@@ -12,7 +12,7 @@ import (
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
 
 func TestTrie(t *testing.T) {
-	// t.Skip()
+	t.Parallel()
 
 	tr, err := NewTrie(
 		"x",
@@ -81,7 +81,7 @@ func TestTrie(t *testing.T) {
 }
 
 func TestTrieCompression(t *testing.T) {
-	// t.Parallel()
+	t.Parallel()
 
 	// Positive and negative set store elements in ordered collection.
 	// This allows you to avoid duplicating a certain number of expressions.
@@ -116,6 +116,8 @@ func TestTrieCompression(t *testing.T) {
 		require.Equal(t, tr.Size(), 3)
 
 		// TODO : may be remove duplications?
+		// like [aa1-2] == [1-2a]
+		// like [121-2] == [1-2]
 	})
 
 	// Some quantifiers have the same meaning, but have different symbols.
@@ -123,6 +125,7 @@ func TestTrieCompression(t *testing.T) {
 	// - x+ is equal x{1,}
 	// - x* is equal x{0,}
 	// - x? is equal x{0,1}
+	// - x{1,1} is equal x{1}
 	t.Run("quantifiers", func(t *testing.T) {
 		tr, err := NewTrie()
 		require.NoError(t, err)
@@ -151,6 +154,14 @@ func TestTrieCompression(t *testing.T) {
 		err = tr.Add("x{0,}")
 		require.NoError(t, err)
 		require.Equal(t, tr.Size(), 3)
+
+		err = tr.Add("x{1}")
+		require.NoError(t, err)
+		require.Equal(t, tr.Size(), 4)
+
+		err = tr.Add("x{1,1}")
+		require.NoError(t, err)
+		require.Equal(t, tr.Size(), 4)
 	})
 }
 
@@ -1925,8 +1936,112 @@ func TestQuantifierBounds(t *testing.T) {
 	}
 }
 
-// TODO : add test for quantifier keys
-// TODO : add test for quantifier parsing
+func TestQuantifier_getKey(t *testing.T) {
+	type example struct {
+		name string
+		expression string
+		key string
+		notQuantifier bool
+		from int
+		to *int
+		more bool
+	}
+
+	examples := []example{
+		{
+			expression: "x?",
+			key: "x?",
+		},
+		{
+			expression: "x{0,1}",
+			key: "x?",
+		},
+		{
+			expression: "x+",
+			key: "x+",
+		},
+		{
+			expression: "x{1,}",
+			key: "x+",
+		},
+		{
+			expression: "x*",
+			key: "x*",
+		},
+		{
+			expression: "x{0,}",
+			key: "x*",
+		},
+		{
+			expression: "x{1,1}",
+			key: "x{1}",
+		},
+		{
+			expression: "x{2,}",
+			key: "x{2,}",
+		},
+		{
+			expression: "x{2}",
+			key: "x{2}",
+		},
+		{
+			expression: "x{3,2}",
+			notQuantifier: true,
+		},
+		{
+			expression: "x{,2}",
+			notQuantifier: true,
+		},
+		{
+			expression: "x{2,2,}",
+			notQuantifier: true,
+		},
+		{
+			expression: "x{0}",
+			notQuantifier: true,
+		},
+		{
+			expression: "x{0,0}",
+			notQuantifier: true,
+		},
+	}
+
+	parse := parseRegexp()
+
+	for _, test := range examples {
+		t.Run(test.expression, func(t *testing.T) {
+			input := newBuffer(test.expression)
+
+			output, err := parse(input)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			q, ok := output.(*quantifier)
+			if ok {
+				if test.notQuantifier {
+					t.Fatalf(
+						"expected not *quantifier type, parser output %v",
+						output,
+					)
+				}
+
+				if q.getKey() != test.key {
+					t.Fatalf(
+						"expected key %v, actual key %v",
+						q.getKey(),
+						test.key,
+					)
+				}
+			} else if !test.notQuantifier {
+				t.Fatalf(
+					"expected not *quantifier type, parser output %v",
+					output,
+				)
+			}
+		})
+	}
+}
 
 func pointer[T any](x T) *T {
 	return &x
