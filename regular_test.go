@@ -1790,6 +1790,72 @@ func TestMatch(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "one or more, or '+'",
+				regexps: []string{
+					"x+",
+					"x+x",
+					"x.+",
+				},
+				input: "xx x\n x",
+				output: []*FullMatch{
+					{
+						subString: "xx",
+						from:      0,
+						to:        1,
+						expressions: []string{
+							"x+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "x",
+						from:      3,
+						to:        3,
+						expressions: []string{
+							"x+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "x",
+						from:      6,
+						to:        6,
+						expressions: []string{
+							"x+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "xx",
+						from:      0,
+						to:        1	,
+						expressions: []string{
+							"x+x",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "xx x",
+						from:      0,
+						to:        3	,
+						expressions: []string{
+							"x.+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+				},
+			},
 		},
 	}
 
