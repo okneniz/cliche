@@ -1654,6 +1654,9 @@ func TestMatch(t *testing.T) {
 					"x*",
 					"x*x",
 					"x.*",
+					"x{0,}",
+					"x{0,}x",
+					"x.{0,}",
 				},
 				input: "xx x\n x",
 				output: []*FullMatch{
@@ -1663,6 +1666,7 @@ func TestMatch(t *testing.T) {
 						to:        1,
 						expressions: []string{
 							"x*",
+							"x{0,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1673,6 +1677,7 @@ func TestMatch(t *testing.T) {
 						to:        2,
 						expressions: []string{
 							"x*",
+							"x{0,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1684,6 +1689,7 @@ func TestMatch(t *testing.T) {
 						to:        3,
 						expressions: []string{
 							"x*",
+							"x{0,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1695,6 +1701,7 @@ func TestMatch(t *testing.T) {
 						to:        4,
 						expressions: []string{
 							"x*",
+							"x{0,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1706,6 +1713,7 @@ func TestMatch(t *testing.T) {
 						to:        5,
 						expressions: []string{
 							"x*",
+							"x{0,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1717,6 +1725,7 @@ func TestMatch(t *testing.T) {
 						to:        6,
 						expressions: []string{
 							"x*",
+							"x{0,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1728,6 +1737,7 @@ func TestMatch(t *testing.T) {
 						to:        3,
 						expressions: []string{
 							"x.*",
+							"x.{0,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1738,6 +1748,7 @@ func TestMatch(t *testing.T) {
 						to:        6,
 						expressions: []string{
 							"x.*",
+							"x.{0,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1748,6 +1759,7 @@ func TestMatch(t *testing.T) {
 						to:        1,
 						expressions: []string{
 							"x*x",
+							"x{0,}x",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1758,6 +1770,7 @@ func TestMatch(t *testing.T) {
 						to:        3,
 						expressions: []string{
 							"x*x",
+							"x{0,}x",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1769,6 +1782,7 @@ func TestMatch(t *testing.T) {
 						to:        6,
 						expressions: []string{
 							"x*x",
+							"x{0,}x",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1806,6 +1820,14 @@ func TestMatch(t *testing.T) {
 					}
 
 					for i := range test.output {
+						sort.SliceStable(test.output[i].expressions, func(x, y int) bool {
+							return test.output[i].expressions[x] < test.output[i].expressions[y]
+						})
+
+						sort.SliceStable(actual[i].expressions, func(x, y int) bool {
+							return actual[i].expressions[x] < actual[i].expressions[y]
+						})
+
 						require.Equalf(t, *test.output[i], *actual[i], "compare %d match", i)
 					}
 				})
