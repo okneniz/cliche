@@ -1648,6 +1648,134 @@ func TestMatch(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "zero or more, or '*'",
+				regexps: []string{
+					"x*",
+					"x*x",
+					"x.*",
+				},
+				input: "xx x\n x",
+				output: []*FullMatch{
+					{
+						subString: "xx",
+						from:      0,
+						to:        1,
+						expressions: []string{
+							"x*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "",
+						from:      2,
+						to:        2,
+						expressions: []string{
+							"x*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: true,
+					},
+					{
+						subString: "x",
+						from:      3,
+						to:        3,
+						expressions: []string{
+							"x*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "",
+						from:      4,
+						to:        4,
+						expressions: []string{
+							"x*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: true,
+					},
+					{
+						subString: "",
+						from:      5,
+						to:        5,
+						expressions: []string{
+							"x*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: true,
+					},
+					{
+						subString: "x",
+						from:      6,
+						to:        6,
+						expressions: []string{
+							"x*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "xx x",
+						from:      0,
+						to:        3,
+						expressions: []string{
+							"x.*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "x",
+						from:      6,
+						to:        6,
+						expressions: []string{
+							"x.*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "xx",
+						from:      0,
+						to:        1,
+						expressions: []string{
+							"x*x",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "x",
+						from:      3,
+						to:        3,
+						expressions: []string{
+							"x*x",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "x",
+						from:      6,
+						to:        6,
+						expressions: []string{
+							"x*x",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+				},
+			},
 		},
 	}
 

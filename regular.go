@@ -1170,6 +1170,7 @@ func (n *dot) match(handler Handler, input TextBuffer, from, to int, f Callback)
 		return
 	}
 
+	// TODO : check new line not matching
 	if x != '\n' {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
