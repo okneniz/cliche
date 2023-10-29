@@ -1674,6 +1674,7 @@ func (n *startOfLine) match(handler Handler, input TextBuffer, from, to int, f C
 	if from == 0 {
 		return
 	}
+	// precache new line positions in buffer?
 
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := handler.Position()
@@ -2041,6 +2042,7 @@ func (n *quantifier) match(handler Handler, input TextBuffer, from, to int, f Ca
 	start := handler.Position()
 
 	n.recursiveMatch(1, handler, input, from, to, func(match node, mFrom, mTo int) {
+		fmt.Println("quantifier match", match, mFrom, mTo)
 		pos := handler.Position()
 		handler.Match(n, from, mTo, n.isEnd(), false)
 		f(n, from, mTo)
@@ -2055,6 +2057,7 @@ func (n *quantifier) match(handler Handler, input TextBuffer, from, to int, f Ca
 		m := handler.LastMatch()
 
 		if m != nil {
+			// TODO : remove condition and this line?
 			handler.Match(n, m.to, m.to, n.isEnd(), false)
 		} else {
 			handler.Match(n, from, from, n.isEnd(), true)
@@ -2074,7 +2077,12 @@ func (n *quantifier) recursiveMatch(
 	f Callback,
 ) {
 	n.Value.match(handler, input, from, to, func(match node, mFrom, mTo int) {
+		fmt.Println("recursive match", match, mFrom, mTo, match.isEnd())
+		fmt.Printf("bounds %v %#v %v - %v\n", n.From, n.To, n.More, n.getKey())
+
 		if n.To == nil || *n.To >= count {
+			fmt.Println("in bounds", count, n.inBounds(count))
+
 			if n.inBounds(count) {
 				f(match, mFrom, mTo)
 			}
@@ -2090,18 +2098,24 @@ func (n *quantifier) recursiveMatch(
 
 func (n *quantifier) inBounds(q int) bool {
 	if n.From > q {
+		fmt.Println("bracj 1")
 		return false
 	}
 
-	if !n.More && n.From != q {
-		return false
+	if n.More {
+		return true
 	}
 
-	if n.To != nil && *n.To > q {
-		return false
+	if n.To != nil {
+		fmt.Println("bracj 2")
+		return q <= *n.To
 	}
 
-	return true
+	// bracj 4 &{2 <nil> false <nil> map[] map[]}
+
+	fmt.Println("bracj 3", n)
+
+	return n.From == q
 }
 
 func (n *quantifier) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
@@ -2833,17 +2847,18 @@ func parseOptionalQuantifier(expression parser) parser {
 
 						return q, err
 					}
+					q.To = &to
+					q.More = false
 
 					// TODO : check it
 					if from == 0 && to == 0 {
+						// TODO : or invalid quantifier?
 						return q, c.NothingMatched
 					}
 
-					q.To = &to
-
+					// TODO : add this to compression test
 					// compact {1,1} to {1}
 					if from == to {
-						q.More = false
 						q.To = nil
 					}
 

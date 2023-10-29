@@ -1,6 +1,7 @@
 package regular
 
 import (
+	"math"
 	"sort"
 	"strings"
 	"testing"
@@ -1554,10 +1555,20 @@ func TestMatch(t *testing.T) {
 		// 	{
 		// 		name: "optional",
 		// 		regexps: []string{
-		// 			"",
+		// 			"s?",
 		// 		},
-		// 		input: "foo bar baz",
+		// 		input: "is",
 		// 		output: []*FullMatch{
+		// 			{
+		// 				subString: "s",
+		// 				from:      1,
+		// 				to:        1,
+		// 				expressions: []string{
+		// 					"s?",
+		// 				},
+		// 				namedGroups: map[string]bounds{},
+		// 				groups:      []bounds{},
+		// 			},
 		// 		},
 		// 	},
 		// },
@@ -1627,4 +1638,296 @@ func comparator(x, y *FullMatch) bool {
 	})
 
 	return strings.Join(x.expressions, ", ") < strings.Join(y.expressions, ", ")
+}
+
+func TestQuantifierBounds(t *testing.T) {
+	type example struct {
+		name   string
+		q      quantifier
+		input  int
+		output bool
+	}
+
+	tests := []example{
+		{
+			name: "{0,1} or '?' include 0",
+			q: quantifier{
+				From: 0,
+				To:   pointer(1),
+				More: false,
+			},
+			input:  0,
+			output: true,
+		},
+		{
+			name: "{0,1} or '?' include 1",
+			q: quantifier{
+				From: 0,
+				To:   pointer(1),
+				More: false,
+			},
+			input:  1,
+			output: true,
+		},
+		{
+			name: "{0,1} or '?' exclude 2",
+			q: quantifier{
+				From: 0,
+				To:   pointer(1),
+				More: false,
+			},
+			input:  2,
+			output: false,
+		},
+		{
+			name: "{1} or '+' include 0",
+			q: quantifier{
+				From: 1,
+				To:   nil,
+				More: true,
+			},
+			input:  0,
+			output: false,
+		},
+		{
+			name: "{1} or '+' include 1",
+			q: quantifier{
+				From: 1,
+				To:   nil,
+				More: true,
+			},
+			input:  1,
+			output: true,
+		},
+		{
+			name: "{1} or '+' include max int",
+			q: quantifier{
+				From: 1,
+				To:   nil,
+				More: true,
+			},
+			input:  math.MaxInt,
+			output: true,
+		},
+		{
+			name: "{0,} or '*' include 0",
+			q: quantifier{
+				From: 0,
+				To:   nil,
+				More: true,
+			},
+			input:  0,
+			output: true,
+		},
+		{
+			name: "{0,} or '*' include 1",
+			q: quantifier{
+				From: 0,
+				To:   nil,
+				More: true,
+			},
+			input:  1,
+			output: true,
+		},
+		{
+			name: "{0,} or '*' include max int",
+			q: quantifier{
+				From: 0,
+				To:   nil,
+				More: true,
+			},
+			input:  math.MaxInt,
+			output: true,
+		},
+		{
+			name: "{2} exclude 0",
+			q: quantifier{
+				From: 2,
+				To:   nil,
+				More: false,
+			},
+			input:  0,
+			output: false,
+		},
+		{
+			name: "{2} exclude 1",
+			q: quantifier{
+				From: 2,
+				To:   nil,
+				More: false,
+			},
+			input:  1,
+			output: false,
+		},
+		{
+			name: "{2} include 2",
+			q: quantifier{
+				From: 2,
+				To:   nil,
+				More: false,
+			},
+			input:  2,
+			output: true,
+		},
+		{
+			name: "{2} exclude 3",
+			q: quantifier{
+				From: 2,
+				To:   nil,
+				More: false,
+			},
+			input:  3,
+			output: false,
+		},
+		{
+			name: "{0,2} include 0",
+			q: quantifier{
+				From: 0,
+				To:   pointer(2),
+				More: false,
+			},
+			input:  0,
+			output: true,
+		},
+		{
+			name: "{0,2} include 1",
+			q: quantifier{
+				From: 0,
+				To:   pointer(2),
+				More: false,
+			},
+			input:  1,
+			output: true,
+		},
+		{
+			name: "{0,2} include 2",
+			q: quantifier{
+				From: 0,
+				To:   pointer(2),
+				More: false,
+			},
+			input:  2,
+			output: true,
+		},
+		{
+			name: "{0,2} exclude 3",
+			q: quantifier{
+				From: 0,
+				To:   pointer(2),
+				More: false,
+			},
+			input:  3,
+			output: false,
+		},
+		{
+			name: "{2,2} exclude 0",
+			q: quantifier{
+				From: 2,
+				To:   pointer(2),
+				More: false,
+			},
+			input:  0,
+			output: false,
+		},
+		{
+			name: "{2,2} exclude 1",
+			q: quantifier{
+				From: 2,
+				To:   pointer(2),
+				More: false,
+			},
+			input:  1,
+			output: false,
+		},
+		{
+			name: "{2,2} include 2",
+			q: quantifier{
+				From: 2,
+				To:   pointer(2),
+				More: false,
+			},
+			input:  2,
+			output: true,
+		},
+		{
+			name: "{2,2} exclude 3",
+			q: quantifier{
+				From: 2,
+				To:   pointer(2),
+				More: false,
+			},
+			input:  3,
+			output: false,
+		},
+
+		{
+			name: "{2,3} exclude 0",
+			q: quantifier{
+				From: 2,
+				To:   pointer(3),
+				More: false,
+			},
+			input:  0,
+			output: false,
+		},
+		{
+			name: "{2,3} exclude 1",
+			q: quantifier{
+				From: 2,
+				To:   pointer(3),
+				More: false,
+			},
+			input:  1,
+			output: false,
+		},
+		{
+			name: "{2,3} include 2",
+			q: quantifier{
+				From: 2,
+				To:   pointer(3),
+				More: false,
+			},
+			input:  2,
+			output: true,
+		},
+		{
+			name: "{2,3} include 3",
+			q: quantifier{
+				From: 2,
+				To:   pointer(3),
+				More: false,
+			},
+			input:  3,
+			output: true,
+		},
+		{
+			name: "{2,3} exclude 4",
+			q: quantifier{
+				From: 2,
+				To:   pointer(3),
+				More: false,
+			},
+			input:  4,
+			output: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := test.q.inBounds(test.input)
+
+			t.Log("input", test.input)
+
+			if result != test.output {
+				t.Fatalf("expected %v, actual %v", test.output, result)
+			}
+		})
+	}
+}
+
+// TODO : add test for quantifier keys
+// TODO : add test for quantifier parsing
+
+func pointer[T any](x T) *T {
+	return &x
 }
