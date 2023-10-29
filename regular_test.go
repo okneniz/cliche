@@ -1796,6 +1796,9 @@ func TestMatch(t *testing.T) {
 					"x+",
 					"x+x",
 					"x.+",
+					"x{1,}",
+					"x{1,}x",
+					"x.{1,}",
 				},
 				input: "xx x\n x",
 				output: []*FullMatch{
@@ -1805,6 +1808,7 @@ func TestMatch(t *testing.T) {
 						to:        1,
 						expressions: []string{
 							"x+",
+							"x{1,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1816,6 +1820,7 @@ func TestMatch(t *testing.T) {
 						to:        3,
 						expressions: []string{
 							"x+",
+							"x{1,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1827,6 +1832,7 @@ func TestMatch(t *testing.T) {
 						to:        6,
 						expressions: []string{
 							"x+",
+							"x{1,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1838,6 +1844,7 @@ func TestMatch(t *testing.T) {
 						to:        1	,
 						expressions: []string{
 							"x+x",
+							"x{1,}x",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -1849,6 +1856,7 @@ func TestMatch(t *testing.T) {
 						to:        3	,
 						expressions: []string{
 							"x.+",
+							"x.{1,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
