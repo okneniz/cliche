@@ -2699,3 +2699,13 @@ func Test_list(t *testing.T) {
 
 	l.truncate(0)
 }
+
+func Test_OutOfBounds(t *testing.T) {
+	err := OutOfBounds{
+		Min: 10,
+		Max: 100,
+		Value: -50,
+	}
+
+	require.Equal(t, err.Error(), "-50 is ouf of bounds 10..100")
+}
