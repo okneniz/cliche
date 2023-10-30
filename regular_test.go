@@ -1949,6 +1949,63 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
+		"start of": {
+			{
+				name: "line",
+				regexps: []string{
+					"^...",
+					"^.",
+					".^",
+				},
+				input: "foo bar\nbaz",
+				output: []*FullMatch{
+					{
+						subString: "foo",
+						from:      0,
+						to:        2	,
+						expressions: []string{
+							"^...",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10	,
+						expressions: []string{
+							"^...",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "f",
+						from:      0,
+						to:        0	,
+						expressions: []string{
+							"^.",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "b",
+						from:      8,
+						to:        8	,
+						expressions: []string{
+							"^.",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+				},
+			},
+		},
 	}
 
 	for groupName, subGroups := range examples {

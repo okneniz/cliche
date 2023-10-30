@@ -1627,7 +1627,7 @@ type startOfLine struct {
 }
 
 func (n *startOfLine) getKey() string {
-	return "^"
+	return "^ start of line"
 }
 
 func (n *startOfLine) getNestedNodes() index {
@@ -1669,28 +1669,45 @@ func (n *startOfLine) merge(other node) {
 }
 
 func (n *startOfLine) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	if from == 0 {
-		return
-	}
 	// precache new line positions in buffer?
 
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, f)
+		handler.Match(n, from, from, n.isEnd(), true)
+		f(n, from, from, true)
+		n.matchNested(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
 }
 
 func (n *startOfLine) isEndOfLine(input TextBuffer, idx int) bool {
+	if idx < 0 {
+		return false
+	}
+
 	x, err := input.ReadAt(idx)
 	if err != nil {
 		panic("but how to handle it?")
 		// TODO : just ignore it?
 	}
 
-	return x == '\n'
+	switch x {
+	case '\n':
+		return true
+	case '\r':
+		if idx == 0 {
+			return true
+		}
+
+		x, err = input.ReadAt(idx - 1)
+		if err != nil {
+			panic("but how to handle it?")
+			// TODO : just ignore it?
+		}
+		return x == '\n'
+	default:
+		return false
+	}
 }
 
 func (n *startOfLine) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
