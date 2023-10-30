@@ -12,6 +12,16 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
+type OutOfBounds struct {
+	Min int
+	Max int
+	Value int
+}
+
+func (err OutOfBounds) Error() string {
+	return fmt.Sprintf("%d is ouf of bounds %d..%d", err.Value, err.Min, err.Max)
+}
+
 // bnf / ebnf
 //
 // https://www2.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html
@@ -191,68 +201,6 @@ func (c *captures) ToMap(defaultFinish int) map[string]bounds {
 	return result
 }
 
-type list[T fmt.Stringer] struct {
-	data []T
-	pos  int
-}
-
-func newList[T fmt.Stringer](cap int) *list[T] {
-	l := new(list[T])
-	l.data = make([]T, 0, cap)
-	return l
-}
-
-func (l *list[T]) append(item T) {
-	if l.pos >= len(l.data) {
-		l.data = append(l.data, item)
-	} else {
-		l.data[l.pos] = item
-	}
-
-	l.pos++
-}
-
-func (l *list[T]) size() int {
-	return l.pos
-}
-
-func (l *list[T]) truncate(pos int) {
-	if pos < 0 {
-		panic(fmt.Sprintf("invalid position for truncate: %d", pos))
-	}
-
-	l.pos = pos
-}
-
-func (l *list[T]) first() *T {
-	if len(l.data) == 0 {
-		return nil
-	}
-
-	return &l.data[0]
-}
-
-func (l *list[T]) last() *T {
-	if len(l.data) == 0 {
-		return nil
-	}
-
-	return &l.data[l.pos-1]
-}
-
-// TODO : check bounds in the tests
-func (l *list[T]) toSlise() []T {
-	return l.data[0:l.pos]
-}
-
-func (l *list[T]) String() string {
-	items := make([]string, l.pos)
-	for i := 0; i < l.pos; i++ {
-		items[i] = l.data[i].String()
-	}
-	return strings.Join(items, ", ")
-}
-
 func remove[T comparable](l []T, item T) []T {
 	for i, other := range l {
 		if other == item {
@@ -262,6 +210,83 @@ func remove[T comparable](l []T, item T) []T {
 
 	return l
 }
+
+type list[T fmt.Stringer] struct {
+	data []T
+	size int
+}
+
+func newList[T fmt.Stringer](cap int) *list[T] {
+	l := new(list[T])
+	l.data = make([]T, 0, cap)
+	return l
+}
+
+func (l *list[T]) append(item T) {
+	if l.size >= len(l.data) {
+		l.data = append(l.data, item)
+	} else {
+		l.data[l.size] = item
+	}
+
+	l.size++
+}
+
+func (l *list[T]) len() int {
+	return l.size
+}
+
+func (l *list[T]) truncate(newSize int) {
+	if newSize < 0 || newSize > l.size {
+		err := OutOfBounds{
+			Min: 0,
+			Max: l.size,
+			Value: newSize,
+		}
+
+		panic(err)
+	}
+
+	l.size = newSize
+}
+
+func (l *list[T]) first() *T {
+	if l.size == 0 {
+		return nil
+	}
+
+	return &l.data[0]
+}
+
+func (l *list[T]) last() *T {
+	if l.size == 0 {
+		return nil
+	}
+
+	return &l.data[l.size-1]
+}
+
+// TODO : check bounds in the tests
+func (l *list[T]) toSlice() []T {
+	if l.size == 0 {
+		return nil
+	}
+
+	return l.data[0:l.size]
+}
+
+func (l *list[T]) String() string {
+	if l.size == 0 {
+		return "[]"
+	}
+
+	items := make([]string, l.size)
+	for i := 0; i < l.size; i++ {
+		items[i] = l.data[i].String()
+	}
+	return fmt.Sprintf("[%s]", strings.Join(items, ", "))
+}
+
 
 // TODO : use bounds in quantifiers?
 type bounds struct {
@@ -404,11 +429,11 @@ func (s *fullScanner) Match(n node, from, to int, leaf, empty bool) {
 }
 
 func (s *fullScanner) Position() int {
-	return s.matches.size()
+	return s.matches.len()
 }
 
 func (s *fullScanner) Rewind(size int) {
-	if s.matches.size() < size {
+	if s.matches.len() < size {
 		return
 	}
 
@@ -416,16 +441,15 @@ func (s *fullScanner) Rewind(size int) {
 }
 
 func (s *fullScanner) FirstMatch() *match {
-	if s.matches.size() > 0 {
+	if s.matches.len() > 0 {
 		return s.matches.first()
 	}
 
 	return nil
 }
 
-// TODO : add second result like (*match, bool) ?
 func (s *fullScanner) LastMatch() *match {
-	if s.matches.size() > 0 {
+	if s.matches.len() > 0 {
 		return s.matches.last()
 	}
 
@@ -437,9 +461,7 @@ func (s *fullScanner) AddNamedGroup(name string, index int) {
 }
 
 func (s *fullScanner) MatchNamedGroup(name string, index int) {
-	fmt.Println("named groups before", s.namedGroups)
 	s.namedGroups.To(name, index)
-	fmt.Println("named groups after", s.namedGroups)
 }
 
 func (s *fullScanner) DeleteNamedGroup(name string) {
@@ -1767,8 +1789,40 @@ func (n *endOfLine) merge(other node) {
 }
 
 func (n *endOfLine) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	panic("not implemented")
+	// precache new line positions in buffer?
+
+	if n.isEndOfLine(input, from) { // TODO : check \n\r too
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), true)
+		f(n, from, from, true)
+		n.matchNested(handler, input, from, to, f)
+		handler.Rewind(pos)
+	}
 }
+
+func (n *endOfLine) isEndOfLine(input TextBuffer, idx int) bool {
+	if idx >= input.Size() {
+		return false
+	}
+
+	x, err := input.ReadAt(idx)
+	if err != nil {
+		panic("but how to handle it?")
+		// TODO : just ignore it?
+	}
+
+	return x == '\n'
+}
+
+func (n *endOfLine) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
+	for _, nested := range n.Nested {
+		nested.match(handler, input, from, to, f)
+		handler.Rewind(pos)
+	}
+}
+
 
 type startOfString struct {
 	Expressions dict  `json:"expressions,omitempty"`
