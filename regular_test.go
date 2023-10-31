@@ -2007,53 +2007,53 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
-		// "end of": {
-		// 	{
-		// 		name: "line",
-		// 		regexps: []string{
-		// 			"...$",
-		// 			// ".$",
-		// 			// "$.",
-		// 			// "$",
-		// 		},
-		// 		input: "foo bar\nbaz",
-		// 		output: []*FullMatch{
-		// 			{
-		// 				subString: "bar",
-		// 				from:      4,
-		// 				to:        7,
-		// 				expressions: []string{
-		// 					"...$",
-		// 				},
-		// 				namedGroups: map[string]bounds{},
-		// 				groups:      []bounds{},
-		// 				empty: false,
-		// 			},
-		// 			// {
-		// 			// 	subString: "r",
-		// 			// 	from:      6,
-		// 			// 	to:        6	,
-		// 			// 	expressions: []string{
-		// 			// 		".$",
-		// 			// 	},
-		// 			// 	namedGroups: map[string]bounds{},
-		// 			// 	groups:      []bounds{},
-		// 			// 	empty: false,
-		// 			// },
-		// 			// {
-		// 			// 	subString: "",
-		// 			// 	from:      7,
-		// 			// 	to:        7	,
-		// 			// 	expressions: []string{
-		// 			// 		"$",
-		// 			// 	},
-		// 			// 	namedGroups: map[string]bounds{},
-		// 			// 	groups:      []bounds{},
-		// 			// 	empty: true,
-		// 			// },
-		// 		},
-		// 	},
-		// },
+		"end of": {
+			{
+				name: "line",
+				regexps: []string{
+					"...$",
+					// ".$", TODO : fix conflict with upper regexp
+					"$.",
+					"$",
+				},
+				input: "foo bar\nbaz",
+				output: []*FullMatch{
+					{
+						subString: "bar",
+						from:      4,
+						to:        7,
+						expressions: []string{
+							"...$",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					// {
+					// 	subString: "r",
+					// 	from:      6,
+					// 	to:        7,
+					// 	expressions: []string{
+					// 		".$",
+					// 	},
+					// 	namedGroups: map[string]bounds{},
+					// 	groups:      []bounds{},
+					// 	empty: false,
+					// },
+					{
+						subString: "",
+						from:      7,
+						to:        7	,
+						expressions: []string{
+							"$",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: true,
+					},
+				},
+			},
+		},
 	}
 
 	for groupName, subGroups := range examples {

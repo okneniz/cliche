@@ -38,6 +38,8 @@ func (err OutOfBounds) Error() string {
 // https://pkg.go.dev/regexp#Regexp.FindString
 //
 // https://swtch.com/~rsc/regexp/regexp2.html#posix
+//
+// https://www.rfc-editor.org/rfc/rfc9485.html#name-multi-character-escapes
 
 type Match interface {
 	From() int
@@ -59,10 +61,13 @@ type Handler interface { // TODO : should be generic type for different type of 
 	Match(n node, from, to int, isLeaf, isEmpty bool)
 
 	FirstMatch() *match
+	FirstNotEmptyMatch() *match
 
 	// TODO : how to remove it?
 	// required only for quantifier
 	LastMatch() *match // TODO : use (int, int) instead?
+	LastNotEmptyMatch() *match
+
 
 	Position() int
 	Rewind(size int)
@@ -250,6 +255,20 @@ func (l *list[T]) truncate(newSize int) {
 	l.size = newSize
 }
 
+func (l *list[T]) at(idx int) T {
+	if idx < 0 || idx >= len(l.data) {
+		err := OutOfBounds{
+			Min: 0,
+			Max: l.size,
+			Value: idx,
+		}
+
+		panic(err)
+	}
+
+	return l.data[idx]
+}
+
 func (l *list[T]) first() *T {
 	if l.size == 0 {
 		return nil
@@ -360,11 +379,11 @@ func (b *boundsList[T]) longestMatch(x, y T) T {
 	return y
 }
 
-// todo - better name?
 type match struct {
 	from int
 	to   int
 	node node
+	empty bool
 }
 
 func (m match) From() int {
@@ -375,12 +394,20 @@ func (m match) To() int {
 	return m.to
 }
 
+func (m match) Empty() bool {
+	return m.empty
+}
+
 func (m match) String() string {
-	return fmt.Sprintf("%s - [%d..%d]", m.node.getKey(), m.from, m.to)
+	return fmt.Sprintf("%s - [%d..%d] %v", m.node.getKey(), m.from, m.to, m.empty)
 }
 
 func (m match) Size() int {
-	return m.to - m.from
+	if m.empty {
+		return 0
+	}
+
+	return m.to - m.from + 1
 }
 
 type fullScanner struct {
@@ -419,6 +446,7 @@ func (s *fullScanner) Match(n node, from, to int, leaf, empty bool) {
 		from: from,
 		to:   to,
 		node: n,
+		empty: empty,
 	}
 
 	s.matches.append(m)
@@ -448,9 +476,35 @@ func (s *fullScanner) FirstMatch() *match {
 	return nil
 }
 
+func (s *fullScanner) FirstNotEmptyMatch() *match {
+	// TODO : cache it in special memory address in list structure?
+	for i := 0; i < s.matches.len(); i++ {
+		m := s.matches.at(i)
+		fmt.Printf("%#v\n", m)
+		if !m.Empty() {
+			return &m
+		}
+	}
+
+	return nil
+}
+
 func (s *fullScanner) LastMatch() *match {
 	if s.matches.len() > 0 {
 		return s.matches.last()
+	}
+
+	return nil
+}
+
+func (s *fullScanner) LastNotEmptyMatch() *match {
+	// TODO : cache it in special memory address in list structure?
+	for i := s.matches.len() - 1; i >= 0; i-- {
+		m := s.matches.at(i)
+		fmt.Printf("%#v\n", m)
+		if !m.Empty() {
+			return &m
+		}
 	}
 
 	return nil
@@ -595,46 +649,55 @@ func (t *trie) Match(text string) []*FullMatch {
 		groups,
 		namedGroups,
 		func(n node, from, to int, empty bool) {
-			// fmt.Println("match", n, from, to)
-
 			matches.push(
 				match{
 					from: from,
 					to:   to,
 					node: n,
+					empty: empty,
 				},
 			)
 
 			begin := scanner.FirstMatch()
 			end := scanner.LastMatch()
 
+			beginSubstring := scanner.FirstNotEmptyMatch()
+			endSubstring := scanner.LastNotEmptyMatch()
+
+			if begin == nil {
+				begin = scanner.FirstMatch()
+			}
+
+			if end == nil {
+				end = scanner.LastMatch()
+			}
+
 			fmt.Println("scanner", scanner)
 
-			subStringFrom := begin.From()
-			subStringTo := end.To()
+			m := &FullMatch{
+				expressions: n.getExpressions().toSlice(),
+				from:        begin.From(),
+				to:          end.To(),
+				groups:      groups.ToSlice(0), // TODO : default start?
+				namedGroups: namedGroups.ToMap(0),
+			}
 
-			var (
-				subString string
-				err       error
-			)
+			if beginSubstring != nil && endSubstring != nil {
+				subString, err := input.Substring(
+					beginSubstring.From(),
+					endSubstring.To(),
+				)
 
-			if !empty {
-				subString, err = input.Substring(subStringFrom, subStringTo)
 				if err != nil {
 					// TODO : how to handle error
 					fmt.Println("error", err)
 				}
+
+				m.subString = subString
+			} else {
+				m.empty = true
 			}
 
-			m := &FullMatch{
-				expressions: n.getExpressions().toSlice(),
-				subString:   subString,
-				from:        subStringFrom,
-				to:          subStringTo,
-				groups:      groups.ToSlice(0), // TODO : default start?
-				namedGroups: namedGroups.ToMap(0),
-				empty:       empty,
-			}
 
 			fmt.Printf("full match: %v\n", m)
 
@@ -708,6 +771,10 @@ func (m *FullMatch) To() int {
 }
 
 func (m *FullMatch) Size() int {
+	if m.empty {
+		return 0
+	}
+
 	return len(m.subString)
 }
 
@@ -1804,6 +1871,7 @@ func (n *endOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 	if idx >= input.Size() {
 		return false
 	}
+
 
 	x, err := input.ReadAt(idx)
 	if err != nil {
