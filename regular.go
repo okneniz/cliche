@@ -649,6 +649,7 @@ func (t *trie) Match(text string) []*FullMatch {
 		groups,
 		namedGroups,
 		func(n node, from, to int, empty bool) {
+
 			matches.push(
 				match{
 					from: from,
@@ -1942,9 +1943,9 @@ func (n *startOfString) merge(other node) {
 func (n *startOfString) match(handler Handler, input TextBuffer, from, to int, f Callback) {
 	if from == 0 {
 		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
-		f(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, f)
+		handler.Match(n, from, from, n.isEnd(), true)
+		f(n, from, from, true)
+		n.matchNested(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
 }

@@ -2006,6 +2006,51 @@ func TestMatch(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "string",
+				regexps: []string{
+					"\\A...",
+					"\\A.",
+					"\\A",
+					".\\A",
+				},
+				input: "foo bar\nbaz",
+				output: []*FullMatch{
+					{
+						subString: "foo",
+						from:      0,
+						to:        2	,
+						expressions: []string{
+							"\\A...",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "f",
+						from:      0,
+						to:        0	,
+						expressions: []string{
+							"\\A.",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+					{
+						subString: "",
+						from:      0,
+						to:        0	,
+						expressions: []string{
+							"\\A",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: true,
+					},
+				},
+			},
 		},
 		"end of": {
 			{
