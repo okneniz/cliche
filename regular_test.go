@@ -1682,7 +1682,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: true,
+						empty:       true,
 					},
 					{
 						subString: "x",
@@ -1694,7 +1694,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "",
@@ -1706,7 +1706,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: true,
+						empty:       true,
 					},
 					{
 						subString: "",
@@ -1718,7 +1718,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: true,
+						empty:       true,
 					},
 					{
 						subString: "x",
@@ -1730,7 +1730,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "xx x",
@@ -1775,7 +1775,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "x",
@@ -1787,7 +1787,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 				},
 			},
@@ -1813,7 +1813,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "x",
@@ -1825,7 +1825,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "x",
@@ -1837,31 +1837,31 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "xx",
 						from:      0,
-						to:        1	,
+						to:        1,
 						expressions: []string{
 							"x+x",
 							"x{1,}x",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "xx x",
 						from:      0,
-						to:        3	,
+						to:        3,
 						expressions: []string{
 							"x.+",
 							"x.{1,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 				},
 			},
@@ -1875,24 +1875,24 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "xx",
 						from:      0,
-						to:        1	,
+						to:        1,
 						expressions: []string{
 							"x{2,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "xxx",
 						from:      3,
-						to:        5	,
+						to:        5,
 						expressions: []string{
 							"x{2,}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 				},
 			},
@@ -1906,46 +1906,46 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "xx",
 						from:      0,
-						to:        1	,
+						to:        1,
 						expressions: []string{
 							"x{2,4}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "xxx",
 						from:      3,
-						to:        5	,
+						to:        5,
 						expressions: []string{
 							"x{2,4}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "xxxx",
 						from:      9,
-						to:        12	,
+						to:        12,
 						expressions: []string{
 							"x{2,4}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "xx",
 						from:      13,
-						to:        14	,
+						to:        14,
 						expressions: []string{
 							"x{2,4}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 				},
 			},
@@ -1963,46 +1963,46 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "foo",
 						from:      0,
-						to:        2	,
+						to:        2,
 						expressions: []string{
 							"^...",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "baz",
 						from:      8,
-						to:        10	,
+						to:        10,
 						expressions: []string{
 							"^...",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "f",
 						from:      0,
-						to:        0	,
+						to:        0,
 						expressions: []string{
 							"^.",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "b",
 						from:      8,
-						to:        8	,
+						to:        8,
 						expressions: []string{
 							"^.",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 				},
 			},
@@ -2019,35 +2019,35 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "foo",
 						from:      0,
-						to:        2	,
+						to:        2,
 						expressions: []string{
 							"\\A...",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "f",
 						from:      0,
-						to:        0	,
+						to:        0,
 						expressions: []string{
 							"\\A.",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					{
 						subString: "",
 						from:      0,
-						to:        0	,
+						to:        0,
 						expressions: []string{
 							"\\A",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: true,
+						empty:       true,
 					},
 				},
 			},
@@ -2072,7 +2072,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 					// {
 					// 	subString: "r",
@@ -2088,13 +2088,13 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "",
 						from:      7,
-						to:        7	,
+						to:        7,
 						expressions: []string{
 							"$",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: true,
+						empty:       true,
 					},
 				},
 			},
@@ -2128,7 +2128,7 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
-						empty: false,
+						empty:       false,
 					},
 				},
 			},
@@ -2671,7 +2671,7 @@ func pointer[T any](x T) *T {
 
 type num int
 
-func(t num) String() string {
+func (t num) String() string {
 	return fmt.Sprintf("%d", t)
 }
 
@@ -2752,13 +2752,13 @@ func Test_list(t *testing.T) {
 
 	require.PanicsWithValue(
 		t,
-		OutOfBounds{Min: 0, Max: 3,Value: -1},
+		OutOfBounds{Min: 0, Max: 3, Value: -1},
 		func() { l.truncate(-1) },
 	)
 
 	require.PanicsWithValue(
 		t,
-		OutOfBounds{Min: 0, Max: 3,Value: 10},
+		OutOfBounds{Min: 0, Max: 3, Value: 10},
 		func() { l.truncate(10) },
 	)
 
@@ -2766,13 +2766,13 @@ func Test_list(t *testing.T) {
 
 	require.PanicsWithValue(
 		t,
-		OutOfBounds{Min: 0, Max: 0,Value: -1},
+		OutOfBounds{Min: 0, Max: 0, Value: -1},
 		func() { l.truncate(-1) },
 	)
 
 	require.PanicsWithValue(
 		t,
-		OutOfBounds{Min: 0, Max: 0,Value: 10},
+		OutOfBounds{Min: 0, Max: 0, Value: 10},
 		func() { l.truncate(10) },
 	)
 
@@ -2781,8 +2781,8 @@ func Test_list(t *testing.T) {
 
 func Test_OutOfBounds(t *testing.T) {
 	err := OutOfBounds{
-		Min: 10,
-		Max: 100,
+		Min:   10,
+		Max:   100,
 		Value: -50,
 	}
 

@@ -13,8 +13,8 @@ import (
 )
 
 type OutOfBounds struct {
-	Min int
-	Max int
+	Min   int
+	Max   int
 	Value int
 }
 
@@ -67,7 +67,6 @@ type Handler interface { // TODO : should be generic type for different type of 
 	// required only for quantifier
 	LastMatch() *match // TODO : use (int, int) instead?
 	LastNotEmptyMatch() *match
-
 
 	Position() int
 	Rewind(size int)
@@ -244,8 +243,8 @@ func (l *list[T]) len() int {
 func (l *list[T]) truncate(newSize int) {
 	if newSize < 0 || newSize > l.size {
 		err := OutOfBounds{
-			Min: 0,
-			Max: l.size,
+			Min:   0,
+			Max:   l.size,
 			Value: newSize,
 		}
 
@@ -258,8 +257,8 @@ func (l *list[T]) truncate(newSize int) {
 func (l *list[T]) at(idx int) T {
 	if idx < 0 || idx >= len(l.data) {
 		err := OutOfBounds{
-			Min: 0,
-			Max: l.size,
+			Min:   0,
+			Max:   l.size,
 			Value: idx,
 		}
 
@@ -306,7 +305,6 @@ func (l *list[T]) String() string {
 	return fmt.Sprintf("[%s]", strings.Join(items, ", "))
 }
 
-
 // TODO : use bounds in quantifiers?
 type bounds struct {
 	from, to int
@@ -314,10 +312,6 @@ type bounds struct {
 
 func (b bounds) String() string {
 	return fmt.Sprintf("%d-%d", b.from, b.to)
-}
-
-func (b bounds) size() int {
-	return b.to - b.from
 }
 
 type boundsList[T Match] struct {
@@ -380,9 +374,9 @@ func (b *boundsList[T]) longestMatch(x, y T) T {
 }
 
 type match struct {
-	from int
-	to   int
-	node node
+	from  int
+	to    int
+	node  node
 	empty bool
 }
 
@@ -443,9 +437,9 @@ func (s *fullScanner) String() string {
 
 func (s *fullScanner) Match(n node, from, to int, leaf, empty bool) {
 	m := match{
-		from: from,
-		to:   to,
-		node: n,
+		from:  from,
+		to:    to,
+		node:  n,
 		empty: empty,
 	}
 
@@ -652,9 +646,9 @@ func (t *trie) Match(text string) []*FullMatch {
 
 			matches.push(
 				match{
-					from: from,
-					to:   to,
-					node: n,
+					from:  from,
+					to:    to,
+					node:  n,
 					empty: empty,
 				},
 			)
@@ -706,7 +700,6 @@ func (t *trie) Match(text string) []*FullMatch {
 			} else {
 				m.empty = true
 			}
-
 
 			fmt.Printf("full match: %v\n", m)
 
@@ -1881,7 +1874,6 @@ func (n *endOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 		return false
 	}
 
-
 	x, err := input.ReadAt(idx)
 	if err != nil {
 		panic("but how to handle it?")
@@ -1899,7 +1891,6 @@ func (n *endOfLine) matchNested(handler Handler, input TextBuffer, from, to int,
 		handler.Rewind(pos)
 	}
 }
-
 
 type startOfString struct {
 	Expressions dict  `json:"expressions,omitempty"`
