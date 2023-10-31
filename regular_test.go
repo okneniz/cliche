@@ -167,7 +167,7 @@ func TestTrieCompression(t *testing.T) {
 }
 
 func TestMatch(t *testing.T) {
-	// t.Parallel()
+	t.Parallel()
 
 	examples := map[string][]example{
 		"simple": {
@@ -2210,6 +2210,8 @@ func comparator(x, y *FullMatch) bool {
 }
 
 func TestQuantifierBounds(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		name   string
 		q      quantifier
@@ -2495,6 +2497,8 @@ func TestQuantifierBounds(t *testing.T) {
 }
 
 func TestQuantifier_getKey(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		expression    string
 		key           string
@@ -2676,6 +2680,8 @@ func (t num) String() string {
 }
 
 func Test_list(t *testing.T) {
+	t.Parallel()
+
 	l := newList[num](2)
 
 	require.Equal(t, 0, l.len())
