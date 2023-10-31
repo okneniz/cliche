@@ -2098,6 +2098,40 @@ func TestMatch(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "string",
+				regexps: []string{
+					"...\\z",
+					// ".\\z", // TODO : fix conflict with upper
+					// "\\z", // TODO : should be matched?
+					// ".\\z",
+				},
+				input: "foo bar\nbaz",
+				output: []*FullMatch{
+					// {
+					// 	subString: "z",
+					// 	from:      10,
+					// 	to:        10,
+					// 	expressions: []string{
+					// 		".\\z",
+					// 	},
+					// 	namedGroups: map[string]bounds{},
+					// 	groups:      []bounds{},
+					// 	empty: false,
+					// },
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"...\\z",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty: false,
+					},
+				},
+			},
 		},
 	}
 

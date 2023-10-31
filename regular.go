@@ -683,6 +683,14 @@ func (t *trie) Match(text string) []*FullMatch {
 				namedGroups: namedGroups.ToMap(0),
 			}
 
+			if m.from >= input.Size() {
+				m.from = input.Size() - 1
+			}
+
+			if m.to >= input.Size() {
+				m.to = input.Size() - 1
+			}
+
 			if beginSubstring != nil && endSubstring != nil {
 				subString, err := input.Substring(
 					beginSubstring.From(),
@@ -2007,8 +2015,13 @@ func (n *endOfString) merge(other node) {
 }
 
 func (n *endOfString) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	n.matchNested(handler, input, from, to, f)
-	panic("not implemented")
+	if from == input.Size() {
+		pos := handler.Position()
+		handler.Match(n, from, from, n.isEnd(), true)
+		f(n, from, from, true)
+		n.matchNested(handler, input, from, to, f)
+		handler.Rewind(pos)
+	}
 }
 
 func (n *endOfString) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
