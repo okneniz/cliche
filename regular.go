@@ -660,7 +660,7 @@ func (t *trie) Match(text string) []*FullMatch {
 			endSubstring := scanner.LastNotEmptyMatch()
 
 			if begin == nil {
-				begin = scanner.FirstMatch()
+				begin = scanner.FirstMatch() // TODO ; looks strange, like pointless code
 			}
 
 			if end == nil {
@@ -2416,7 +2416,10 @@ func (n *negativeSet) merge(other node) {
 }
 
 func (n *negativeSet) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	// TODO : check size
+	if from >= input.Size() {
+		return
+	}
+
 	// TODO : cache isEnd before loop?
 
 	pos := handler.Position()

@@ -119,6 +119,10 @@ func TestTrieCompression(t *testing.T) {
 		// TODO : may be remove duplications?
 		// like [aa1-2] == [1-2a]
 		// like [121-2] == [1-2]
+		//
+
+		// unify [\d] to \d
+		// unify [0-9] to \d
 	})
 
 	// Some quantifiers have the same meaning, but have different symbols.
@@ -2133,7 +2137,377 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
+		"sets": {
+			{
+				name: "positive",
+				regexps: []string{
+					"[0-9]",
+					"[0-9]+",
+					"ba[rz]",
+					"[faborz]+",
+					"[bar][bar][baz]",
+				},
+				input: "foo 1 bar\nbaz 123",
+				output: []*FullMatch{
+					{
+						subString: "1",
+						from:      4,
+						to:        4,
+						expressions: []string{
+							"[0-9]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "1",
+						from:      14,
+						to:        14,
+						expressions: []string{
+							"[0-9]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "2",
+						from:      15,
+						to:        15,
+						expressions: []string{
+							"[0-9]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "3",
+						from:      16,
+						to:        16,
+						expressions: []string{
+							"[0-9]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "1",
+						from:      4,
+						to:        4,
+						expressions: []string{
+							"[0-9]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "123",
+						from:      14,
+						to:        16,
+						expressions: []string{
+							"[0-9]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "bar",
+						from:      6,
+						to:        8,
+						expressions: []string{
+							"ba[rz]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "baz",
+						from:      10,
+						to:        12,
+						expressions: []string{
+							"ba[rz]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"[faborz]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "bar",
+						from:      6,
+						to:        8,
+						expressions: []string{
+							"[faborz]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "baz",
+						from:      10,
+						to:        12,
+						expressions: []string{
+							"[faborz]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "baz",
+						from:      10,
+						to:        12,
+						expressions: []string{
+							"[bar][bar][baz]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+				},
+			},
+			{
+				name: "negative",
+				regexps: []string{
+					"[^a-z]",
+					"[^\\s]+",
+					"ba[^for]",
+					"[^\\s][^\\s][^\\s]",
+				},
+				input: "foo 1 bar baz 123",
+				output: []*FullMatch{
+					{
+						subString: " ",
+						from:      3,
+						to:        3,
+						expressions: []string{
+							"[^a-z]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "1",
+						from:      4,
+						to:        4,
+						expressions: []string{
+							"[^a-z]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: " ",
+						from:      5,
+						to:        5,
+						expressions: []string{
+							"[^a-z]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: " ",
+						from:      9,
+						to:        9,
+						expressions: []string{
+							"[^a-z]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: " ",
+						from:      13,
+						to:        13,
+						expressions: []string{
+							"[^a-z]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "1",
+						from:      14,
+						to:        14,
+						expressions: []string{
+							"[^a-z]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "2",
+						from:      15,
+						to:        15,
+						expressions: []string{
+							"[^a-z]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "3",
+						from:      16,
+						to:        16,
+						expressions: []string{
+							"[^a-z]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"[^\\s]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "1",
+						from:      4,
+						to:        4,
+						expressions: []string{
+							"[^\\s]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "bar",
+						from:      6,
+						to:        8,
+						expressions: []string{
+							"[^\\s]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "baz",
+						from:      10,
+						to:        12,
+						expressions: []string{
+							"[^\\s]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "123",
+						from:      14,
+						to:        16,
+						expressions: []string{
+							"[^\\s]+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "bar",
+						from:      6,
+						to:        8,
+						expressions: []string{
+							"ba[^for]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "baz",
+						from:      10,
+						to:        12,
+						expressions: []string{
+							"ba[^for]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "foo",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"[^\\s][^\\s][^\\s]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "bar",
+						from:      6,
+						to:        8,
+						expressions: []string{
+							"[^\\s][^\\s][^\\s]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "baz",
+						from:      10,
+						to:        12,
+						expressions: []string{
+							"[^\\s][^\\s][^\\s]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "123",
+						from:      14,
+						to:        16,
+						expressions: []string{
+							"[^\\s][^\\s][^\\s]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+				},
+			},
+		},
 	}
+
+	// TODO : add tests for "escaped characters"
 
 	for groupName, subGroups := range examples {
 		t.Run(groupName, func(t *testing.T) {
