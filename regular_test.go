@@ -2780,6 +2780,76 @@ func TestMatch(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "floating point numbers",
+				regexps: []string{
+					`[-+]?[0-9]+\.?[0-9]+`,
+					`[-+]?[0-9]+.?[0-9]+`,
+				},
+				input: "+3.14 9.8 2.718 -1.1 +100.500",
+				output: []*FullMatch{
+					{
+						subString: "+3.14",
+						from:      0,
+						to:        4,
+						expressions: []string{
+							`[-+]?[0-9]+\.?[0-9]+`,
+							`[-+]?[0-9]+.?[0-9]+`,
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "9.8",
+						from:      6,
+						to:        8,
+						expressions: []string{
+							`[-+]?[0-9]+\.?[0-9]+`,
+							`[-+]?[0-9]+.?[0-9]+`,
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "2.718",
+						from:      10,
+						to:        14,
+						expressions: []string{
+							`[-+]?[0-9]+\.?[0-9]+`,
+							`[-+]?[0-9]+.?[0-9]+`,
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "-1.1",
+						from:      16,
+						to:        19,
+						expressions: []string{
+							`[-+]?[0-9]+\.?[0-9]+`,
+							`[-+]?[0-9]+.?[0-9]+`,
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "+100.500",
+						from:      21,
+						to:        28,
+						expressions: []string{
+							`[-+]?[0-9]+\.?[0-9]+`,
+							`[-+]?[0-9]+.?[0-9]+`,
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+				},
+			},
 		},
 	}
 

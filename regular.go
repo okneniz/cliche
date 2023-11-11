@@ -781,14 +781,7 @@ func (m *FullMatch) Size() int {
 }
 
 func (m *FullMatch) String() string {
-	return fmt.Sprintf(
-		"match(string=%s, from=%d, to=%d, groups=%s, namedGroup=%s)",
-		m.subString,
-		m.from,
-		m.to,
-		m.groups,
-		m.namedGroups,
-	)
+	return m.subString
 }
 
 func (m *FullMatch) Expressions() []string {
@@ -2887,7 +2880,9 @@ func parseEscapedSpecSymbols() parser {
 	symbols := ".?+*^$[]{}()"
 	cases := make(map[rune]parser)
 
-	for _, r := range symbols {
+	for _, v := range symbols {
+		r := v
+
 		cases[r] = func(buf c.Buffer[rune, int]) (node, error) {
 			x := char{
 				Value:  r,
