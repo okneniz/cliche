@@ -3101,10 +3101,33 @@ func TestMatch(t *testing.T) {
 							"^(.*)$",
 						},
 						namedGroups: map[string]bounds{},
-						groups:      []bounds{
-							{from:0, to: 73},
+						groups: []bounds{
+							{from: 0, to: 73},
 						},
-						empty:       false,
+						empty: false,
+					},
+				},
+			},
+
+			{
+				name: "HTML",
+				regexps: []string{
+					`<p>(.*)</p>`,
+				},
+				input: "Lorem Ipsum is <p>simply dummy text</p> of the printing and typesetting industry.",
+				output: []*FullMatch{
+					{
+						subString: "<p>simply dummy text</p>",
+						from:      15,
+						to:        38,
+						expressions: []string{
+							`<p>(.*)</p>`,
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 18, to: 34},
+						},
+						empty: false,
 					},
 				},
 			},
