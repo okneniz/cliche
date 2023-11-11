@@ -2078,6 +2078,17 @@ func TestMatch(t *testing.T) {
 						groups:      []bounds{},
 						empty:       false,
 					},
+					{
+						subString: "baz",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"...$",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
 					// {
 					// 	subString: "r",
 					// 	from:      6,
@@ -3035,6 +3046,64 @@ func TestMatch(t *testing.T) {
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
+						empty:       false,
+					},
+				},
+			},
+			{
+				name: "complete line",
+				regexps: []string{
+					"^.*$",
+					"^(.*)$",
+					"^.{2}",
+					".{2}$",
+				},
+				input: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+				output: []*FullMatch{
+					{
+						subString: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+						from:      0,
+						to:        73,
+						expressions: []string{
+							"^.*$",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "Lo",
+						from:      0,
+						to:        1,
+						expressions: []string{
+							"^.{2}",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "y.",
+						from:      72,
+						to:        73,
+						expressions: []string{
+							".{2}$",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+						empty:       false,
+					},
+					{
+						subString: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+						from:      0,
+						to:        73,
+						expressions: []string{
+							"^(.*)$",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{
+							{from:0, to: 73},
+						},
 						empty:       false,
 					},
 				},

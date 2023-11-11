@@ -12,6 +12,8 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
+// https://www.regular-expressions.info/repeat.html
+
 type OutOfBounds struct {
 	Min   int
 	Max   int
@@ -740,7 +742,7 @@ func (t *trie) Match(text string) []*FullMatch {
 			scanner.Rewind(0)
 			matches.clear()
 
-			fmt.Println("after matches clear", matches)
+			// fmt.Println("after matches clear", matches)
 		}
 	}
 
@@ -1711,7 +1713,7 @@ type startOfLine struct {
 }
 
 func (n *startOfLine) getKey() string {
-	return "^ start of line"
+	return "^ start of line" // TODO : compact key
 }
 
 func (n *startOfLine) getNestedNodes() index {
@@ -1863,8 +1865,12 @@ func (n *endOfLine) match(handler Handler, input TextBuffer, from, to int, f Cal
 }
 
 func (n *endOfLine) isEndOfLine(input TextBuffer, idx int) bool {
-	if idx >= input.Size() {
+	if idx > input.Size() {
 		return false
+	}
+
+	if idx == input.Size() {
+		return true
 	}
 
 	x, err := input.ReadAt(idx)
