@@ -2505,6 +2505,282 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
+		"real world examples": {
+			{
+				name: "numeric ranges 000..255",
+				regexps: []string{
+					"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+				},
+				input: "000 111 255 256 00 25x 1 2 5",
+				output: []*FullMatch{
+					{
+						subString: "000",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 0, to: 2},
+						},
+						empty: false,
+					},
+					{
+						subString: "111",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 4, to: 6},
+						},
+						empty: false,
+					},
+					{
+						subString: "255",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 8, to: 10},
+						},
+						empty: false,
+					},
+				},
+			},
+			{
+				name: "numeric ranges 0 or 000..255",
+				regexps: []string{
+					"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+				},
+				input: "000 111 255 256 0 12 025",
+				output: []*FullMatch{
+					{
+						subString: "000",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 0, to: 2},
+						},
+						empty: false,
+					},
+					{
+						subString: "111",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 4, to: 6},
+						},
+						empty: false,
+					},
+					{
+						subString: "255",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 8, to: 10},
+						},
+						empty: false,
+					},
+					{
+						subString: "25",
+						from:      12,
+						to:        13,
+						expressions: []string{
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 12, to: 13},
+						},
+						empty: false,
+					},
+					{
+						subString: "6",
+						from:      14,
+						to:        14,
+						expressions: []string{
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 14, to: 14},
+						},
+						empty: false,
+					},
+					{
+						subString: "0",
+						from:      16,
+						to:        16,
+						expressions: []string{
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 16, to: 16},
+						},
+						empty: false,
+					},
+					{
+						subString: "12",
+						from:      18,
+						to:        19,
+						expressions: []string{
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 18, to: 19},
+						},
+						empty: false,
+					},
+					{
+						subString: "025",
+						from:      21,
+						to:        23,
+						expressions: []string{
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 21, to: 23},
+						},
+						empty: false,
+					},
+				},
+			},
+			{
+				name: "numeric ranges 000..127",
+				regexps: []string{
+					"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+				},
+				input: "000 111 127 128 0 12 025",
+				output: []*FullMatch{
+					{
+						subString: "000",
+						from:      0,
+						to:        2,
+						expressions: []string{
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 0, to: 2},
+						},
+						empty: false,
+					},
+					{
+						subString: "111",
+						from:      4,
+						to:        6,
+						expressions: []string{
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 4, to: 6},
+						},
+						empty: false,
+					},
+					{
+						subString: "127",
+						from:      8,
+						to:        10,
+						expressions: []string{
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 8, to: 10},
+						},
+						empty: false,
+					},
+					{
+						subString: "12",
+						from:      12,
+						to:        13,
+						expressions: []string{
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 12, to: 13},
+						},
+						empty: false,
+					},
+					{
+						subString: "8",
+						from:      14,
+						to:        14,
+						expressions: []string{
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 14, to: 14},
+						},
+						empty: false,
+					},
+					{
+						subString: "0",
+						from:      16,
+						to:        16,
+						expressions: []string{
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 16, to: 16},
+						},
+						empty: false,
+					},
+					{
+						subString: "12",
+						from:      18,
+						to:        19,
+						expressions: []string{
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 18, to: 19},
+						},
+						empty: false,
+					},
+					{
+						subString: "025",
+						from:      21,
+						to:        23,
+						expressions: []string{
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 21, to: 23},
+						},
+						empty: false,
+					},
+				},
+			},
+		},
 	}
 
 	// TODO : add tests for "escaped characters"
