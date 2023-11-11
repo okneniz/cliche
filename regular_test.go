@@ -2850,6 +2850,130 @@ func TestMatch(t *testing.T) {
 					},
 				},
 			},
+			{
+				name: "email",
+				regexps: []string{
+					"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
+					"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
+					"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
+					"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
+				},
+				input: "123 asd c test@mail.ru asd da a.b@x.y.ru",
+				output: []*FullMatch{
+					{
+						subString: "test@mail.ru",
+						from:      10,
+						to:        21,
+						expressions: []string{
+							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "a.b@x.y.ru",
+						from:      30,
+						to:        39,
+						expressions: []string{
+							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "test@mail.ru",
+						from:      10,
+						to:        21,
+						expressions: []string{
+							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 10, to: 13},
+							{from: 15, to: 21},
+						},
+						empty: false,
+					},
+					{
+						subString: "a.b@x.y.ru",
+						from:      30,
+						to:        39,
+						expressions: []string{
+							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{
+							{from: 30, to: 32},
+							{from: 34, to: 39},
+						},
+						empty: false,
+					},
+					{
+						subString: "test@mail.ru",
+						from:      10,
+						to:        21,
+						expressions: []string{
+							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "a.b@x.y.ru",
+						from:      30,
+						to:        39,
+						expressions: []string{
+							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
+						},
+						namedGroups: map[string]bounds{},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "test@mail.ru",
+						from:      10,
+						to:        21,
+						expressions: []string{
+							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
+						},
+						namedGroups: map[string]bounds{
+							"name": {
+								from: 10,
+								to: 13,
+							},
+							"domain": {
+								from: 15,
+								to: 21,
+							},
+						},
+						groups: []bounds{},
+						empty: false,
+					},
+					{
+						subString: "a.b@x.y.ru",
+						from:      30,
+						to:        39,
+						expressions: []string{
+							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
+						},
+						namedGroups: map[string]bounds{
+							"name": {
+								from: 30,
+								to: 32,
+							},
+							"domain": {
+								from: 34,
+								to: 39,
+							},
+						},
+						groups: []bounds{},
+						empty: false,
+					},
+				},
+			},
 		},
 	}
 
