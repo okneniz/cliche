@@ -421,7 +421,7 @@ func TestMatch(t *testing.T) {
 				},
 			},
 			{
-				name:    "match multiple '.'", // TODO : move to another group?
+				name:    "match multiple '.'",
 				regexps: []string{"t.."},
 				input:   "testing string test ssss word words",
 				output: []*FullMatch{
@@ -1033,6 +1033,124 @@ func TestMatch(t *testing.T) {
 						to:        16,
 						expressions: []string{
 							"\\S",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+				},
+			},
+			{
+				name: "escaped characters",
+				regexps: []string{
+					"\\.",
+					"\\?",
+					"\\+",
+					"\\*",
+					"\\^",
+					"\\$",
+					"\\[",
+					"\\]",
+					"\\{",
+					"\\}",
+				},
+				input:  ". ? + * ^ $ [ ] { }",
+				output: []*FullMatch{
+					{
+						subString: ".",
+						from:      0,
+						to:        0,
+						expressions: []string{
+							"\\.",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "?",
+						from:      2,
+						to:        2,
+						expressions: []string{
+							"\\?",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "+",
+						from:      4,
+						to:        4,
+						expressions: []string{
+							"\\+",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "*",
+						from:      6,
+						to:        6,
+						expressions: []string{
+							"\\*",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "^",
+						from:      8,
+						to:        8,
+						expressions: []string{
+							"\\^",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "$",
+						from:      10,
+						to:        10,
+						expressions: []string{
+							"\\$",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "[",
+						from:      12,
+						to:        12,
+						expressions: []string{
+							"\\[",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "]",
+						from:      14,
+						to:        14,
+						expressions: []string{
+							"\\]",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "{",
+						from:      16,
+						to:        16,
+						expressions: []string{
+							"\\{",
+						},
+						namedGroups: map[string]bounds{},
+						groups:      []bounds{},
+					},
+					{
+						subString: "}",
+						from:      18,
+						to:        18,
+						expressions: []string{
+							"\\}",
 						},
 						namedGroups: map[string]bounds{},
 						groups:      []bounds{},
@@ -2061,7 +2179,7 @@ func TestMatch(t *testing.T) {
 				name: "line",
 				regexps: []string{
 					"...$",
-					// ".$", TODO : fix conflict with upper regexp
+					// ".$", //TODO : fix conflict with upper regexp
 					"$.",
 					"$",
 				},
@@ -3134,8 +3252,6 @@ func TestMatch(t *testing.T) {
 		},
 	}
 
-	// TODO : add tests for "escaped characters"
-
 	for groupName, subGroups := range examples {
 		t.Run(groupName, func(t *testing.T) {
 			for _, ex := range subGroups {
@@ -3795,3 +3911,13 @@ func Test_OutOfBounds(t *testing.T) {
 
 	require.Equal(t, err.Error(), "-50 is ouf of bounds 10..100")
 }
+
+
+				// name: "line",
+				// regexps: []string{
+				// 	"...$",
+				// 	// ".$", //TODO : fix conflict with upper regexp
+				// 	"$.",
+				// 	"$",
+				// },
+				// input: "foo bar\nbaz",
