@@ -161,8 +161,8 @@ func (t *trie) Match(text string) []*FullMatch {
 				expressions: n.getExpressions().toSlice(),
 				from:        begin.From(),
 				to:          end.To(),
-				groups:      groups.ToSlice(0), // TODO : default start?
-				namedGroups: namedGroups.ToMap(0),
+				groups:      groups.ToSlice(),
+				namedGroups: namedGroups.ToMap(),
 			}
 
 			if m.from >= input.Size() {

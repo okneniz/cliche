@@ -62,8 +62,7 @@ func (c *captures) Delete(name string) {
 	c.order = remove[string](c.order, name)
 }
 
-// TODO : check defaultFinish must be optional or remove it?
-func (c *captures) ToSlice(defaultFinish int) []bounds {
+func (c *captures) ToSlice() []bounds {
 	result := make([]bounds, 0, len(c.to))
 
 	var (
@@ -72,15 +71,13 @@ func (c *captures) ToSlice(defaultFinish int) []bounds {
 		exists bool
 	)
 
-	// fmt.Printf("captures to slice: %#v\n", c)
-
 	for _, name := range c.order {
 		if start, exists = c.from[name]; !exists {
-			break // TODO : or continue?
+			break
 		}
 
 		if finish, exists = c.to[name]; !exists {
-			finish = defaultFinish // TODO : remove it?
+			break
 		}
 
 		result = append(result, bounds{
@@ -92,7 +89,7 @@ func (c *captures) ToSlice(defaultFinish int) []bounds {
 	return result
 }
 
-func (c *captures) ToMap(defaultFinish int) map[string]bounds {
+func (c *captures) ToMap() map[string]bounds {
 	result := make(map[string]bounds, len(c.to))
 
 	var (
@@ -107,7 +104,7 @@ func (c *captures) ToMap(defaultFinish int) map[string]bounds {
 		}
 
 		if finish, exists = c.to[name]; !exists {
-			finish = defaultFinish
+			break
 		}
 
 		result[name] = bounds{
