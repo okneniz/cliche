@@ -5,8 +5,6 @@ import (
 )
 
 type Handler interface { // TODO : should be generic type for different type of matches?
-	// String() string // TODO : implement it for debug
-
 	Match(n node, from, to int, isLeaf, isEmpty bool)
 
 	FirstMatch() *match
@@ -166,6 +164,8 @@ type match struct {
 	empty bool
 }
 
+var _ Match = &match{}
+
 func (m match) From() int {
 	return m.from
 }
@@ -199,6 +199,8 @@ type FullMatch struct {
 	namedGroups map[string]bounds
 	empty       bool // required for empty matches like .? or .*
 }
+
+var _ Match = &FullMatch{}
 
 func (m *FullMatch) From() int {
 	return m.from

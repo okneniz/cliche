@@ -21,7 +21,7 @@ func TestTrie(t *testing.T) {
 		"tost",
 		"tot",
 		".",
-		"^", // only for start of regexp?
+		"^", // parsing: only for start of regexp?
 		"$", // only for end of regexp?
 		"\\d",
 		"\\D",
@@ -74,16 +74,14 @@ func TestTrie(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// t.Logf("size: %d", tr.Size())
-	// t.Logf("wtf %#v", tr)
 	t.Log(tr)
 }
 
-func TestTrieCompression(t *testing.T) {
+func TestTrieCompaction(t *testing.T) {
 	t.Parallel()
 
 	// Positive and negative set store elements in ordered collection.
-	// This allows you to avoid duplicating a certain number of expressions.
+	// This allows trie to avoid duplicating a certain number of expressions.
 	// For example [a-z1-2] and [1-2a-z] are equal expressions for trie.
 	t.Run("sets", func(t *testing.T) {
 		tr, err := NewTrie()
