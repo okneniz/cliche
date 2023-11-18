@@ -1,8 +1,8 @@
 package regular
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 )
 
 type captures struct {
@@ -63,8 +63,8 @@ func (c *captures) Delete(name string) {
 	c.order = remove[string](c.order, name)
 }
 
-func (c *captures) ToSlice() []bounds {
-	result := make([]bounds, 0, len(c.to))
+func (c *captures) ToSlice() []Bounds {
+	result := make([]Bounds, 0, len(c.to))
 
 	var (
 		start  int
@@ -81,7 +81,7 @@ func (c *captures) ToSlice() []bounds {
 			break
 		}
 
-		result = append(result, bounds{
+		result = append(result, Bounds{
 			from: start,
 			to:   finish,
 		})
@@ -90,8 +90,8 @@ func (c *captures) ToSlice() []bounds {
 	return result
 }
 
-func (c *captures) ToMap() map[string]bounds {
-	result := make(map[string]bounds, len(c.to))
+func (c *captures) ToMap() map[string]Bounds {
+	result := make(map[string]Bounds, len(c.to))
 
 	var (
 		start  int
@@ -108,7 +108,7 @@ func (c *captures) ToMap() map[string]bounds {
 			break
 		}
 
-		result[name] = bounds{
+		result[name] = Bounds{
 			from: start,
 			to:   finish,
 		}
@@ -127,10 +127,10 @@ func remove[T comparable](l []T, item T) []T {
 	return l
 }
 
-type bounds struct {
+type Bounds struct {
 	from, to int
 }
 
-func (b bounds) String() string {
+func (b Bounds) String() string {
 	return fmt.Sprintf("%d-%d", b.from, b.to)
 }

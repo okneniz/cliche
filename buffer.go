@@ -22,11 +22,9 @@ type TextBuffer interface {
 }
 
 var _ TextBuffer = &simpleBuffer{}
-
-// newBuffer - make buffer which can read text on input
-
 var _ c.Buffer[rune, int] = &simpleBuffer{}
 
+// newBuffer - make buffer which can read text on input
 func newBuffer(str string) *simpleBuffer {
 	b := new(simpleBuffer)
 	b.data = []rune(str)

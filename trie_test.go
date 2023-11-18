@@ -80,7 +80,7 @@ func TestTrie(t *testing.T) {
 func TestTrieCompaction(t *testing.T) {
 	t.Parallel()
 
-	// Positive and negative set store elements in ordered collection.
+	// character classes and negated character classes store elements in ordered collection.
 	// This allows trie to avoid duplicating a certain number of expressions.
 	// For example [a-z1-2] and [1-2a-z] are equal expressions for trie.
 	t.Run("sets", func(t *testing.T) {
@@ -194,8 +194,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"te",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "test",
@@ -204,8 +204,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"test",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -214,8 +214,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "ing",
@@ -224,8 +224,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"ing",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -234,8 +234,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "string",
@@ -244,8 +244,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"string",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "ing",
@@ -254,8 +254,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"ing",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "te",
@@ -264,8 +264,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"te",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "test",
@@ -274,8 +274,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"test",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -284,8 +284,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -294,8 +294,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -304,8 +304,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -314,8 +314,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -324,8 +324,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "word",
@@ -334,8 +334,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"word",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "word",
@@ -344,8 +344,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"word",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -354,8 +354,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -371,8 +371,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "ti",
@@ -381,8 +381,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "tr",
@@ -391,8 +391,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "te",
@@ -401,8 +401,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "t ",
@@ -411,8 +411,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -428,8 +428,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t..",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "tin",
@@ -438,8 +438,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t..",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "tri",
@@ -448,8 +448,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t..",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "tes",
@@ -458,8 +458,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t..",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "t s",
@@ -468,8 +468,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"t..",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -485,8 +485,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\d",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "4",
@@ -495,8 +495,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\d",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "2",
@@ -505,8 +505,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\d",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "3",
@@ -515,8 +515,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\d",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "4",
@@ -525,8 +525,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\d",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -542,8 +542,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -552,8 +552,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "d",
@@ -562,8 +562,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: " ",
@@ -572,8 +572,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: " ",
@@ -582,8 +582,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "j",
@@ -592,8 +592,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -602,8 +602,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "d",
@@ -612,8 +612,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "f",
@@ -622,8 +622,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "k",
@@ -632,8 +632,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: " ",
@@ -642,8 +642,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\D",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -659,8 +659,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -669,8 +669,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "d",
@@ -679,8 +679,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "1",
@@ -689,8 +689,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "j",
@@ -699,8 +699,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -709,8 +709,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "d",
@@ -719,8 +719,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "f",
@@ -729,8 +729,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "k",
@@ -739,8 +739,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "4",
@@ -749,8 +749,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "2",
@@ -759,8 +759,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "3",
@@ -769,8 +769,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "4",
@@ -779,8 +779,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\w",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -796,8 +796,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\W",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: " ",
@@ -806,8 +806,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\W",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: " ",
@@ -816,8 +816,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\W",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "!",
@@ -826,8 +826,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\W",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "\n",
@@ -836,8 +836,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\W",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "\r",
@@ -846,8 +846,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\W",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -863,8 +863,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: " ",
@@ -873,8 +873,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: " ",
@@ -883,8 +883,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\s",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -900,8 +900,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -910,8 +910,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "d",
@@ -920,8 +920,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "1",
@@ -930,8 +930,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "j",
@@ -940,8 +940,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "s",
@@ -950,8 +950,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "d",
@@ -960,8 +960,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "f",
@@ -970,8 +970,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "k",
@@ -980,8 +980,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "4",
@@ -990,8 +990,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "2",
@@ -1000,8 +1000,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "3",
@@ -1010,8 +1010,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "4",
@@ -1020,8 +1020,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "!",
@@ -1030,8 +1030,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\S",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -1058,8 +1058,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "?",
@@ -1068,8 +1068,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "+",
@@ -1078,8 +1078,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "*",
@@ -1088,8 +1088,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\*",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "^",
@@ -1098,8 +1098,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\^",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "$",
@@ -1108,8 +1108,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\$",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "[",
@@ -1118,8 +1118,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\[",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "]",
@@ -1128,8 +1128,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "{",
@@ -1138,8 +1138,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\{",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "}",
@@ -1148,8 +1148,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -1177,8 +1177,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"fo(o|b)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 2, to: 2},
 						},
 					},
@@ -1189,8 +1189,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"f(o|b)o",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 1, to: 1},
 						},
 					},
@@ -1201,8 +1201,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(f|b)(o|a)(o|r|z)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 0, to: 0},
 							{from: 1, to: 1},
 							{from: 2, to: 2},
@@ -1215,8 +1215,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(f|b)(o|a)(o|r|z)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 4, to: 4},
 							{from: 5, to: 5},
 							{from: 6, to: 6},
@@ -1229,8 +1229,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(f|b)(o|a)(o|r|z)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 8, to: 8},
 							{from: 9, to: 9},
 							{from: 10, to: 10},
@@ -1243,8 +1243,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(f|b)(o|a)(o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 0, to: 0},
 							{from: 1, to: 1},
 							{from: 2, to: 2},
@@ -1257,8 +1257,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(f|b)(o|a)(o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 4, to: 4},
 							{from: 5, to: 5},
 							{from: 6, to: 6},
@@ -1271,8 +1271,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(f|b)(o|a)(o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 8, to: 8},
 							{from: 9, to: 9},
 							{from: 10, to: 10},
@@ -1285,8 +1285,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(f)(o)(o)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 0, to: 0},
 							{from: 1, to: 1},
 							{from: 2, to: 2},
@@ -1310,8 +1310,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"f(o(o))",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 1, to: 2},
 							{from: 2, to: 2},
 						},
@@ -1323,8 +1323,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(b(a(r)))",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 4, to: 6},
 							{from: 5, to: 6},
 							{from: 6, to: 6},
@@ -1337,8 +1337,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"((b)az)",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 8, to: 10},
 							{from: 8, to: 8},
 						},
@@ -1365,10 +1365,10 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"fo(?<name>o|b)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"name": {from: 2, to: 2},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "foo",
@@ -1377,10 +1377,10 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"f(?<name>o|b)o",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"name": {from: 1, to: 1},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "foo",
@@ -1389,12 +1389,12 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 0, to: 0},
 							"second": {from: 1, to: 1},
 							"third":  {from: 2, to: 2},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "bar",
@@ -1403,12 +1403,12 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 4, to: 4},
 							"second": {from: 5, to: 5},
 							"third":  {from: 6, to: 6},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "baz",
@@ -1417,12 +1417,12 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 8, to: 8},
 							"second": {from: 9, to: 9},
 							"third":  {from: 10, to: 10},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 
 					{
@@ -1432,12 +1432,12 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 0, to: 0},
 							"second": {from: 1, to: 1},
 							"third":  {from: 2, to: 2},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "bar",
@@ -1446,12 +1446,12 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 4, to: 4},
 							"second": {from: 5, to: 5},
 							"third":  {from: 6, to: 6},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "baz",
@@ -1460,12 +1460,12 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 8, to: 8},
 							"second": {from: 9, to: 9},
 							"third":  {from: 10, to: 10},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "foo",
@@ -1474,12 +1474,12 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>f)(?<second>o)(?<third>o)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 0, to: 0},
 							"second": {from: 1, to: 1},
 							"third":  {from: 2, to: 2},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 				},
 			},
@@ -1499,11 +1499,11 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"f(?<first>o(?<second>o))",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 1, to: 2},
 							"second": {from: 2, to: 2},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "bar",
@@ -1512,12 +1512,12 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>b(?<second>a(?<third>r)))",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"first":  {from: 4, to: 6},
 							"second": {from: 5, to: 6},
 							"third":  {from: 6, to: 6},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 					{
 						subString: "baz",
@@ -1526,11 +1526,11 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<first>(?<second>b)az)",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"second": {from: 8, to: 8},
 							"first":  {from: 8, to: 10},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 					},
 				},
 			},
@@ -1554,8 +1554,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"fo(?:o|b)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "foo",
@@ -1564,8 +1564,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"f(?:o|b)o",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "foo",
@@ -1574,8 +1574,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:f|b)(?:o|a)(?:o|r|z)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "bar",
@@ -1584,8 +1584,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:f|b)(?:o|a)(?:o|r|z)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "baz",
@@ -1594,8 +1594,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:f|b)(?:o|a)(?:o|r|z)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "foo",
@@ -1604,8 +1604,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "bar",
@@ -1614,8 +1614,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "baz",
@@ -1624,8 +1624,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "foo",
@@ -1634,8 +1634,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:f)(?:o)(?:o)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -1655,8 +1655,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"f(?:o(?:o))",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "bar",
@@ -1665,8 +1665,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:b(?:a(?:r)))",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "baz",
@@ -1675,8 +1675,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:(?:b)az)",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -1700,8 +1700,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"c?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       true,
 					},
 					{
@@ -1711,8 +1711,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"c?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       true,
 					},
 					{
@@ -1722,8 +1722,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"c?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "pic",
@@ -1732,8 +1732,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"pics?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "pic",
@@ -1742,8 +1742,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"pi.?c",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "pic",
@@ -1752,8 +1752,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"....?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "pic",
@@ -1762,8 +1762,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"...?.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 				},
 			},
@@ -1787,8 +1787,8 @@ func TestMatch(t *testing.T) {
 							"x*",
 							"x{0,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "",
@@ -1798,8 +1798,8 @@ func TestMatch(t *testing.T) {
 							"x*",
 							"x{0,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       true,
 					},
 					{
@@ -1810,8 +1810,8 @@ func TestMatch(t *testing.T) {
 							"x*",
 							"x{0,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -1822,8 +1822,8 @@ func TestMatch(t *testing.T) {
 							"x*",
 							"x{0,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       true,
 					},
 					{
@@ -1834,8 +1834,8 @@ func TestMatch(t *testing.T) {
 							"x*",
 							"x{0,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       true,
 					},
 					{
@@ -1846,8 +1846,8 @@ func TestMatch(t *testing.T) {
 							"x*",
 							"x{0,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -1858,8 +1858,8 @@ func TestMatch(t *testing.T) {
 							"x.*",
 							"x.{0,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "x",
@@ -1869,8 +1869,8 @@ func TestMatch(t *testing.T) {
 							"x.*",
 							"x.{0,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "xx",
@@ -1880,8 +1880,8 @@ func TestMatch(t *testing.T) {
 							"x*x",
 							"x{0,}x",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 					},
 					{
 						subString: "x",
@@ -1891,8 +1891,8 @@ func TestMatch(t *testing.T) {
 							"x*x",
 							"x{0,}x",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -1903,8 +1903,8 @@ func TestMatch(t *testing.T) {
 							"x*x",
 							"x{0,}x",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -1929,8 +1929,8 @@ func TestMatch(t *testing.T) {
 							"x+",
 							"x{1,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -1941,8 +1941,8 @@ func TestMatch(t *testing.T) {
 							"x+",
 							"x{1,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -1953,8 +1953,8 @@ func TestMatch(t *testing.T) {
 							"x+",
 							"x{1,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -1965,8 +1965,8 @@ func TestMatch(t *testing.T) {
 							"x+x",
 							"x{1,}x",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -1977,8 +1977,8 @@ func TestMatch(t *testing.T) {
 							"x.+",
 							"x.{1,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -1997,8 +1997,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"x{2,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2008,8 +2008,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"x{2,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -2028,8 +2028,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"x{2,4}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2039,8 +2039,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"x{2,4}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2050,8 +2050,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"x{2,4}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2061,8 +2061,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"x{2,4}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -2085,8 +2085,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"^...",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2096,8 +2096,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"^...",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2107,8 +2107,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"^.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2118,8 +2118,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"^.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -2141,8 +2141,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\A...",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2152,8 +2152,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\A.",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2163,8 +2163,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"\\A",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       true,
 					},
 				},
@@ -2188,8 +2188,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"...$",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2199,8 +2199,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"...$",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					// {
@@ -2210,8 +2210,8 @@ func TestMatch(t *testing.T) {
 					// 	expressions: []string{
 					// 		".$",
 					// 	},
-					// 	namedGroups: map[string]bounds{},
-					// 	groups:      []bounds{},
+					// 	namedGroups: map[string]Bounds{},
+					// 	groups:      []Bounds{},
 					// 	empty: false,
 					// },
 					{
@@ -2221,8 +2221,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"$",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       true,
 					},
 				},
@@ -2244,8 +2244,8 @@ func TestMatch(t *testing.T) {
 					// 	expressions: []string{
 					// 		".\\z",
 					// 	},
-					// 	namedGroups: map[string]bounds{},
-					// 	groups:      []bounds{},
+					// 	namedGroups: map[string]Bounds{},
+					// 	groups:      []Bounds{},
 					// 	empty: false,
 					// },
 					{
@@ -2255,8 +2255,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"...\\z",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -2281,8 +2281,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[0-9]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2292,8 +2292,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[0-9]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2303,8 +2303,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[0-9]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2314,8 +2314,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[0-9]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2325,8 +2325,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[0-9]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2336,8 +2336,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[0-9]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2347,8 +2347,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"ba[rz]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2358,8 +2358,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"ba[rz]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2369,8 +2369,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[faborz]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2380,8 +2380,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[faborz]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2391,8 +2391,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[faborz]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2402,8 +2402,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[bar][bar][baz]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -2425,8 +2425,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^a-z]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2436,8 +2436,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^a-z]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2447,8 +2447,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^a-z]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2458,8 +2458,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^a-z]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2469,8 +2469,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^a-z]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2480,8 +2480,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^a-z]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2491,8 +2491,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^a-z]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2502,8 +2502,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^a-z]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2513,8 +2513,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2524,8 +2524,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2535,8 +2535,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2546,8 +2546,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2557,8 +2557,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s]+",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2568,8 +2568,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"ba[^for]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2579,8 +2579,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"ba[^for]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2590,8 +2590,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s][^\\s][^\\s]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2601,8 +2601,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s][^\\s][^\\s]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2612,8 +2612,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s][^\\s][^\\s]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2623,8 +2623,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[^\\s][^\\s][^\\s]",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -2645,8 +2645,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 0, to: 2},
 						},
 						empty: false,
@@ -2658,8 +2658,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 4, to: 6},
 						},
 						empty: false,
@@ -2671,8 +2671,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 8, to: 10},
 						},
 						empty: false,
@@ -2693,8 +2693,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 0, to: 2},
 						},
 						empty: false,
@@ -2706,8 +2706,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 4, to: 6},
 						},
 						empty: false,
@@ -2719,8 +2719,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 8, to: 10},
 						},
 						empty: false,
@@ -2732,8 +2732,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 12, to: 13},
 						},
 						empty: false,
@@ -2745,8 +2745,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 14, to: 14},
 						},
 						empty: false,
@@ -2758,8 +2758,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 16, to: 16},
 						},
 						empty: false,
@@ -2771,8 +2771,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 18, to: 19},
 						},
 						empty: false,
@@ -2784,8 +2784,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 21, to: 23},
 						},
 						empty: false,
@@ -2806,8 +2806,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 0, to: 2},
 						},
 						empty: false,
@@ -2819,8 +2819,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 4, to: 6},
 						},
 						empty: false,
@@ -2832,8 +2832,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 8, to: 10},
 						},
 						empty: false,
@@ -2845,8 +2845,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 12, to: 13},
 						},
 						empty: false,
@@ -2858,8 +2858,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 14, to: 14},
 						},
 						empty: false,
@@ -2871,8 +2871,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 16, to: 16},
 						},
 						empty: false,
@@ -2884,8 +2884,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 18, to: 19},
 						},
 						empty: false,
@@ -2897,8 +2897,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 21, to: 23},
 						},
 						empty: false,
@@ -2921,8 +2921,8 @@ func TestMatch(t *testing.T) {
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2933,8 +2933,8 @@ func TestMatch(t *testing.T) {
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2945,8 +2945,8 @@ func TestMatch(t *testing.T) {
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2957,8 +2957,8 @@ func TestMatch(t *testing.T) {
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -2969,8 +2969,8 @@ func TestMatch(t *testing.T) {
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -2992,8 +2992,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3003,8 +3003,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3014,8 +3014,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 10, to: 13},
 							{from: 15, to: 21},
 						},
@@ -3028,8 +3028,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 30, to: 32},
 							{from: 34, to: 39},
 						},
@@ -3042,8 +3042,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3053,8 +3053,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3064,7 +3064,7 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"name": {
 								from: 10,
 								to:   13,
@@ -3074,7 +3074,7 @@ func TestMatch(t *testing.T) {
 								to:   21,
 							},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 						empty:  false,
 					},
 					{
@@ -3084,7 +3084,7 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
 						},
-						namedGroups: map[string]bounds{
+						namedGroups: map[string]Bounds{
 							"name": {
 								from: 30,
 								to:   32,
@@ -3094,7 +3094,7 @@ func TestMatch(t *testing.T) {
 								to:   39,
 							},
 						},
-						groups: []bounds{},
+						groups: []Bounds{},
 						empty:  false,
 					},
 				},
@@ -3114,8 +3114,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"4[0-9]{12}(?:[0-9]{3})?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3125,8 +3125,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"4[0-9]{12}(?:[0-9]{3})?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3136,8 +3136,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"4[0-9]{12}(?:[0-9]{3})?",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3147,8 +3147,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3158,8 +3158,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 				},
@@ -3181,8 +3181,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"^.*$",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3192,8 +3192,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"^.{2}",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3203,8 +3203,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							".{2}$",
 						},
-						namedGroups: map[string]bounds{},
-						groups:      []bounds{},
+						namedGroups: map[string]Bounds{},
+						groups:      []Bounds{},
 						empty:       false,
 					},
 					{
@@ -3214,8 +3214,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							"^(.*)$",
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 0, to: 73},
 						},
 						empty: false,
@@ -3237,8 +3237,8 @@ func TestMatch(t *testing.T) {
 						expressions: []string{
 							`<p>(.*)</p>`,
 						},
-						namedGroups: map[string]bounds{},
-						groups: []bounds{
+						namedGroups: map[string]Bounds{},
+						groups: []Bounds{
 							{from: 18, to: 34},
 						},
 						empty: false,
@@ -3343,8 +3343,8 @@ func pointer[T any](x T) *T {
 // 			expressions: []string{
 // 				"...$",
 // 			},
-// 			namedGroups: map[string]bounds{},
-// 			groups:      []bounds{},
+// 			namedGroups: map[string]Bounds{},
+// 			groups:      []Bounds{},
 // 			empty:       false,
 // 		},
 // 		{
@@ -3354,8 +3354,8 @@ func pointer[T any](x T) *T {
 // 			expressions: []string{
 // 				"...$",
 // 			},
-// 			namedGroups: map[string]bounds{},
-// 			groups:      []bounds{},
+// 			namedGroups: map[string]Bounds{},
+// 			groups:      []Bounds{},
 // 			empty:       false,
 // 		},
 // 		{
@@ -3365,8 +3365,8 @@ func pointer[T any](x T) *T {
 // 			expressions: []string{
 // 				".$",
 // 			},
-// 			namedGroups: map[string]bounds{},
-//  			groups:      []bounds{},
+// 			namedGroups: map[string]Bounds{},
+//  			groups:      []Bounds{},
 // 			empty: false,
 // 		},
 // 		{
@@ -3376,8 +3376,8 @@ func pointer[T any](x T) *T {
 // 			expressions: []string{
 // 				".$",
 // 			},
-// 			namedGroups: map[string]bounds{},
-// 			groups:      []bounds{},
+// 			namedGroups: map[string]Bounds{},
+// 			groups:      []Bounds{},
 // 			empty: false,
 // 		},
 // 	}

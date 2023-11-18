@@ -194,8 +194,8 @@ type FullMatch struct {
 	subString   string
 	from        int
 	to          int
-	groups      []bounds
-	namedGroups map[string]bounds
+	groups      []Bounds
+	namedGroups map[string]Bounds
 	empty       bool // required for empty matches like .? or .*
 }
 
@@ -208,7 +208,6 @@ func (m *FullMatch) From() int {
 func (m *FullMatch) To() int {
 	return m.to
 }
-
 
 func (m *FullMatch) Size() int {
 	if m.empty {
@@ -226,10 +225,10 @@ func (m *FullMatch) Expressions() []string {
 	return m.expressions
 }
 
-func (m *FullMatch) NamedGroups() map[string]bounds {
+func (m *FullMatch) NamedGroups() map[string]Bounds {
 	return m.namedGroups
 }
 
-func (m *FullMatch) Groups() []bounds {
+func (m *FullMatch) Groups() []Bounds {
 	return m.groups
 }

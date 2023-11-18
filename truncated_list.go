@@ -11,7 +11,7 @@ type truncatedList[T fmt.Stringer] struct {
 }
 
 func newTruncatedList[T fmt.Stringer](cap int) truncatedList[T] {
-	return truncatedList[T] {
+	return truncatedList[T]{
 		data: make([]T, 0, cap),
 		size: 0,
 	}

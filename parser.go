@@ -10,7 +10,7 @@ import (
 type parser = c.Combinator[rune, int, node]
 
 var (
-	defaultParser = parseRegexp()
+	defaultParser          = parseRegexp()
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
 
@@ -82,7 +82,7 @@ func parseRegexp() parser {
 	// parse node
 	parseNode := parseOptionalQuantifier(
 		choice(
-			parseSet('|'),
+			parseCharacterClasses('|'),
 			parseNotCapturedGroup(union),
 			parseNamedGroup(union),
 			parseGroup(union),
@@ -97,7 +97,7 @@ func parseRegexp() parser {
 	// parse node of nested expression
 	parseNestedNode := parseOptionalQuantifier(
 		choice(
-			parseSet('|', ')'),
+			parseCharacterClasses('|', ')'),
 			parseNotCapturedGroup(union),
 			parseNamedGroup(union),
 			parseGroup(union),
@@ -188,7 +188,7 @@ func parseRegexp() parser {
 	}
 }
 
-func parseSet(except ...rune) parser {
+func parseCharacterClasses(except ...rune) parser {
 	// TODO : without except?
 	parseNode := choice(
 		parseRange(append(except, ']')...),
@@ -198,8 +198,8 @@ func parseSet(except ...rune) parser {
 	)
 
 	return choice(
-		parseNegativeSet(parseNode),
-		parsePositiveSet(parseNode),
+		parseNegatedCharacterClass(parseNode),
+		parseCharacterClass(parseNode),
 	)
 }
 
@@ -634,7 +634,7 @@ func parseNamedGroup(parse c.Combinator[rune, int, *union], except ...rune) pars
 	)
 }
 
-func parseNegativeSet(expression parser) parser {
+func parseNegatedCharacterClass(expression parser) parser {
 	parse := squares(
 		c.Skip(
 			c.Eq[rune, int]('^'),
@@ -648,7 +648,7 @@ func parseNegativeSet(expression parser) parser {
 			return nil, err
 		}
 
-		x := negativeSet{
+		x := negatedCharacterClass{
 			Value:      set,
 			nestedNode: newNestedNode(),
 		}
@@ -657,7 +657,7 @@ func parseNegativeSet(expression parser) parser {
 	}
 }
 
-func parsePositiveSet(expression parser) parser {
+func parseCharacterClass(expression parser) parser {
 	parse := squares(c.Some(1, expression))
 
 	return func(buf c.Buffer[rune, int]) (node, error) {
@@ -666,7 +666,7 @@ func parsePositiveSet(expression parser) parser {
 			return nil, err
 		}
 
-		x := positiveSet{
+		x := characterClass{
 			Value:      set,
 			nestedNode: newNestedNode(),
 		}

@@ -8,7 +8,6 @@ import (
 	"unicode"
 )
 
-
 type node interface {
 	getKey() string
 	getExpressions() dict
@@ -867,12 +866,12 @@ func (n *quantifier) inBounds(q int) bool {
 	return n.From == q
 }
 
-type positiveSet struct {
+type characterClass struct {
 	Value []node `json:"value,omitempty"`
 	*nestedNode
 }
 
-func (n *positiveSet) getKey() string {
+func (n *characterClass) getKey() string {
 	subKeys := make([]string, len(n.Value))
 
 	for i, value := range n.Value {
@@ -888,7 +887,7 @@ func (n *positiveSet) getKey() string {
 	return fmt.Sprintf("[%s]", x)
 }
 
-func (n *positiveSet) walk(f func(node)) {
+func (n *characterClass) walk(f func(node)) {
 	f(n)
 
 	for _, x := range n.Nested {
@@ -896,7 +895,7 @@ func (n *positiveSet) walk(f func(node)) {
 	}
 }
 
-func (n *positiveSet) match(handler Handler, input TextBuffer, from, to int, f Callback) {
+func (n *characterClass) match(handler Handler, input TextBuffer, from, to int, f Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -916,12 +915,12 @@ func (n *positiveSet) match(handler Handler, input TextBuffer, from, to int, f C
 	}
 }
 
-type negativeSet struct {
+type negatedCharacterClass struct {
 	Value []node `json:"value,omitempty"`
 	*nestedNode
 }
 
-func (n *negativeSet) getKey() string {
+func (n *negatedCharacterClass) getKey() string {
 	subKeys := make([]string, len(n.Value))
 
 	for i, value := range n.Value {
@@ -937,7 +936,7 @@ func (n *negativeSet) getKey() string {
 	return fmt.Sprintf("[^%s]", x)
 }
 
-func (n *negativeSet) walk(f func(node)) {
+func (n *negatedCharacterClass) walk(f func(node)) {
 	f(n)
 
 	for _, x := range n.Nested {
@@ -945,7 +944,7 @@ func (n *negativeSet) walk(f func(node)) {
 	}
 }
 
-func (n *negativeSet) match(handler Handler, input TextBuffer, from, to int, f Callback) {
+func (n *negatedCharacterClass) match(handler Handler, input TextBuffer, from, to int, f Callback) {
 	if from >= input.Size() {
 		return
 	}
