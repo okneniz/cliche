@@ -69,7 +69,6 @@ func (s *fullScanner) Match(n node, from, to int, leaf, empty bool) {
 	s.matches.append(m)
 
 	if leaf {
-		fmt.Println("wtf", n, from, to, leaf, empty)
 		s.onMatch(n, from, to, empty)
 	}
 }

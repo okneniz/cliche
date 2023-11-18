@@ -127,12 +127,12 @@ func (t *trie) Match(text string) []*FullMatch {
 	}
 
 	input := newBuffer(text)
-	matches := newBoundsList[match]()
+	matches := newMatchesList[match]()
 	groups := newCaptures() // TODO : use node as key for unnamed groups to avoid generate string ID
 	namedGroups := newCaptures()
 
 	// DS for best matches - https://web.engr.oregonstate.edu/~erwig/diet/
-	acc := make(map[node]*boundsList[*FullMatch])
+	acc := make(map[node]*matchesList[*FullMatch])
 
 	var scanner *fullScanner
 
@@ -194,7 +194,7 @@ func (t *trie) Match(text string) []*FullMatch {
 			if list, exists := acc[n]; exists {
 				list.push(m)
 			} else {
-				newList := newBoundsList[*FullMatch]()
+				newList := newMatchesList[*FullMatch]()
 				newList.push(m)
 				acc[n] = newList
 			}
