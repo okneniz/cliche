@@ -51,7 +51,7 @@ type Match interface {
 }
 
 type TextBuffer interface {
-	ReadAt(int) (rune, error)
+	ReadAt(int) rune
 	Size() int
 	Substring(int, int) (string, error)
 	String() string
@@ -967,7 +967,7 @@ func (n *group) match(handler Handler, input TextBuffer, from, to int, f Callbac
 		func(_ node, vFrom, vTo int, empty bool) {
 			handler.MatchGroup(n.uniqID, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
-			f(n, from, vTo, empty) // TODO : realy from, vTo
+			f(n, from, vTo, empty)
 			n.matchNested(handler, input, vTo+1, to, f)
 		},
 	)
@@ -1002,7 +1002,7 @@ func (n *namedGroup) match(handler Handler, input TextBuffer, from, to int, f Ca
 		func(_ node, vFrom, vTo int, empty bool) {
 			handler.MatchNamedGroup(n.Name, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
-			f(n, from, vTo, empty) // TODO : realy from, vTo
+			f(n, from, vTo, empty)
 			n.matchNested(handler, input, vTo+1, to, f)
 		},
 	)
@@ -1034,7 +1034,7 @@ func (n *notCapturedGroup) match(handler Handler, input TextBuffer, from, to int
 		to,
 		func(_ node, vFrom, vTo int, empty bool) {
 			handler.Match(n, from, vTo, n.isEnd(), false)
-			f(n, from, vTo, empty) // TODO : realy from, vTo
+			f(n, from, vTo, empty)
 			n.matchNested(handler, input, vTo+1, to, f)
 		},
 	)
@@ -1058,13 +1058,11 @@ func (n *char) walk(f func(node)) {
 }
 
 func (n *char) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
 
-	if x == n.Value {
+	if input.ReadAt(from) == n.Value {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from, false)
@@ -1091,14 +1089,11 @@ func (n *dot) walk(f func(node)) {
 }
 
 func (n *dot) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
 
-	// TODO : check new line not matching
-	if x != '\n' {
+	if input.ReadAt(from) != '\n' {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		f(n, from, from, false)
@@ -1124,11 +1119,11 @@ func (n *digit) walk(f func(node)) {
 }
 
 func (n *digit) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
+
+	x := input.ReadAt(from)
 
 	if unicode.IsDigit(x) {
 		pos := handler.Position()
@@ -1156,11 +1151,11 @@ func (n *nonDigit) walk(f func(node)) {
 }
 
 func (n *nonDigit) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
+
+	x := input.ReadAt(from)
 
 	if !unicode.IsDigit(x) {
 		pos := handler.Position()
@@ -1188,11 +1183,11 @@ func (n *word) walk(f func(node)) {
 }
 
 func (n *word) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
+
+	x := input.ReadAt(from)
 
 	if x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x) {
 		pos := handler.Position()
@@ -1220,11 +1215,11 @@ func (n *nonWord) walk(f func(node)) {
 }
 
 func (n *nonWord) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
+
+	x := input.ReadAt(from)
 
 	if !(x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x)) {
 		pos := handler.Position()
@@ -1252,11 +1247,11 @@ func (n *space) walk(f func(node)) {
 }
 
 func (n *space) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
+
+	x := input.ReadAt(from)
 
 	if unicode.IsSpace(x) {
 		pos := handler.Position()
@@ -1284,11 +1279,11 @@ func (n *nonSpace) walk(f func(node)) {
 }
 
 func (n *nonSpace) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
+
+	x := input.ReadAt(from)
 
 	if !unicode.IsSpace(x) {
 		pos := handler.Position()
@@ -1316,6 +1311,10 @@ func (n *startOfLine) walk(f func(node)) {
 }
 
 func (n *startOfLine) match(handler Handler, input TextBuffer, from, to int, f Callback) {
+	if from >= input.Size() {
+		return
+	}
+
 	// TODO : precache new line positions in buffer?
 
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
@@ -1332,11 +1331,7 @@ func (n *startOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 		return false
 	}
 
-	x, err := input.ReadAt(idx)
-	if err != nil {
-		panic("but how to handle it?")
-		// TODO : just ignore it?
-	}
+	x := input.ReadAt(idx)
 
 	switch x {
 	case '\n':
@@ -1346,12 +1341,8 @@ func (n *startOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 			return true
 		}
 
-		x, err = input.ReadAt(idx - 1)
-		if err != nil {
-			panic("but how to handle it?")
-			// TODO : just ignore it?
-		}
-		return x == '\n'
+		// TODO : looks strange
+		return input.ReadAt(idx-1) == '\n'
 	default:
 		return false
 	}
@@ -1394,13 +1385,7 @@ func (n *endOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 		return true
 	}
 
-	x, err := input.ReadAt(idx)
-	if err != nil {
-		panic("but how to handle it?")
-		// TODO : just ignore it?
-	}
-
-	return x == '\n'
+	return input.ReadAt(idx) == '\n'
 }
 
 type startOfString struct {
@@ -1474,11 +1459,11 @@ func (n *rangeNode) walk(f func(node)) {
 }
 
 func (n *rangeNode) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	x, err := input.ReadAt(from)
-	if err != nil {
-		// TODO : just ignore it?
+	if from >= input.Size() {
 		return
 	}
+
+	x := input.ReadAt(from)
 
 	if x >= n.From && x <= n.To {
 		pos := handler.Position()
@@ -1638,7 +1623,10 @@ func (n *positiveSet) walk(f func(node)) {
 }
 
 func (n *positiveSet) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	// TODO : check size
+	if from >= input.Size() {
+		return
+	}
+
 	// TODO : cache isEnd before loop?
 
 	pos := handler.Position()
@@ -1747,12 +1735,8 @@ func (b *simpleBuffer) Read(greedy bool) (rune, error) {
 	return x, nil
 }
 
-func (b *simpleBuffer) ReadAt(idx int) (rune, error) {
-	if idx >= len(b.data) {
-		return -1, errors.New("out of bounds")
-	}
-
-	return b.data[idx], nil
+func (b *simpleBuffer) ReadAt(idx int) rune {
+	return b.data[idx]
 }
 
 func (b *simpleBuffer) Size() int { // TODO : check for another runes
@@ -1827,18 +1811,12 @@ func (ix index) merge(other index) {
 type dict map[string]struct{}
 
 func (d dict) add(str string) {
-	// TODO : is it pointless condition?
-	// check it on becnmarks / tests
-	if _, exists := d[str]; !exists {
-		d[str] = struct{}{}
-	}
+	d[str] = struct{}{}
 }
 
 func (d dict) merge(other dict) {
 	for key, value := range other {
-		if _, exists := d[key]; !exists {
-			d[key] = value
-		}
+		d[key] = value
 	}
 }
 
