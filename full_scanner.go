@@ -8,7 +8,7 @@ type fullScanner struct {
 	groups      *captures
 	namedGroups *captures
 	onMatch     Callback
-	matches     list[match]
+	matches     truncatedList[match]
 }
 
 var _ Handler = new(fullScanner)
@@ -22,7 +22,7 @@ func newFullScanner(
 	s.groups = captures
 	s.namedGroups = namedCaptures
 	s.onMatch = onMatch
-	s.matches = *newList[match](100) // pointer?
+	s.matches = newTruncatedList[match](100)
 	return s
 }
 

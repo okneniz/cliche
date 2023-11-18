@@ -5,18 +5,19 @@ import (
 	"strings"
 )
 
-type list[T fmt.Stringer] struct {
+type truncatedList[T fmt.Stringer] struct {
 	data []T
 	size int
 }
 
-func newList[T fmt.Stringer](cap int) *list[T] {
-	l := new(list[T])
-	l.data = make([]T, 0, cap)
-	return l
+func newTruncatedList[T fmt.Stringer](cap int) truncatedList[T] {
+	return truncatedList[T] {
+		data: make([]T, 0, cap),
+		size: 0,
+	}
 }
 
-func (l *list[T]) append(item T) {
+func (l *truncatedList[T]) append(item T) {
 	if l.size >= len(l.data) {
 		l.data = append(l.data, item)
 	} else {
@@ -26,11 +27,11 @@ func (l *list[T]) append(item T) {
 	l.size++
 }
 
-func (l *list[T]) len() int {
+func (l *truncatedList[T]) len() int {
 	return l.size
 }
 
-func (l *list[T]) truncate(newSize int) {
+func (l *truncatedList[T]) truncate(newSize int) {
 	if newSize < 0 || newSize > l.size {
 		err := OutOfBounds{
 			Min:   0,
@@ -44,7 +45,7 @@ func (l *list[T]) truncate(newSize int) {
 	l.size = newSize
 }
 
-func (l *list[T]) at(idx int) T {
+func (l *truncatedList[T]) at(idx int) T {
 	if idx < 0 || idx >= len(l.data) {
 		err := OutOfBounds{
 			Min:   0,
@@ -58,7 +59,7 @@ func (l *list[T]) at(idx int) T {
 	return l.data[idx]
 }
 
-func (l *list[T]) first() *T {
+func (l *truncatedList[T]) first() *T {
 	if l.size == 0 {
 		return nil
 	}
@@ -66,7 +67,7 @@ func (l *list[T]) first() *T {
 	return &l.data[0]
 }
 
-func (l *list[T]) last() *T {
+func (l *truncatedList[T]) last() *T {
 	if l.size == 0 {
 		return nil
 	}
@@ -74,8 +75,7 @@ func (l *list[T]) last() *T {
 	return &l.data[l.size-1]
 }
 
-// TODO : check bounds in the tests
-func (l *list[T]) toSlice() []T {
+func (l *truncatedList[T]) toSlice() []T {
 	if l.size == 0 {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (l *list[T]) toSlice() []T {
 	return l.data[0:l.size]
 }
 
-func (l *list[T]) String() string {
+func (l *truncatedList[T]) String() string {
 	if l.size == 0 {
 		return "[]"
 	}

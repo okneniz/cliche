@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_list(t *testing.T) {
+func Test_truncatedList(t *testing.T) {
 	t.Parallel()
 
-	l := newList[num](2)
+	l := newTruncatedList[num](2)
 
 	require.Equal(t, 0, l.len())
 	require.Nil(t, l.first())
