@@ -4,6 +4,31 @@ import (
 	"fmt"
 )
 
+type Handler interface { // TODO : should be generic type for different type of matches?
+	// String() string // TODO : implement it for debug
+
+	Match(n node, from, to int, isLeaf, isEmpty bool)
+
+	FirstMatch() *match
+	FirstNotEmptyMatch() *match
+
+	// TODO : how to remove it?
+	// required only for quantifier
+	LastMatch() *match // TODO : use (int, int) instead?
+	LastNotEmptyMatch() *match
+
+	Position() int
+	Rewind(size int)
+
+	AddNamedGroup(name string, index int)
+	MatchNamedGroup(name string, index int)
+	DeleteNamedGroup(name string)
+
+	AddGroup(name string, index int)
+	MatchGroup(name string, index int)
+	DeleteGroup(name string)
+}
+
 type fullScanner struct {
 	groups      *captures
 	namedGroups *captures
@@ -127,6 +152,44 @@ func (s *fullScanner) DeleteGroup(name string) {
 	s.groups.Delete(name)
 }
 
+type Match interface {
+	From() int
+	To() int
+	Size() int
+	String() string
+}
+
+type match struct {
+	from  int
+	to    int
+	node  node
+	empty bool
+}
+
+func (m match) From() int {
+	return m.from
+}
+
+func (m match) To() int {
+	return m.to
+}
+
+func (m match) Empty() bool {
+	return m.empty
+}
+
+func (m match) String() string {
+	return fmt.Sprintf("%s - [%d..%d] %v", m.node.getKey(), m.from, m.to, m.empty)
+}
+
+func (m match) Size() int {
+	if m.empty {
+		return 0
+	}
+
+	return m.to - m.from + 1
+}
+
 type FullMatch struct {
 	expressions []string
 	subString   string
@@ -144,6 +207,7 @@ func (m *FullMatch) From() int {
 func (m *FullMatch) To() int {
 	return m.to
 }
+
 
 func (m *FullMatch) Size() int {
 	if m.empty {

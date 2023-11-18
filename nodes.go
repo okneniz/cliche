@@ -21,6 +21,42 @@ type node interface {
 	walk(func(node))
 }
 
+type Callback func(x node, from int, to int, empty bool)
+
+type index map[string]node
+
+func (ix index) merge(other index) {
+	for key, newNode := range other {
+		if prev, exists := ix[key]; exists {
+			prev.merge(newNode)
+		} else {
+			ix[key] = newNode
+		}
+	}
+}
+
+type dict map[string]struct{}
+
+func (d dict) add(str string) {
+	d[str] = struct{}{}
+}
+
+func (d dict) merge(other dict) {
+	for key, value := range other {
+		d[key] = value
+	}
+}
+
+func (d dict) toSlice() []string {
+	result := make([]string, len(d))
+	i := 0
+	for key := range d {
+		result[i] = key
+		i++
+	}
+	return result
+}
+
 type nestedNode struct {
 	Expressions dict  `json:"expressions,omitempty"`
 	Nested      index `json:"nested,omitempty"`
