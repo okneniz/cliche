@@ -1,7 +1,6 @@
 package regular
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 	"testing"
@@ -3327,13 +3326,6 @@ func comparator(x, y *FullMatch) bool {
 
 func pointer[T any](x T) *T {
 	return &x
-}
-
-// TODO : what is this?
-type num int
-
-func (t num) String() string {
-	return fmt.Sprintf("%d", t)
 }
 
 func Test_OutOfBounds(t *testing.T) {

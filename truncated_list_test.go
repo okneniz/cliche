@@ -1,6 +1,7 @@
 package regular
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -110,4 +111,10 @@ func Test_truncatedList(t *testing.T) {
 	)
 
 	l.truncate(0)
+}
+
+type num int
+
+func (t num) String() string {
+	return fmt.Sprintf("%d", t)
 }
