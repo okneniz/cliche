@@ -1,6 +1,7 @@
 package regular
 
 import (
+	"fmt"
 	"encoding/json"
 )
 
@@ -124,4 +125,12 @@ func remove[T comparable](l []T, item T) []T {
 	}
 
 	return l
+}
+
+type bounds struct {
+	from, to int
+}
+
+func (b bounds) String() string {
+	return fmt.Sprintf("%d-%d", b.from, b.to)
 }
