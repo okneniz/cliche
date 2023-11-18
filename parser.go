@@ -79,8 +79,6 @@ func parseRegexp() parser {
 		return newUnion(variants), nil
 	}
 
-	// TODO : return error for invalid escaped chars like '\x' (check on rubular)
-
 	// parse node
 	parseNode := parseOptionalQuantifier(
 		choice(
