@@ -655,14 +655,6 @@ func (t *trie) Match(text string) []*FullMatch {
 			beginSubstring := scanner.FirstNotEmptyMatch()
 			endSubstring := scanner.LastNotEmptyMatch()
 
-			if begin == nil {
-				begin = scanner.FirstMatch() // TODO ; looks strange, like pointless code
-			}
-
-			if end == nil {
-				end = scanner.LastMatch()
-			}
-
 			fmt.Println("scanner", scanner)
 
 			m := &FullMatch{
@@ -719,11 +711,9 @@ func (t *trie) Match(text string) []*FullMatch {
 
 	for _, n := range t.nodes {
 		nextFrom := from
-		nextTo := to
 
-		for nextFrom <= nextTo {
-			// TODO : callback function must be optional?
-			n.match(scanner, input, nextFrom, nextTo, func(x node, f, t int, _ bool) {
+		for nextFrom <= to {
+			n.match(scanner, input, nextFrom, to, func(x node, f, t int, _ bool) {
 				// if n.isEnd() {
 				// 	fmt.Printf("match %v '%s' from %d to %d\n", x.getExpressions(), x.getKey(), nextFrom, nextTo)
 				// }
