@@ -2,42 +2,8 @@ package regular
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
-// https://www.regular-expressions.info/repeat.html
-
-type OutOfBounds struct {
-	Min   int
-	Max   int
-	Value int
-}
-
-func (err OutOfBounds) Error() string {
-	return fmt.Sprintf("%d is ouf of bounds %d..%d", err.Value, err.Min, err.Max)
-}
-
-// bnf / ebnf
-//
-// https://www2.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html
-
-// do a lot of methods for different scanning
-// - for match without allocations
-// - for replacements
-// - for data extractions
-//
-// and scanner for all of them?
-//
-// try to copy official API
-//
-// https://pkg.go.dev/regexp#Regexp.FindString
-//
-// https://swtch.com/~rsc/regexp/regexp2.html#posix
-//
-// https://www.rfc-editor.org/rfc/rfc9485.html#name-multi-character-escapes
-
-// buffer for groups captures
-// TODO : use pointers instead string for unnamed groups?
 type captures struct {
 	from  map[string]int
 	to    map[string]int
@@ -161,67 +127,4 @@ func remove[T comparable](l []T, item T) []T {
 	}
 
 	return l
-}
-
-type bounds struct {
-	from, to int
-}
-
-func (b bounds) String() string {
-	return fmt.Sprintf("%d-%d", b.from, b.to)
-}
-
-type boundsList[T Match] struct {
-	data map[int]T
-	max  *T
-}
-
-func newBoundsList[T Match]() *boundsList[T] {
-	b := new(boundsList[T])
-	b.data = make(map[int]T)
-	return b
-}
-
-func (b *boundsList[T]) clear() {
-	b.data = make(map[int]T, len(b.data))
-	b.max = nil
-}
-
-func (b *boundsList[T]) push(newMatch T) {
-	if prevMatch, exists := b.data[newMatch.From()]; exists {
-		b.data[newMatch.From()] = b.longestMatch(prevMatch, newMatch)
-	} else {
-		b.data[newMatch.From()] = newMatch
-	}
-
-	if b.max == nil {
-		b.max = &newMatch
-	} else {
-		newMax := b.longestMatch(*b.max, newMatch)
-		b.max = &newMax
-	}
-}
-
-func (b *boundsList[T]) maximum() *T {
-	return b.max
-}
-
-func (b *boundsList[T]) toMap() map[int]T {
-	return b.data
-}
-
-func (b *boundsList[T]) longestMatch(x, y T) T {
-	if x.Size() == y.Size() {
-		if x.From() < y.From() {
-			return x
-		}
-
-		return y
-	}
-
-	if x.Size() > y.Size() {
-		return x
-	}
-
-	return y
 }

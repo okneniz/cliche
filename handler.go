@@ -190,6 +190,14 @@ func (m match) Size() int {
 	return m.to - m.from + 1
 }
 
+type bounds struct {
+	from, to int
+}
+
+func (b bounds) String() string {
+	return fmt.Sprintf("%d-%d", b.from, b.to)
+}
+
 type FullMatch struct {
 	expressions []string
 	subString   string
