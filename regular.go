@@ -442,7 +442,6 @@ func (s *fullScanner) Match(n node, from, to int, leaf, empty bool) {
 
 	s.matches.append(m)
 
-
 	if leaf {
 		fmt.Println("wtf", n, from, to, leaf, empty)
 		s.onMatch(n, from, to, empty)
@@ -784,6 +783,50 @@ func (m *FullMatch) Groups() []bounds {
 	return m.groups
 }
 
+type nestedNode struct {
+	Expressions dict  `json:"expressions,omitempty"`
+	Nested      index `json:"nested,omitempty"`
+}
+
+func (n *nestedNode) getNestedNodes() index {
+	return n.Nested
+}
+
+func (n *nestedNode) getExpressions() dict {
+	return n.Expressions
+}
+
+func (n *nestedNode) addExpression(exp string) {
+	if n.Expressions == nil {
+		n.Expressions = make(dict)
+	}
+
+	n.Expressions.add(exp)
+}
+
+func (n *nestedNode) isEnd() bool {
+	return len(n.Expressions) > 0
+}
+
+func (n *nestedNode) merge(other node) {
+	n.Nested.merge(other.getNestedNodes())
+
+	if n.Expressions == nil {
+		n.Expressions = other.getExpressions()
+	} else {
+		n.Expressions.merge(other.getExpressions())
+	}
+}
+
+func (n *nestedNode) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
+	pos := handler.Position()
+
+	for _, nested := range n.Nested {
+		nested.match(handler, input, from, to, f)
+		handler.Rewind(pos)
+	}
+}
+
 type union struct {
 	key       string
 	Value     map[string]node   `json:"value,omitempty"`
@@ -894,44 +937,13 @@ func (n *union) scanVariants(handler Handler, input TextBuffer, from, to int, f 
 // (fo|f)(o|oo)
 
 type group struct {
-	uniqID      string
-	Value       *union `json:"value,omitempty"`
-	Expressions dict   `json:"expressions,omitempty"`
-	Nested      index  `json:"nested,omitempty"`
+	uniqID string
+	Value  *union `json:"value,omitempty"`
+	*nestedNode
 }
 
 func (n *group) getKey() string {
 	return fmt.Sprintf("(%s)", n.Value.getKey())
-}
-
-func (n *group) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *group) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *group) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *group) isEnd() bool {
-	return n.Expressions != nil
-}
-
-func (n *group) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
-	}
 }
 
 func (n *group) walk(f func(node)) {
@@ -959,54 +971,14 @@ func (n *group) match(handler Handler, input TextBuffer, from, to int, f Callbac
 	handler.DeleteGroup(n.uniqID)
 }
 
-func (n *group) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type namedGroup struct {
-	Name        string `json:"name,omitempty"`
-	Value       *union `json:"value,omitempty"`
-	Expressions dict   `json:"expressions,omitempty"`
-	Nested      index  `json:"nested,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Value *union `json:"value,omitempty"`
+	*nestedNode
 }
 
 func (n *namedGroup) getKey() string {
 	return fmt.Sprintf("(?<%s>%s)", n.Name, n.Value.getKey())
-}
-
-func (n *namedGroup) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *namedGroup) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *namedGroup) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *namedGroup) isEnd() bool {
-	return n.Expressions != nil
-}
-
-func (n *namedGroup) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
-	}
 }
 
 func (n *namedGroup) walk(f func(node)) {
@@ -1034,53 +1006,13 @@ func (n *namedGroup) match(handler Handler, input TextBuffer, from, to int, f Ca
 	handler.DeleteNamedGroup(n.Name)
 }
 
-func (n *namedGroup) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type notCapturedGroup struct {
-	Value       *union `json:"value,omitempty"`
-	Expressions dict   `json:"expressions,omitempty"`
-	Nested      index  `json:"nested,omitempty"`
+	Value *union `json:"value,omitempty"`
+	*nestedNode
 }
 
 func (n *notCapturedGroup) getKey() string {
 	return fmt.Sprintf("(?:%s)", n.Value.getKey())
-}
-
-func (n *notCapturedGroup) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *notCapturedGroup) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *notCapturedGroup) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *notCapturedGroup) isEnd() bool {
-	return n.Expressions != nil
-}
-
-func (n *notCapturedGroup) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
-	}
 }
 
 func (n *notCapturedGroup) walk(f func(node)) {
@@ -1105,53 +1037,13 @@ func (n *notCapturedGroup) match(handler Handler, input TextBuffer, from, to int
 	)
 }
 
-func (n *notCapturedGroup) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type char struct {
-	Value       rune  `json:"value,omitempty"`
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	Value rune `json:"value,omitempty"`
+	*nestedNode
 }
 
 func (n *char) getKey() string {
 	return string(n.Value)
-}
-
-func (n *char) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *char) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *char) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *char) isEnd() bool {
-	return n.Expressions != nil
-}
-
-func (n *char) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
-	}
 }
 
 func (n *char) walk(f func(node)) {
@@ -1178,43 +1070,13 @@ func (n *char) match(handler Handler, input TextBuffer, from, to int, f Callback
 	}
 }
 
-func (n *char) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 // add something to empty json value, and in another spec symbols
 type dot struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *dot) getKey() string {
 	return "."
-}
-
-func (n *dot) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *dot) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *dot) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *dot) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *dot) walk(f func(node)) {
@@ -1222,16 +1084,6 @@ func (n *dot) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *dot) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1252,42 +1104,12 @@ func (n *dot) match(handler Handler, input TextBuffer, from, to int, f Callback)
 	}
 }
 
-func (n *dot) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type digit struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *digit) getKey() string {
 	return "\\d"
-}
-
-func (n *digit) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *digit) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *digit) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *digit) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *digit) walk(f func(node)) {
@@ -1295,16 +1117,6 @@ func (n *digit) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *digit) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1324,42 +1136,12 @@ func (n *digit) match(handler Handler, input TextBuffer, from, to int, f Callbac
 	}
 }
 
-func (n *digit) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type nonDigit struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *nonDigit) getKey() string {
 	return "\\D"
-}
-
-func (n *nonDigit) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *nonDigit) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *nonDigit) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *nonDigit) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *nonDigit) walk(f func(node)) {
@@ -1367,16 +1149,6 @@ func (n *nonDigit) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *nonDigit) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1396,42 +1168,12 @@ func (n *nonDigit) match(handler Handler, input TextBuffer, from, to int, f Call
 	}
 }
 
-func (n *nonDigit) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type word struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *word) getKey() string {
 	return "\\w"
-}
-
-func (n *word) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *word) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *word) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *word) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *word) walk(f func(node)) {
@@ -1439,16 +1181,6 @@ func (n *word) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *word) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1468,42 +1200,12 @@ func (n *word) match(handler Handler, input TextBuffer, from, to int, f Callback
 	}
 }
 
-func (n *word) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type nonWord struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *nonWord) getKey() string {
 	return "\\W"
-}
-
-func (n *nonWord) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *nonWord) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *nonWord) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *nonWord) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *nonWord) walk(f func(node)) {
@@ -1511,16 +1213,6 @@ func (n *nonWord) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *nonWord) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1540,42 +1232,12 @@ func (n *nonWord) match(handler Handler, input TextBuffer, from, to int, f Callb
 	}
 }
 
-func (n *nonWord) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type space struct {
-	Expressions dict  `json:"expression,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *space) getKey() string {
 	return "\\s"
-}
-
-func (n *space) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *space) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *space) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *space) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *space) walk(f func(node)) {
@@ -1583,16 +1245,6 @@ func (n *space) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *space) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1612,42 +1264,12 @@ func (n *space) match(handler Handler, input TextBuffer, from, to int, f Callbac
 	}
 }
 
-func (n *space) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type nonSpace struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *nonSpace) getKey() string {
 	return "\\S"
-}
-
-func (n *nonSpace) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *nonSpace) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *nonSpace) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *nonSpace) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *nonSpace) walk(f func(node)) {
@@ -1655,16 +1277,6 @@ func (n *nonSpace) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *nonSpace) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1684,42 +1296,12 @@ func (n *nonSpace) match(handler Handler, input TextBuffer, from, to int, f Call
 	}
 }
 
-func (n *nonSpace) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type startOfLine struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *startOfLine) getKey() string {
-	return "^ start of line" // TODO : compact key
-}
-
-func (n *startOfLine) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *startOfLine) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *startOfLine) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *startOfLine) isEnd() bool {
-	return n.Expressions != nil
+	return "^"
 }
 
 func (n *startOfLine) walk(f func(node)) {
@@ -1727,16 +1309,6 @@ func (n *startOfLine) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *startOfLine) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1782,46 +1354,12 @@ func (n *startOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 	}
 }
 
-func (n *startOfLine) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type endOfLine struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *endOfLine) getKey() string {
-	fmt.Printf("end of line %#v\n", n)
-	n.walk(func(x node) {
-		fmt.Printf("get key walk %#v\n", x)
-	})
 	return "$"
-}
-
-func (n *endOfLine) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *endOfLine) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *endOfLine) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *endOfLine) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *endOfLine) walk(f func(node)) {
@@ -1832,18 +1370,8 @@ func (n *endOfLine) walk(f func(node)) {
 	}
 }
 
-func (n *endOfLine) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
-	}
-}
-
 func (n *endOfLine) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	// precache new line positions in buffer?
+	// TODO : precache new line positions in buffer?
 
 	if n.isEndOfLine(input, from) { // TODO : check \n\r too
 		pos := handler.Position()
@@ -1872,42 +1400,12 @@ func (n *endOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 	return x == '\n'
 }
 
-func (n *endOfLine) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type startOfString struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *startOfString) getKey() string {
 	return "\\A"
-}
-
-func (n *startOfString) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *startOfString) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *startOfString) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *startOfString) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *startOfString) walk(f func(node)) {
@@ -1915,16 +1413,6 @@ func (n *startOfString) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *startOfString) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -1938,42 +1426,12 @@ func (n *startOfString) match(handler Handler, input TextBuffer, from, to int, f
 	}
 }
 
-func (n *startOfString) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type endOfString struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	*nestedNode
 }
 
 func (n *endOfString) getKey() string {
 	return "\\z"
-}
-
-func (n *endOfString) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *endOfString) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *endOfString) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *endOfString) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *endOfString) walk(f func(node)) {
@@ -1981,16 +1439,6 @@ func (n *endOfString) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *endOfString) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -2004,44 +1452,14 @@ func (n *endOfString) match(handler Handler, input TextBuffer, from, to int, f C
 	}
 }
 
-func (n *endOfString) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type rangeNode struct {
-	From        rune  `json:"from,omitempty"`
-	To          rune  `json:"to,omitempty"`
-	Nested      index `json:"nested,omitempty"`
-	Expressions dict  `json:"expressions,omitempty"`
+	From rune `json:"from,omitempty"`
+	To   rune `json:"to,omitempty"`
+	*nestedNode
 }
 
 func (n *rangeNode) getKey() string {
 	return string([]rune{n.From, '-', n.To})
-}
-
-func (n *rangeNode) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *rangeNode) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *rangeNode) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp) // TODO : is it possible?
-}
-
-func (n *rangeNode) isEnd() bool {
-	return n.Expressions != nil
 }
 
 func (n *rangeNode) walk(f func(node)) {
@@ -2049,16 +1467,6 @@ func (n *rangeNode) walk(f func(node)) {
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *rangeNode) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -2078,22 +1486,12 @@ func (n *rangeNode) match(handler Handler, input TextBuffer, from, to int, f Cal
 	}
 }
 
-func (n *rangeNode) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type quantifier struct {
-	From        int   `json:"from"`
-	To          *int  `json:"to,omitempty"`
-	More        bool  `json:"more,omitempty"`
-	Value       node  `json:"value,omitempty"`
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	From  int  `json:"from"`
+	To    *int `json:"to,omitempty"`
+	More  bool `json:"more,omitempty"`
+	Value node `json:"value,omitempty"`
+	*nestedNode
 }
 
 func (n *quantifier) getKey() string {
@@ -2131,41 +1529,11 @@ func (n *quantifier) getQuantifierKey() string {
 	return b.String()
 }
 
-func (n *quantifier) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *quantifier) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *quantifier) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *quantifier) isEnd() bool {
-	return n.Expressions != nil
-}
-
 func (n *quantifier) walk(f func(node)) {
 	f(n)
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *quantifier) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -2237,19 +1605,9 @@ func (n *quantifier) inBounds(q int) bool {
 	return n.From == q
 }
 
-func (n *quantifier) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type positiveSet struct {
-	Value       []node `json:"value,omitempty"`
-	Expressions dict   `json:"expressions,omitempty"`
-	Nested      index  `json:"nested,omitempty"`
+	Value []node `json:"value,omitempty"`
+	*nestedNode
 }
 
 func (n *positiveSet) getKey() string {
@@ -2268,41 +1626,11 @@ func (n *positiveSet) getKey() string {
 	return fmt.Sprintf("[%s]", x)
 }
 
-func (n *positiveSet) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *positiveSet) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *positiveSet) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *positiveSet) isEnd() bool {
-	return n.Expressions != nil
-}
-
 func (n *positiveSet) walk(f func(node)) {
 	f(n)
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *positiveSet) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -2323,19 +1651,9 @@ func (n *positiveSet) match(handler Handler, input TextBuffer, from, to int, f C
 	}
 }
 
-func (n *positiveSet) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
-		handler.Rewind(pos)
-	}
-}
-
 type negativeSet struct {
-	Value       []node `json:"value,omitempty"`
-	Expressions dict   `json:"expressions,omitempty"`
-	Nested      index  `json:"nested,omitempty"`
+	Value []node `json:"value,omitempty"`
+	*nestedNode
 }
 
 func (n *negativeSet) getKey() string {
@@ -2354,41 +1672,11 @@ func (n *negativeSet) getKey() string {
 	return fmt.Sprintf("[^%s]", x)
 }
 
-func (n *negativeSet) getNestedNodes() index {
-	return n.Nested
-}
-
-func (n *negativeSet) getExpressions() dict {
-	return n.Expressions
-}
-
-func (n *negativeSet) addExpression(exp string) {
-	if n.Expressions == nil {
-		n.Expressions = make(dict)
-	}
-
-	n.Expressions.add(exp)
-}
-
-func (n *negativeSet) isEnd() bool {
-	return n.Expressions != nil
-}
-
 func (n *negativeSet) walk(f func(node)) {
 	f(n)
 
 	for _, x := range n.Nested {
 		x.walk(f)
-	}
-}
-
-func (n *negativeSet) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
-
-	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
-	} else {
-		n.Expressions.merge(other.getExpressions())
 	}
 }
 
@@ -2418,15 +1706,6 @@ func (n *negativeSet) match(handler Handler, input TextBuffer, from, to int, f C
 		f(n, from, from, false)
 		n.matchNested(handler, input, from+1, to, f)
 
-		handler.Rewind(pos)
-	}
-}
-
-func (n *negativeSet) matchNested(handler Handler, input TextBuffer, from, to int, f Callback) {
-	pos := handler.Position()
-
-	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, f)
 		handler.Rewind(pos)
 	}
 }
@@ -2576,27 +1855,6 @@ var (
 
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
-
-func Trace[T any, P any, S any](
-	m string,
-	parse c.Combinator[T, P, S],
-) c.Combinator[T, P, S] {
-	return func(buffer c.Buffer[T, P]) (S, error) {
-		fmt.Printf("%v\n", m)
-		fmt.Printf("%s %v\n", m, buffer)
-		fmt.Printf("\t%s position before: %v\n", m, buffer.Position())
-
-		result, err := parse(buffer)
-		fmt.Printf("\t%s position after: %v\n", m, buffer.Position())
-		if err != nil {
-			fmt.Printf("\t%s not parsed: %v %v\n", m, result, err)
-			return *new(S), err
-		}
-
-		fmt.Println("\tparsed:", fmt.Sprintf("%#v", result))
-		return result, err
-	}
-}
 
 func SkipString(data string) c.Combinator[rune, int, struct{}] {
 	return func(buf c.Buffer[rune, int]) (struct{}, error) {
@@ -2869,8 +2127,8 @@ func parseEscapedSpecSymbols() parser {
 
 		cases[r] = func(buf c.Buffer[rune, int]) (node, error) {
 			x := char{
-				Value:  r,
-				Nested: make(index, 0),
+				Value:      r,
+				nestedNode: newNestedNode(),
 			}
 
 			return &x, nil
@@ -3012,7 +2270,7 @@ func parseOptionalQuantifier(expression parser) parser {
 		}
 
 		q.Value = x
-		q.Nested = make(index, 0)
+		q.nestedNode = newNestedNode()
 
 		return &q, nil
 	}
@@ -3028,12 +2286,18 @@ func parseCharacter(except ...rune) parser {
 		}
 
 		x := char{
-			Value:  c,
-			Nested: make(index, 0),
+			Value:      c,
+			nestedNode: newNestedNode(),
 		}
 
 		return &x, nil
 	}
+}
+
+func newNestedNode() *nestedNode {
+	n := new(nestedNode)
+	n.Nested = make(index)
+	return n
 }
 
 func parseMetaCharacters() parser {
@@ -3041,21 +2305,21 @@ func parseMetaCharacters() parser {
 		map[rune]c.Combinator[rune, int, node]{
 			'.': func(buf c.Buffer[rune, int]) (node, error) {
 				x := dot{
-					Nested: make(index, 0),
+					nestedNode: newNestedNode(),
 				}
 
 				return &x, nil
 			},
 			'^': func(buf c.Buffer[rune, int]) (node, error) {
 				x := startOfLine{
-					Nested: make(index, 0),
+					nestedNode: newNestedNode(),
 				}
 
 				return &x, nil
 			},
 			'$': func(buf c.Buffer[rune, int]) (node, error) {
 				x := endOfLine{
-					Nested: make(index, 0),
+					nestedNode: newNestedNode(),
 				}
 
 				return &x, nil
@@ -3072,56 +2336,56 @@ func parseEscapedMetaCharacters() parser {
 			map[rune]c.Combinator[rune, int, node]{
 				'd': func(buf c.Buffer[rune, int]) (node, error) {
 					x := digit{
-						Nested: make(index, 0),
+						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
 				'D': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonDigit{
-						Nested: make(index, 0),
+						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
 				'w': func(buf c.Buffer[rune, int]) (node, error) {
 					x := word{
-						Nested: make(index, 0),
+						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
 				'W': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonWord{
-						Nested: make(index, 0),
+						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
 				's': func(buf c.Buffer[rune, int]) (node, error) {
 					x := space{
-						Nested: make(index, 0),
+						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
 				'S': func(buf c.Buffer[rune, int]) (node, error) {
 					x := nonSpace{
-						Nested: make(index, 0),
+						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
 				'A': func(buf c.Buffer[rune, int]) (node, error) {
 					x := startOfString{
-						Nested: make(index, 0),
+						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
 				'z': func(buf c.Buffer[rune, int]) (node, error) {
 					x := endOfString{
-						Nested: make(index, 0),
+						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
@@ -3141,7 +2405,7 @@ func parseGroup(parse c.Combinator[rune, int, *union]) parser {
 			}
 
 			x := &group{
-				Nested: make(index, 0),
+				nestedNode: newNestedNode(),
 			}
 
 			// TODO : is it good enough for ID?
@@ -3169,8 +2433,8 @@ func parseNotCapturedGroup(parse c.Combinator[rune, int, *union]) parser {
 			}
 
 			x := notCapturedGroup{
-				Value:  value,
-				Nested: make(index, 0),
+				Value:      value,
+				nestedNode: newNestedNode(),
 			}
 
 			return &x, nil
@@ -3202,9 +2466,9 @@ func parseNamedGroup(parse c.Combinator[rune, int, *union], except ...rune) pars
 			}
 
 			x := namedGroup{
-				Name:   string(name),
-				Value:  variants,
-				Nested: make(index, 0),
+				Name:       string(name),
+				Value:      variants,
+				nestedNode: newNestedNode(),
 			}
 
 			return &x, nil
@@ -3227,8 +2491,8 @@ func parseNegativeSet(expression parser) parser {
 		}
 
 		x := negativeSet{
-			Value:  set,
-			Nested: make(index, 0),
+			Value:      set,
+			nestedNode: newNestedNode(),
 		}
 
 		return &x, nil
@@ -3245,8 +2509,8 @@ func parsePositiveSet(expression parser) parser {
 		}
 
 		x := positiveSet{
-			Value:  set,
-			Nested: make(index, 0),
+			Value:      set,
+			nestedNode: newNestedNode(),
 		}
 
 		return &x, nil
@@ -3274,9 +2538,9 @@ func parseRange(except ...rune) parser {
 		}
 
 		x := rangeNode{
-			From:   f,
-			To:     t,
-			Nested: make(index, 0),
+			From:       f,
+			To:         t,
+			nestedNode: newNestedNode(),
 		}
 
 		return &x, nil

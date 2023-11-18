@@ -13,7 +13,7 @@ import (
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
 
 func TestTrie(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	tr, err := NewTrie(
 		"x",
@@ -82,7 +82,7 @@ func TestTrie(t *testing.T) {
 }
 
 func TestTrieCompression(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	// Positive and negative set store elements in ordered collection.
 	// This allows you to avoid duplicating a certain number of expressions.
@@ -171,7 +171,7 @@ func TestTrieCompression(t *testing.T) {
 }
 
 func TestMatch(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	examples := map[string][]example{
 		"simple": {
