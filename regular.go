@@ -36,13 +36,6 @@ func (err OutOfBounds) Error() string {
 //
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-multi-character-escapes
 
-type TextBuffer interface {
-	ReadAt(int) rune
-	Size() int
-	Substring(int, int) (string, error)
-	String() string
-}
-
 // buffer for groups captures
 // TODO : use pointers instead string for unnamed groups?
 type captures struct {
