@@ -937,6 +937,9 @@ func (n *union) scanVariants(handler Handler, input TextBuffer, from, to int, f 
 // (fo|f)(o|oo)
 
 type group struct {
+	// TODO : it's not really uniq id
+	// because the same union in another group is possible
+	// probable use node interface like key for map
 	uniqID string
 	Value  *union `json:"value,omitempty"`
 	*nestedNode
