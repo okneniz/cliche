@@ -123,8 +123,6 @@ func (c *captures) Size() int {
 }
 
 func (c *captures) From(name string, index int) {
-	// fmt.Println("set from", name, index)
-
 	if _, exists := c.from[name]; exists {
 		return
 	}
@@ -137,19 +135,16 @@ func (c *captures) To(name string, index int) {
 	if _, exists := c.from[name]; exists {
 		c.to[name] = index
 	}
-	// fmt.Println("set to", name, index, c.from, c.to)
 }
 
 func (c *captures) Delete(name string) {
-	// fmt.Println("delete capture", name, c.from, c.to)
-
 	delete(c.from, name)
 	delete(c.to, name)
 	// TODO : maybe use map + slice for faster remove?
 	c.order = remove[string](c.order, name)
 }
 
-// TODO : check defaultFinish must be optional?
+// TODO : check defaultFinish must be optional or remove it?
 func (c *captures) ToSlice(defaultFinish int) []bounds {
 	result := make([]bounds, 0, len(c.to))
 
@@ -447,7 +442,9 @@ func (s *fullScanner) Match(n node, from, to int, leaf, empty bool) {
 
 	s.matches.append(m)
 
+
 	if leaf {
+		fmt.Println("wtf", n, from, to, leaf, empty)
 		s.onMatch(n, from, to, empty)
 	}
 }
@@ -476,7 +473,6 @@ func (s *fullScanner) FirstNotEmptyMatch() *match {
 	// TODO : cache it in special memory address in list structure?
 	for i := 0; i < s.matches.len(); i++ {
 		m := s.matches.at(i)
-		fmt.Printf("%#v\n", m)
 		if !m.Empty() {
 			return &m
 		}
@@ -497,7 +493,6 @@ func (s *fullScanner) LastNotEmptyMatch() *match {
 	// TODO : cache it in special memory address in list structure?
 	for i := s.matches.len() - 1; i >= 0; i-- {
 		m := s.matches.at(i)
-		fmt.Printf("%#v\n", m)
 		if !m.Empty() {
 			return &m
 		}
@@ -645,7 +640,6 @@ func (t *trie) Match(text string) []*FullMatch {
 		groups,
 		namedGroups,
 		func(n node, from, to int, empty bool) {
-
 			matches.push(
 				match{
 					from:  from,
@@ -708,7 +702,6 @@ func (t *trie) Match(text string) []*FullMatch {
 			if list, exists := acc[n]; exists {
 				list.push(m)
 			} else {
-				fmt.Println("is new match - create list")
 				newList := newBoundsList[*FullMatch]()
 				newList.push(m)
 				acc[n] = newList
@@ -721,17 +714,22 @@ func (t *trie) Match(text string) []*FullMatch {
 	from := 0
 	to := input.Size() - 1
 
+	// - как правильно вычилить
+	// - как избегать лишних сканирований?
+
 	for _, n := range t.nodes {
 		nextFrom := from
 		nextTo := to
 
 		for nextFrom <= nextTo {
-			fmt.Printf("scan '%s' from %d to %d\n", n.getKey(), nextFrom, nextTo)
-
+			// TODO : callback function must be optional?
 			n.match(scanner, input, nextFrom, nextTo, func(x node, f, t int, _ bool) {
-				// fmt.Println("wtf", n, f, t, n.isEnd())
+				// if n.isEnd() {
+				// 	fmt.Printf("match %v '%s' from %d to %d\n", x.getExpressions(), x.getKey(), nextFrom, nextTo)
+				// }
 			})
-			longestMatch := matches.maximum() // maybe rename to best?)
+
+			longestMatch := matches.maximum() // maybe rename to best?
 
 			if longestMatch != nil {
 				nextFrom = longestMatch.To() + 1
@@ -741,8 +739,6 @@ func (t *trie) Match(text string) []*FullMatch {
 
 			scanner.Rewind(0)
 			matches.clear()
-
-			// fmt.Println("after matches clear", matches)
 		}
 	}
 
@@ -1755,7 +1751,7 @@ func (n *startOfLine) merge(other node) {
 }
 
 func (n *startOfLine) match(handler Handler, input TextBuffer, from, to int, f Callback) {
-	// precache new line positions in buffer?
+	// TODO : precache new line positions in buffer?
 
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := handler.Position()
@@ -1811,6 +1807,10 @@ type endOfLine struct {
 }
 
 func (n *endOfLine) getKey() string {
+	fmt.Printf("end of line %#v\n", n)
+	n.walk(func(x node) {
+		fmt.Printf("get key walk %#v\n", x)
+	})
 	return "$"
 }
 
@@ -2183,7 +2183,6 @@ func (n *quantifier) match(handler Handler, input TextBuffer, from, to int, f Ca
 	start := handler.Position()
 
 	n.recursiveMatch(1, handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
-		fmt.Println("quantifier match", match, mFrom, mTo)
 		pos := handler.Position()
 		handler.Match(n, from, mTo, n.isEnd(), false)
 		f(n, from, mTo, empty)
@@ -2218,12 +2217,7 @@ func (n *quantifier) recursiveMatch(
 	f Callback,
 ) {
 	n.Value.match(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
-		fmt.Println("recursive match", match, mFrom, mTo, match.isEnd())
-		fmt.Printf("bounds %v %#v %v - %v\n", n.From, n.To, n.More, n.getKey())
-
 		if n.To == nil || *n.To >= count {
-			fmt.Println("in bounds", count, n.inBounds(count))
-
 			if n.inBounds(count) {
 				f(match, mFrom, mTo, empty)
 			}
@@ -2239,7 +2233,6 @@ func (n *quantifier) recursiveMatch(
 
 func (n *quantifier) inBounds(q int) bool {
 	if n.From > q {
-		fmt.Println("bracj 1")
 		return false
 	}
 
@@ -2248,13 +2241,8 @@ func (n *quantifier) inBounds(q int) bool {
 	}
 
 	if n.To != nil {
-		fmt.Println("bracj 2")
 		return q <= *n.To
 	}
-
-	// bracj 4 &{2 <nil> false <nil> map[] map[]}
-
-	fmt.Println("bracj 3", n)
 
 	return n.From == q
 }

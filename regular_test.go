@@ -1053,7 +1053,7 @@ func TestMatch(t *testing.T) {
 					"\\{",
 					"\\}",
 				},
-				input:  ". ? + * ^ $ [ ] { }",
+				input: ". ? + * ^ $ [ ] { }",
 				output: []*FullMatch{
 					{
 						subString: ".",
@@ -3912,12 +3912,86 @@ func Test_OutOfBounds(t *testing.T) {
 	require.Equal(t, err.Error(), "-50 is ouf of bounds 10..100")
 }
 
+// func Test_Chain(t *testing.T) {
+// 	tr, err := NewTrie(
+// 		"...$",
+// 		".$",
+// 	)
+// 	require.NoError(t, err)
 
-				// name: "line",
-				// regexps: []string{
-				// 	"...$",
-				// 	// ".$", //TODO : fix conflict with upper regexp
-				// 	"$.",
-				// 	"$",
-				// },
-				// input: "foo bar\nbaz",
+// 	t.Log(tr.String())
+
+// 	expected := []*FullMatch{
+// 		{
+// 			subString: "bar",
+// 			from:      4,
+// 			to:        7,
+// 			expressions: []string{
+// 				"...$",
+// 			},
+// 			namedGroups: map[string]bounds{},
+// 			groups:      []bounds{},
+// 			empty:       false,
+// 		},
+// 		{
+// 			subString: "baz",
+// 			from:      8,
+// 			to:        10,
+// 			expressions: []string{
+// 				"...$",
+// 			},
+// 			namedGroups: map[string]bounds{},
+// 			groups:      []bounds{},
+// 			empty:       false,
+// 		},
+// 		{
+// 			subString: "r",
+// 			from:      6,
+// 			to:        7,
+// 			expressions: []string{
+// 				".$",
+// 			},
+// 			namedGroups: map[string]bounds{},
+//  			groups:      []bounds{},
+// 			empty: false,
+// 		},
+// 		{
+// 			subString: "z",
+// 			from:      10,
+// 			to:        10,
+// 			expressions: []string{
+// 				".$",
+// 			},
+// 			namedGroups: map[string]bounds{},
+// 			groups:      []bounds{},
+// 			empty: false,
+// 		},
+// 	}
+
+// 	sort.SliceStable(expected, func(i, j int) bool {
+// 		return comparator(expected[i], expected[j])
+// 	})
+
+// 	actual := tr.Match("foo bar\nbaz")
+// 	require.NoError(t, err)
+
+// 	sort.SliceStable(actual, func(i, j int) bool {
+// 		return comparator(actual[i], actual[j])
+// 	})
+
+// 	if len(expected) != len(actual) {
+// 		require.Equal(t, expected, actual)
+// 	}
+
+// 	for i := range expected {
+// 		sort.SliceStable(expected[i].expressions, func(x, y int) bool {
+// 			return expected[i].expressions[x] < expected[i].expressions[y]
+// 		})
+
+// 		sort.SliceStable(actual[i].expressions, func(x, y int) bool {
+// 			return actual[i].expressions[x] < actual[i].expressions[y]
+// 		})
+
+// 		require.Equalf(t, *expected[i], *actual[i], "compare %d match", i)
+// 	}
+// }
