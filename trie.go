@@ -213,7 +213,7 @@ func (t *trie) Match(text string) []*FullMatch {
 		nextFrom := from
 
 		for nextFrom <= to {
-			n.match(scanner, input, nextFrom, to, func(_ node, _, _ int, _ bool) {})
+			n.scan(scanner, input, nextFrom, to, func(_ node, _, _ int, _ bool) {})
 
 			longestMatch := matches.maximum()
 

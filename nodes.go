@@ -15,7 +15,7 @@ type node interface {
 	getNestedNodes() index
 	isEnd() bool
 
-	match(Handler, TextBuffer, int, int, Callback)
+	scan(Handler, TextBuffer, int, int, Callback)
 	merge(node)
 	walk(func(node))
 }
@@ -95,7 +95,7 @@ func (n *nestedNode) matchNested(handler Handler, input TextBuffer, from, to int
 	pos := handler.Position()
 
 	for _, nested := range n.Nested {
-		nested.match(handler, input, from, to, onMatch)
+		nested.scan(handler, input, from, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -180,7 +180,7 @@ func (n *union) merge(x node) {
 	panic(fmt.Sprintf("union can't be merged with : %v", x))
 }
 
-func (n *union) match(_ Handler, _ TextBuffer, _, _ int, _ Callback) {
+func (n *union) scan(_ Handler, _ TextBuffer, _, _ int, _ Callback) {
 	panic("not implemented")
 }
 
@@ -201,7 +201,7 @@ func (n *union) scanVariants(handler Handler, input TextBuffer, from, to int, on
 	position := handler.Position()
 
 	for _, variant := range n.Value {
-		variant.match(handler, input, from, to, onMatch)
+		variant.scan(handler, input, from, to, onMatch)
 		handler.Rewind(position)
 	}
 }
@@ -230,7 +230,7 @@ func (n *group) walk(f func(node)) {
 	}
 }
 
-func (n *group) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *group) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	handler.AddGroup(n.uniqID, from)
 	n.Value.matchUnion(
 		handler,
@@ -265,7 +265,7 @@ func (n *namedGroup) walk(f func(node)) {
 	}
 }
 
-func (n *namedGroup) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *namedGroup) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	handler.AddNamedGroup(n.Name, from)
 	n.Value.matchUnion(
 		handler,
@@ -299,7 +299,7 @@ func (n *notCapturedGroup) walk(f func(node)) {
 	}
 }
 
-func (n *notCapturedGroup) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *notCapturedGroup) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	n.Value.matchUnion(
 		handler,
 		input,
@@ -330,10 +330,14 @@ func (n *char) walk(f func(node)) {
 	}
 }
 
-func (n *char) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *char) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
+
+	// if handler.AlreadyScanned(from) {
+	// 	return
+	// }
 
 	if input.ReadAt(from) == n.Value {
 		pos := handler.Position()
@@ -361,7 +365,7 @@ func (n *dot) walk(f func(node)) {
 	}
 }
 
-func (n *dot) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *dot) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -391,7 +395,7 @@ func (n *digit) walk(f func(node)) {
 	}
 }
 
-func (n *digit) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *digit) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -423,7 +427,7 @@ func (n *nonDigit) walk(f func(node)) {
 	}
 }
 
-func (n *nonDigit) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonDigit) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -455,7 +459,7 @@ func (n *word) walk(f func(node)) {
 	}
 }
 
-func (n *word) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *word) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -487,7 +491,7 @@ func (n *nonWord) walk(f func(node)) {
 	}
 }
 
-func (n *nonWord) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonWord) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -519,7 +523,7 @@ func (n *space) walk(f func(node)) {
 	}
 }
 
-func (n *space) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *space) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -551,7 +555,7 @@ func (n *nonSpace) walk(f func(node)) {
 	}
 }
 
-func (n *nonSpace) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonSpace) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -583,7 +587,7 @@ func (n *startOfLine) walk(f func(node)) {
 	}
 }
 
-func (n *startOfLine) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *startOfLine) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -637,7 +641,7 @@ func (n *endOfLine) walk(f func(node)) {
 	}
 }
 
-func (n *endOfLine) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *endOfLine) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	// TODO : precache new line positions in buffer?
 
 	if n.isEndOfLine(input, from) { // TODO : check \n\r too
@@ -677,7 +681,7 @@ func (n *startOfString) walk(f func(node)) {
 	}
 }
 
-func (n *startOfString) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *startOfString) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from == 0 {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), true)
@@ -703,7 +707,7 @@ func (n *endOfString) walk(f func(node)) {
 	}
 }
 
-func (n *endOfString) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *endOfString) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from == input.Size() {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), true)
@@ -731,7 +735,7 @@ func (n *rangeNode) walk(f func(node)) {
 	}
 }
 
-func (n *rangeNode) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *rangeNode) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -798,7 +802,7 @@ func (n *quantifier) walk(f func(node)) {
 	}
 }
 
-func (n *quantifier) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *quantifier) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	start := handler.Position()
 
 	n.recursiveMatch(1, handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
@@ -835,7 +839,7 @@ func (n *quantifier) recursiveMatch(
 	from, to int,
 	onMatch Callback,
 ) {
-	n.Value.match(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
+	n.Value.scan(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
 		if n.To == nil || *n.To >= count {
 			if n.inBounds(count) {
 				onMatch(match, mFrom, mTo, empty)
@@ -895,7 +899,7 @@ func (n *characterClass) walk(f func(node)) {
 	}
 }
 
-func (n *characterClass) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *characterClass) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -905,7 +909,7 @@ func (n *characterClass) match(handler Handler, input TextBuffer, from, to int, 
 	pos := handler.Position()
 
 	for _, item := range n.Value {
-		item.match(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
+		item.scan(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
 			handler.Match(n, from, mTo, n.isEnd(), false)
 			onMatch(n, from, mTo, empty)
 			n.matchNested(handler, input, mTo+1, to, onMatch)
@@ -944,7 +948,7 @@ func (n *negatedCharacterClass) walk(f func(node)) {
 	}
 }
 
-func (n *negatedCharacterClass) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *negatedCharacterClass) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -956,7 +960,7 @@ func (n *negatedCharacterClass) match(handler Handler, input TextBuffer, from, t
 	for _, item := range n.Value {
 		matched := false
 
-		item.match(handler, input, from, to, func(_ node, _, _ int, _ bool) {
+		item.scan(handler, input, from, to, func(_ node, _, _ int, _ bool) {
 			// TODO : how to propper stop it to avoid pointless iteration?
 			matched = true
 		})
