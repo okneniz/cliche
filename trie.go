@@ -213,20 +213,15 @@ func (t *trie) Match(text string) []*FullMatch {
 		nextFrom := from
 
 		for nextFrom <= to {
-			n.match(scanner, input, nextFrom, to, func(x node, f, t int, _ bool) {
-				// if n.isEnd() {
-				// 	fmt.Printf("match %v '%s' from %d to %d\n", x.getExpressions(), x.getKey(), nextFrom, nextTo)
-				// }
-			})
+			n.match(scanner, input, nextFrom, to, func(_ node, _, _ int, _ bool) {})
 
-			longestMatch := matches.maximum() // maybe rename to best?
+			longestMatch := matches.maximum()
 
 			if longestMatch != nil {
-				nextFrom = longestMatch.To() + 1
-			} else {
-				nextFrom += 1
+				nextFrom = longestMatch.To()
 			}
 
+			nextFrom++
 			scanner.Rewind(0)
 			matches.clear()
 		}
