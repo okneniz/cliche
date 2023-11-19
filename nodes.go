@@ -91,7 +91,7 @@ func (n *nestedNode) merge(other node) {
 	}
 }
 
-func (n *nestedNode) matchNested(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nestedNode) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	pos := handler.Position()
 
 	for _, nested := range n.Nested {
@@ -241,7 +241,7 @@ func (n *group) scan(handler Handler, input TextBuffer, from, to int, onMatch Ca
 			handler.MatchGroup(n.uniqID, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.matchNested(handler, input, vTo+1, to, onMatch)
+			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
 		},
 	)
 	handler.DeleteGroup(n.uniqID)
@@ -276,7 +276,7 @@ func (n *namedGroup) scan(handler Handler, input TextBuffer, from, to int, onMat
 			handler.MatchNamedGroup(n.Name, vTo)
 			handler.Match(n, from, vTo, n.isEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.matchNested(handler, input, vTo+1, to, onMatch)
+			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
 		},
 	)
 	handler.DeleteNamedGroup(n.Name)
@@ -308,7 +308,7 @@ func (n *notCapturedGroup) scan(handler Handler, input TextBuffer, from, to int,
 		func(_ node, vFrom, vTo int, empty bool) {
 			handler.Match(n, from, vTo, n.isEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.matchNested(handler, input, vTo+1, to, onMatch)
+			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
 		},
 	)
 }
@@ -343,7 +343,7 @@ func (n *char) scan(handler Handler, input TextBuffer, from, to int, onMatch Cal
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -374,7 +374,7 @@ func (n *dot) scan(handler Handler, input TextBuffer, from, to int, onMatch Call
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -406,7 +406,7 @@ func (n *digit) scan(handler Handler, input TextBuffer, from, to int, onMatch Ca
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -438,7 +438,7 @@ func (n *nonDigit) scan(handler Handler, input TextBuffer, from, to int, onMatch
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -470,7 +470,7 @@ func (n *word) scan(handler Handler, input TextBuffer, from, to int, onMatch Cal
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -502,7 +502,7 @@ func (n *nonWord) scan(handler Handler, input TextBuffer, from, to int, onMatch 
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -534,7 +534,7 @@ func (n *space) scan(handler Handler, input TextBuffer, from, to int, onMatch Ca
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -566,7 +566,7 @@ func (n *nonSpace) scan(handler Handler, input TextBuffer, from, to int, onMatch
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -598,7 +598,7 @@ func (n *startOfLine) scan(handler Handler, input TextBuffer, from, to int, onMa
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), true)
 		onMatch(n, from, from, true)
-		n.matchNested(handler, input, from, to, onMatch)
+		n.nestedNode.match(handler, input, from, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -648,7 +648,7 @@ func (n *endOfLine) scan(handler Handler, input TextBuffer, from, to int, onMatc
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), true)
 		onMatch(n, from, from, true)
-		n.matchNested(handler, input, from, to, onMatch)
+		n.nestedNode.match(handler, input, from, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -686,7 +686,7 @@ func (n *startOfString) scan(handler Handler, input TextBuffer, from, to int, on
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), true)
 		onMatch(n, from, from, true)
-		n.matchNested(handler, input, from, to, onMatch)
+		n.nestedNode.match(handler, input, from, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -712,7 +712,7 @@ func (n *endOfString) scan(handler Handler, input TextBuffer, from, to int, onMa
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), true)
 		onMatch(n, from, from, true)
-		n.matchNested(handler, input, from, to, onMatch)
+		n.nestedNode.match(handler, input, from, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -746,7 +746,7 @@ func (n *rangeNode) scan(handler Handler, input TextBuffer, from, to int, onMatc
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 		handler.Rewind(pos)
 	}
 }
@@ -809,7 +809,7 @@ func (n *quantifier) scan(handler Handler, input TextBuffer, from, to int, onMat
 		pos := handler.Position()
 		handler.Match(n, from, mTo, n.isEnd(), false)
 		onMatch(n, from, mTo, empty)
-		n.matchNested(handler, input, mTo+1, to, onMatch)
+		n.nestedNode.match(handler, input, mTo+1, to, onMatch)
 		handler.Rewind(pos)
 	})
 
@@ -826,7 +826,7 @@ func (n *quantifier) scan(handler Handler, input TextBuffer, from, to int, onMat
 			handler.Match(n, from, from, n.isEnd(), true)
 		}
 
-		n.matchNested(handler, input, from, to, onMatch)
+		n.nestedNode.match(handler, input, from, to, onMatch)
 	}
 
 	handler.Rewind(start)
@@ -912,13 +912,15 @@ func (n *characterClass) scan(handler Handler, input TextBuffer, from, to int, o
 		item.scan(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
 			handler.Match(n, from, mTo, n.isEnd(), false)
 			onMatch(n, from, mTo, empty)
-			n.matchNested(handler, input, mTo+1, to, onMatch)
+			n.nestedNode.match(handler, input, mTo+1, to, onMatch)
 		})
 
 		handler.Rewind(pos)
 	}
 }
 
+// probably storing in Value range / unicode range tables is better way?
+// simpler and faster?
 type negatedCharacterClass struct {
 	Value []node `json:"value,omitempty"`
 	*nestedNode
@@ -972,7 +974,7 @@ func (n *negatedCharacterClass) scan(handler Handler, input TextBuffer, from, to
 
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)
-		n.matchNested(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 
 		handler.Rewind(pos)
 	}
