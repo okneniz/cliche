@@ -1,56 +1,92 @@
 package regular
 
-type matchesList[T Match] struct {
-	data map[int]T
-	max  *T
+import (
+	"fmt"
+)
+
+type matchesList struct {
+	list []*stringMatch
 }
 
-func newMatchesList[T Match]() *matchesList[T] {
-	b := new(matchesList[T])
-	b.data = make(map[int]T)
+func newMatchesList() *matchesList {
+	b := new(matchesList)
 	return b
 }
 
-func (b *matchesList[T]) clear() {
-	b.data = make(map[int]T, len(b.data))
-	b.max = nil
+// https://www.regular-expressions.info/engine.html
+// This is a very important point to understand: a regex engine always returns the leftmost match, even if a “better” match could be found later.
+func (b *matchesList) compare(m1, m2 span) int {
+	switch {
+	case m1.From() > m2.From():
+		return -1
+	case m1.From() < m2.From():
+		return 1
+	default:
+		switch {
+		case m1.Size() > m2.Size():
+			return 1
+		case m1.Size() < m2.Size():
+			return -1
+		default:
+			return 0
+		}
+	}
 }
 
-func (b *matchesList[T]) push(newMatch T) {
-	if prevMatch, exists := b.data[newMatch.From()]; exists {
-		b.data[newMatch.From()] = b.longestMatch(prevMatch, newMatch)
-	} else {
-		b.data[newMatch.From()] = newMatch
+func (b *matchesList) clear() {
+	b.list = nil
+}
+
+func (b *matchesList) push(m *stringMatch) {
+	if len(b.list) == 0 {
+		b.list = append(b.list, m)
+		return
 	}
 
-	if b.max == nil {
-		b.max = &newMatch
-	} else {
-		newMax := b.longestMatch(*b.max, newMatch)
-		b.max = &newMax
-	}
-}
+	s := m.GetSpan()
+	last := b.list[len(b.list)-1]
+	lastSpan := last.GetSpan()
 
-func (b *matchesList[T]) maximum() *T {
-	return b.max
-}
-
-func (b *matchesList[T]) toMap() map[int]T {
-	return b.data
-}
-
-func (b *matchesList[T]) longestMatch(x, y T) T {
-	if x.Size() == y.Size() {
-		if x.From() < y.From() {
-			return x
+	if b.include(lastSpan, s.From()) {
+		z := b.compare(lastSpan, s)
+		if z < 0 {
+			b.list[len(b.list)-1] = m
+			return
 		}
 
-		return y
+		return
 	}
 
-	if x.Size() > y.Size() {
-		return x
+	b.list = append(b.list, m)
+}
+
+func (b *matchesList) include(s span, x int) bool {
+	if x < s.From() {
+		return false
 	}
 
-	return y
+	if x > s.To() {
+		return false
+	}
+
+	return true
+}
+
+func (b *matchesList) maximum() (*stringMatch, bool) {
+	if len(b.list) == 0 {
+		return nil, false
+	}
+	return b.list[len(b.list)-1], true
+}
+
+func (b *matchesList) size() int {
+	return len(b.list)
+}
+
+func (b matchesList) String() string {
+	return fmt.Sprintln(b.list)
+}
+
+func (b *matchesList) Slice() []*stringMatch {
+	return b.list
 }

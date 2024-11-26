@@ -3,11 +3,15 @@ package regular
 import (
 	"errors"
 	"fmt"
+	"unicode"
+
+	"golang.org/x/text/unicode/rangetable"
 
 	c "github.com/okneniz/parsec/common"
 )
 
 type parser = c.Combinator[rune, int, node]
+type tableParser = c.Combinator[rune, int, *unicode.RangeTable]
 
 var (
 	defaultParser          = parseRegexp()
@@ -46,8 +50,8 @@ func parseRegexp() parser {
 
 	sep := c.Eq[rune, int]('|')
 
-	// parse union
-	union := func(buf c.Buffer[rune, int]) (*union, error) {
+	// parse alternation
+	alternation := func(buf c.Buffer[rune, int]) (*alternation, error) {
 		variant, err := parseNestedExpression(buf)
 		if err != nil {
 			return nil, err
@@ -76,16 +80,16 @@ func parseRegexp() parser {
 
 		// TODO : check length and eof
 
-		return newUnion(variants), nil
+		return newAlternation(variants), nil
 	}
 
 	// parse node
 	parseNode := parseOptionalQuantifier(
 		choice(
 			parseCharacterClasses('|'),
-			parseNotCapturedGroup(union),
-			parseNamedGroup(union),
-			parseGroup(union),
+			parseNotCapturedGroup(alternation),
+			parseNamedGroup(alternation),
+			parseGroup(alternation),
 			parseInvalidQuantifier(),
 			parseEscapedMetaCharacters(),
 			parseMetaCharacters(),
@@ -98,9 +102,9 @@ func parseRegexp() parser {
 	parseNestedNode := parseOptionalQuantifier(
 		choice(
 			parseCharacterClasses('|', ')'),
-			parseNotCapturedGroup(union),
-			parseNamedGroup(union),
-			parseGroup(union),
+			parseNotCapturedGroup(alternation),
+			parseNamedGroup(alternation),
+			parseGroup(alternation),
 			parseInvalidQuantifier(),
 			parseEscapedMetaCharacters(),
 			parseMetaCharacters(),
@@ -157,7 +161,7 @@ func parseRegexp() parser {
 		return first, nil
 	}
 
-	// parse union or expression
+	// parse alternation or expression
 	return func(buf c.Buffer[rune, int]) (node, error) {
 		expression, err := parseExpression(buf)
 		if err != nil {
@@ -184,22 +188,21 @@ func parseRegexp() parser {
 			variants = append(variants, expression)
 		}
 
-		return newUnion(variants), nil
+		return newAlternation(variants), nil
 	}
 }
 
 func parseCharacterClasses(except ...rune) parser {
-	// TODO : without except?
-	parseNode := choice(
-		parseRange(append(except, ']')...),
-		parseEscapedMetaCharacters(),
-		parseEscapedSpecSymbols(),
-		parseCharacter(append(except, ']')...),
+	parseTable := c.Choice[rune, int, *unicode.RangeTable](
+		c.Try(parseRangeTable(append(except, ']')...)),
+		c.Try(parseEscapedMetaCharactersTable()),
+		c.Try(parseEscapedSpecSymbolsTable()),
+		c.Try(parseCharacterTable(append(except, ']')...)),
 	)
 
 	return choice(
-		parseNegatedCharacterClass(parseNode),
-		parseCharacterClass(parseNode),
+		parseNegatedCharacterClass(parseTable),
+		parseCharacterClass(parseTable),
 	)
 }
 
@@ -554,7 +557,7 @@ func parseEscapedMetaCharacters() parser {
 	)
 }
 
-func parseGroup(parse c.Combinator[rune, int, *union]) parser {
+func parseGroup(parse c.Combinator[rune, int, *alternation]) parser {
 	return parens(
 		func(buf c.Buffer[rune, int]) (node, error) {
 			value, err := parse(buf)
@@ -575,7 +578,7 @@ func parseGroup(parse c.Combinator[rune, int, *union]) parser {
 	)
 }
 
-func parseNotCapturedGroup(parse c.Combinator[rune, int, *union]) parser {
+func parseNotCapturedGroup(parse c.Combinator[rune, int, *alternation]) parser {
 	before := SkipString("?:")
 
 	return parens(
@@ -600,7 +603,7 @@ func parseNotCapturedGroup(parse c.Combinator[rune, int, *union]) parser {
 	)
 }
 
-func parseNamedGroup(parse c.Combinator[rune, int, *union], except ...rune) parser {
+func parseNamedGroup(parse c.Combinator[rune, int, *alternation], except ...rune) parser {
 	groupName := c.Skip(
 		c.Eq[rune, int]('?'),
 		angles(
@@ -634,40 +637,17 @@ func parseNamedGroup(parse c.Combinator[rune, int, *union], except ...rune) pars
 	)
 }
 
-func parseNegatedCharacterClass(expression parser) parser {
-	parse := squares(
-		c.Skip(
-			c.Eq[rune, int]('^'),
-			c.Some(1, expression),
-		),
-	)
+func parseCharacterClass(table tableParser) parser {
+	parse := squares(c.Some(1, table))
 
 	return func(buf c.Buffer[rune, int]) (node, error) {
-		set, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := negatedCharacterClass{
-			Value:      set,
-			nestedNode: newNestedNode(),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseCharacterClass(expression parser) parser {
-	parse := squares(c.Some(1, expression))
-
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		set, err := parse(buf)
+		tables, err := parse(buf)
 		if err != nil {
 			return nil, err
 		}
 
 		x := characterClass{
-			Value:      set,
+			table:      rangetable.Merge(tables...),
 			nestedNode: newNestedNode(),
 		}
 
@@ -675,12 +655,35 @@ func parseCharacterClass(expression parser) parser {
 	}
 }
 
-func parseRange(except ...rune) parser {
+func parseNegatedCharacterClass(table tableParser) parser {
+	parse := squares(
+		c.Skip(
+			c.Eq[rune, int]('^'),
+			c.Some(1, table),
+		),
+	)
+
+	return func(buf c.Buffer[rune, int]) (node, error) {
+		tables, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		x := negatedCharacterClass{
+			table:      rangetable.Merge(tables...),
+			nestedNode: newNestedNode(),
+		}
+
+		return &x, nil
+	}
+}
+
+func parseRangeTable(except ...rune) tableParser {
 	item := c.NoneOf[rune, int](except...)
 	sep := c.Eq[rune, int]('-')
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
-		f, err := item(buf)
+	return func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		from, err := item(buf)
 		if err != nil {
 			return nil, err
 		}
@@ -690,17 +693,109 @@ func parseRange(except ...rune) parser {
 			return nil, err
 		}
 
-		t, err := item(buf)
+		to, err := item(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		x := rangeNode{
-			From:       f,
-			To:         t,
-			nestedNode: newNestedNode(),
+		// TODO : check range
+
+		runes := make([]rune, 0, to-from)
+
+		for r := from; r <= to; r++ {
+			runes = append(runes, r)
 		}
 
-		return &x, nil
+		return rangetable.New(runes...), nil
+	}
+}
+
+func parseEscapedSpecSymbolsTable() tableParser {
+	symbols := "[]{}()"
+	cases := make(map[rune]tableParser)
+
+	for _, v := range symbols {
+		r := v
+
+		cases[r] = func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+			return rangetable.New(r), nil
+		}
+	}
+
+	return c.Skip(
+		c.Eq[rune, int]('\\'),
+		c.MapAs(
+			cases,
+			c.Any[rune, int](),
+		),
+	)
+}
+
+func parseEscapedMetaCharactersTable() tableParser {
+	// TODO : move to consts
+	runes := make([]rune, 0)
+	for x := rune(1); x <= unicode.MaxRune; x++ {
+		if !unicode.IsDigit(x) {
+			runes = append(runes, x)
+		}
+	}
+	notDigitTable := rangetable.New(runes...)
+
+	runes = make([]rune, 0)
+	for x := rune(1); x <= unicode.MaxRune; x++ {
+		if !unicode.IsLetter(x) {
+			runes = append(runes, x)
+		}
+	}
+	notWordTable := rangetable.New(runes...)
+
+	runes = make([]rune, 0)
+	for x := rune(1); x <= unicode.MaxRune; x++ {
+		if !unicode.IsSpace(x) {
+			runes = append(runes, x)
+		}
+	}
+	notSpaceTable := rangetable.New(runes...)
+
+	return c.Skip(
+		c.Eq[rune, int]('\\'),
+		c.MapAs(
+			map[rune]c.Combinator[rune, int, *unicode.RangeTable]{
+				'd': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+					return unicode.Digit, nil
+				},
+				'D': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+					return notDigitTable, nil // TODO : check
+				},
+				'w': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+					return unicode.Letter, nil
+				},
+				'W': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+					return notWordTable, nil // TODO : check
+				},
+				's': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+					return unicode.Space, nil
+				},
+				'S': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+					return notSpaceTable, nil
+				},
+			},
+			c.Any[rune, int](),
+		),
+	)
+}
+
+func parseCharacterTable(except ...rune) tableParser {
+	parse := c.NoneOf[rune, int](except...)
+
+	return func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		c, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		table := rangetable.New(c)
+
+		return table, nil
 	}
 }

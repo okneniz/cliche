@@ -2,7 +2,6 @@ package regular
 
 import (
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -21,8 +20,8 @@ func TestTrie(t *testing.T) {
 		"tost",
 		"tot",
 		".",
-		"^", // parsing: only for start of regexp?
-		"$", // only for end of regexp?
+		"^",
+		"$",
 		"\\d",
 		"\\D",
 		"\\w",
@@ -77,95 +76,6 @@ func TestTrie(t *testing.T) {
 	t.Log(tr)
 }
 
-func TestTrieCompaction(t *testing.T) {
-	t.Parallel()
-
-	// character classes and negated character classes store elements in ordered collection.
-	// This allows trie to avoid duplicating a certain number of expressions.
-	// For example [a-z1-2] and [1-2a-z] are equal expressions for trie.
-	t.Run("sets", func(t *testing.T) {
-		tr, err := NewTrie()
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 0)
-
-		err = tr.Add("[a-z1-2]")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 1)
-
-		err = tr.Add("[1-2a-z]")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 1)
-
-		err = tr.Add("[12a-z]")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 2)
-
-		err = tr.Add("[1a-z2]")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 2)
-
-		err = tr.Add("[abc]")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 3)
-
-		err = tr.Add("[cab]")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 3)
-
-		// TODO : may be remove duplications?
-		// like [aa1-2] == [1-2a]
-		// like [121-2] == [1-2]
-		//
-
-		// unify [\d] to \d
-		// unify [0-9] to \d
-	})
-
-	// Some quantifiers have the same meaning, but have different symbols.
-	// For example:
-	// - x+ is equal x{1,}
-	// - x* is equal x{0,}
-	// - x? is equal x{0,1}
-	// - x{1,1} is equal x{1}
-	t.Run("quantifiers", func(t *testing.T) {
-		tr, err := NewTrie()
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 0)
-
-		err = tr.Add("x+")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 1)
-
-		err = tr.Add("x{1,}")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 1)
-
-		err = tr.Add("x?")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 2)
-
-		err = tr.Add("x{0,1}")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 2)
-
-		err = tr.Add("x*")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 3)
-
-		err = tr.Add("x{0,}")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 3)
-
-		err = tr.Add("x{1}")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 4)
-
-		err = tr.Add("x{1,1}")
-		require.NoError(t, err)
-		require.Equal(t, tr.Size(), 4)
-	})
-}
-
 func TestMatch(t *testing.T) {
 	t.Parallel()
 
@@ -186,176 +96,210 @@ func TestMatch(t *testing.T) {
 					"ing",
 				},
 				input: "testing string test ssss word words",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "te",
-						from:      0,
-						to:        1,
-						expressions: []string{
-							"te",
+						span: span{
+							from: 0,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"te",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "test",
-						from:      0,
-						to:        3,
-						expressions: []string{
-							"test",
+						span: span{
+							from: 0,
+							to:   3,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"test",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      2,
-						to:        2,
-						expressions: []string{
-							"s",
+						span: span{
+							from: 2,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "ing",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"ing",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"ing",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      8,
-						to:        8,
-						expressions: []string{
-							"s",
+						span: span{
+							from: 8,
+							to:   8,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "string",
-						from:      8,
-						to:        13,
-						expressions: []string{
-							"string",
+						span: span{
+							from: 8,
+							to:   13,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"string",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "ing",
-						from:      11,
-						to:        13,
-						expressions: []string{
-							"ing",
+						span: span{
+							from: 11,
+							to:   13,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"ing",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "te",
-						from:      15,
-						to:        16,
-						expressions: []string{
-							"te",
+						span: span{
+							from: 15,
+							to:   16,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"te",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "test",
-						from:      15,
-						to:        18,
-						expressions: []string{
+						span: span{
+							from: 15,
+							to:   18,
+						},
+						expressions: newDict(
 							"test",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      17,
-						to:        17,
-						expressions: []string{
-							"s",
+						span: span{
+							from: 17,
+							to:   17,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      20,
-						to:        20,
-						expressions: []string{
-							"s",
+						span: span{
+							from: 20,
+							to:   20,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      21,
-						to:        21,
-						expressions: []string{
-							"s",
+						span: span{
+							from: 21,
+							to:   21,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      22,
-						to:        22,
-						expressions: []string{
-							"s",
+						span: span{
+							from: 22,
+							to:   22,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      23,
-						to:        23,
-						expressions: []string{
-							"s",
+						span: span{
+							from: 23,
+							to:   23,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "word",
-						from:      25,
-						to:        28,
-						expressions: []string{
-							"word",
+						span: span{
+							from: 25,
+							to:   28,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"word",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "word",
-						from:      30,
-						to:        33,
-						expressions: []string{
-							"word",
+						span: span{
+							from: 30,
+							to:   33,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"word",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      34,
-						to:        34,
-						expressions: []string{
-							"s",
+						span: span{
+							from: 34,
+							to:   34,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -363,56 +307,66 @@ func TestMatch(t *testing.T) {
 				name:    "match '.'",
 				regexps: []string{"t."},
 				input:   "testing string test ssss word words",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "te",
-						from:      0,
-						to:        1,
-						expressions: []string{
-							"t.",
+						span: span{
+							from: 0,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "ti",
-						from:      3,
-						to:        4,
-						expressions: []string{
-							"t.",
+						span: span{
+							from: 3,
+							to:   4,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "tr",
-						from:      9,
-						to:        10,
-						expressions: []string{
-							"t.",
+						span: span{
+							from: 9,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "te",
-						from:      15,
-						to:        16,
-						expressions: []string{
-							"t.",
+						span: span{
+							from: 15,
+							to:   16,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "t ",
-						from:      18,
-						to:        19,
-						expressions: []string{
-							"t.",
+						span: span{
+							from: 18,
+							to:   19,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -420,56 +374,66 @@ func TestMatch(t *testing.T) {
 				name:    "match multiple '.'",
 				regexps: []string{"t.."},
 				input:   "testing string test ssss word words",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "tes",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"t..",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t..",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "tin",
-						from:      3,
-						to:        5,
-						expressions: []string{
-							"t..",
+						span: span{
+							from: 3,
+							to:   5,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t..",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "tri",
-						from:      9,
-						to:        11,
-						expressions: []string{
-							"t..",
+						span: span{
+							from: 9,
+							to:   11,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t..",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "tes",
-						from:      15,
-						to:        17,
-						expressions: []string{
-							"t..",
+						span: span{
+							from: 15,
+							to:   17,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t..",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "t s",
-						from:      18,
-						to:        20,
-						expressions: []string{
-							"t..",
+						span: span{
+							from: 18,
+							to:   20,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"t..",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -477,56 +441,66 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\d'",
 				regexps: []string{"\\d"},
 				input:   "asd 1 jsdfk 4234",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "1",
-						from:      4,
-						to:        4,
-						expressions: []string{
-							"\\d",
+						span: span{
+							from: 4,
+							to:   4,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\d",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "4",
-						from:      12,
-						to:        12,
-						expressions: []string{
-							"\\d",
+						span: span{
+							from: 12,
+							to:   12,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\d",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "2",
-						from:      13,
-						to:        13,
-						expressions: []string{
-							"\\d",
+						span: span{
+							from: 13,
+							to:   13,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\d",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "3",
-						from:      14,
-						to:        14,
-						expressions: []string{
-							"\\d",
+						span: span{
+							from: 14,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\d",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "4",
-						from:      15,
-						to:        15,
-						expressions: []string{
-							"\\d",
+						span: span{
+							from: 15,
+							to:   15,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\d",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -534,116 +508,138 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\D'",
 				regexps: []string{"\\D"},
 				input:   "asd 1 jsdfk 4234",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "a",
-						from:      0,
-						to:        0,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 0,
+							to:   0,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      1,
-						to:        1,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 1,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "d",
-						from:      2,
-						to:        2,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 2,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      3,
-						to:        3,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 3,
+							to:   3,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      5,
-						to:        5,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 5,
+							to:   5,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "j",
-						from:      6,
-						to:        6,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 6,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      7,
-						to:        7,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 7,
+							to:   7,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "d",
-						from:      8,
-						to:        8,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 8,
+							to:   8,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "f",
-						from:      9,
-						to:        9,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 9,
+							to:   9,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "k",
-						from:      10,
-						to:        10,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 10,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      11,
-						to:        11,
-						expressions: []string{
-							"\\D",
+						span: span{
+							from: 11,
+							to:   11,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\D",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -651,136 +647,162 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\w'",
 				regexps: []string{"\\w"},
 				input:   "asd 1 jsdfk 4234",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "a",
-						from:      0,
-						to:        0,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 0,
+							to:   0,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      1,
-						to:        1,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 1,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "d",
-						from:      2,
-						to:        2,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 2,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "1",
-						from:      4,
-						to:        4,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 4,
+							to:   4,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "j",
-						from:      6,
-						to:        6,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 6,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      7,
-						to:        7,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 7,
+							to:   7,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "d",
-						from:      8,
-						to:        8,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 8,
+							to:   8,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "f",
-						from:      9,
-						to:        9,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 9,
+							to:   9,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "k",
-						from:      10,
-						to:        10,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 10,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "4",
-						from:      12,
-						to:        12,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 12,
+							to:   12,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "2",
-						from:      13,
-						to:        13,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 13,
+							to:   13,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "3",
-						from:      14,
-						to:        14,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 14,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "4",
-						from:      15,
-						to:        15,
-						expressions: []string{
-							"\\w",
+						span: span{
+							from: 15,
+							to:   15,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\w",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -788,66 +810,78 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\W'",
 				regexps: []string{"\\W"},
 				input:   "asd 1 jsdfk 4234!\n\r",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: " ",
-						from:      3,
-						to:        3,
-						expressions: []string{
-							"\\W",
+						span: span{
+							from: 3,
+							to:   3,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\W",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      5,
-						to:        5,
-						expressions: []string{
-							"\\W",
+						span: span{
+							from: 5,
+							to:   5,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\W",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      11,
-						to:        11,
-						expressions: []string{
-							"\\W",
+						span: span{
+							from: 11,
+							to:   11,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\W",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "!",
-						from:      16,
-						to:        16,
-						expressions: []string{
-							"\\W",
+						span: span{
+							from: 16,
+							to:   16,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\W",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "\n",
-						from:      17,
-						to:        17,
-						expressions: []string{
-							"\\W",
+						span: span{
+							from: 17,
+							to:   17,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\W",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "\r",
-						from:      18,
-						to:        18,
-						expressions: []string{
-							"\\W",
+						span: span{
+							from: 18,
+							to:   18,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\W",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -855,36 +889,42 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\s'",
 				regexps: []string{"\\s"},
 				input:   "asd 1 jsdfk 4234",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: " ",
-						from:      3,
-						to:        3,
-						expressions: []string{
-							"\\s",
+						span: span{
+							from: 3,
+							to:   3,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      5,
-						to:        5,
-						expressions: []string{
-							"\\s",
+						span: span{
+							from: 5,
+							to:   5,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      11,
-						to:        11,
-						expressions: []string{
-							"\\s",
+						span: span{
+							from: 11,
+							to:   11,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\s",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -892,146 +932,174 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\S'",
 				regexps: []string{"\\S"},
 				input:   "asd 1 jsdfk 4234!",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "a",
-						from:      0,
-						to:        0,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 0,
+							to:   0,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      1,
-						to:        1,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 1,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "d",
-						from:      2,
-						to:        2,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 2,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "1",
-						from:      4,
-						to:        4,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 4,
+							to:   4,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "j",
-						from:      6,
-						to:        6,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 6,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "s",
-						from:      7,
-						to:        7,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 7,
+							to:   7,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "d",
-						from:      8,
-						to:        8,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 8,
+							to:   8,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "f",
-						from:      9,
-						to:        9,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 9,
+							to:   9,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "k",
-						from:      10,
-						to:        10,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 10,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "4",
-						from:      12,
-						to:        12,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 12,
+							to:   12,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "2",
-						from:      13,
-						to:        13,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 13,
+							to:   13,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "3",
-						from:      14,
-						to:        14,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 14,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "4",
-						from:      15,
-						to:        15,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 15,
+							to:   15,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "!",
-						from:      16,
-						to:        16,
-						expressions: []string{
-							"\\S",
+						span: span{
+							from: 16,
+							to:   16,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\S",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -1050,116 +1118,132 @@ func TestMatch(t *testing.T) {
 					"\\}",
 				},
 				input: ". ? + * ^ $ [ ] { }",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: ".",
-						from:      0,
-						to:        0,
-						expressions: []string{
-							"\\.",
+						span: span{
+							from: 0,
+							to:   0,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "?",
-						from:      2,
-						to:        2,
-						expressions: []string{
-							"\\?",
+						span: span{
+							from: 2,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\?",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "+",
-						from:      4,
-						to:        4,
-						expressions: []string{
-							"\\+",
+						span: span{
+							from: 4,
+							to:   4,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\+",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "*",
-						from:      6,
-						to:        6,
-						expressions: []string{
-							"\\*",
+						span: span{
+							from: 6,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\*",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "^",
-						from:      8,
-						to:        8,
-						expressions: []string{
-							"\\^",
+						span: span{
+							from: 8,
+							to:   8,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\^",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "$",
-						from:      10,
-						to:        10,
-						expressions: []string{
-							"\\$",
+						span: span{
+							from: 10,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\$",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "[",
-						from:      12,
-						to:        12,
-						expressions: []string{
-							"\\[",
+						span: span{
+							from: 12,
+							to:   12,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\[",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "]",
-						from:      14,
-						to:        14,
-						expressions: []string{
-							"\\]",
+						span: span{
+							from: 14,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "{",
-						from:      16,
-						to:        16,
-						expressions: []string{
-							"\\{",
+						span: span{
+							from: 16,
+							to:   16,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\{",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "}",
-						from:      18,
-						to:        18,
-						expressions: []string{
-							"\\}",
+						span: span{
+							from: 18,
+							to:   18,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"\\}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
 		},
-		"groups": { // TODO : unions
+		"unions": {
 			{
-				// cases which brouk something :
-				// - (f|b)(o|a)(o|\\w|\\D
-				// - (f|b)(o|a)(o|r|z|)
-
 				name: "chars matching and capturing",
 				regexps: []string{
 					"fo(o|b)",
@@ -1169,127 +1253,85 @@ func TestMatch(t *testing.T) {
 					"(f)(o)(o)",
 				},
 				input: "foo bar baz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   2,
+						},
+						expressions: newDict(
 							"fo(o|b)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 2, to: 2},
 						},
 					},
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   2,
+						},
+						expressions: newDict(
 							"f(o|b)o",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 1, to: 1},
 						},
 					},
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   2,
+						},
+						expressions: newDict(
 							"(f|b)(o|a)(o|r|z)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
-							{from: 0, to: 0},
-							{from: 1, to: 1},
-							{from: 2, to: 2},
-						},
-					},
-					{
-						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(f|b)(o|a)(o|r|z)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
-							{from: 4, to: 4},
-							{from: 5, to: 5},
-							{from: 6, to: 6},
-						},
-					},
-					{
-						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(f|b)(o|a)(o|r|z)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
-							{from: 8, to: 8},
-							{from: 9, to: 9},
-							{from: 10, to: 10},
-						},
-					},
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"(f|b)(o|a)(o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
-							{from: 0, to: 0},
-							{from: 1, to: 1},
-							{from: 2, to: 2},
-						},
-					},
-					{
-						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(f|b)(o|a)(o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
-							{from: 4, to: 4},
-							{from: 5, to: 5},
-							{from: 6, to: 6},
-						},
-					},
-					{
-						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(f|b)(o|a)(o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
-							{from: 8, to: 8},
-							{from: 9, to: 9},
-							{from: 10, to: 10},
-						},
-					},
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"(f)(o)(o)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 0, to: 0},
 							{from: 1, to: 1},
 							{from: 2, to: 2},
+						},
+					},
+					{
+						subString: "bar",
+						span: span{
+							from: 4,
+							to:   6,
+						},
+						expressions: newDict(
+							"(f|b)(o|a)(o|r|z)",
+							"(f|b)(o|a)(o|\\w|\\D)",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
+							{from: 4, to: 4},
+							{from: 5, to: 5},
+							{from: 6, to: 6},
+						},
+					},
+					{
+						subString: "baz",
+						span: span{
+							from: 8,
+							to:   10,
+						},
+						expressions: newDict(
+							"(f|b)(o|a)(o|r|z)",
+							"(f|b)(o|a)(o|\\w|\\D)",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
+							{from: 8, to: 8},
+							{from: 9, to: 9},
+							{from: 10, to: 10},
 						},
 					},
 				},
@@ -1302,29 +1344,33 @@ func TestMatch(t *testing.T) {
 					"((b)az)",
 				},
 				input: "foo bar baz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"f(o(o))",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"f(o(o))",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 1, to: 2},
 							{from: 2, to: 2},
 						},
 					},
 					{
 						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(b(a(r)))",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(b(a(r)))",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 4, to: 6},
 							{from: 5, to: 6},
 							{from: 6, to: 6},
@@ -1332,13 +1378,15 @@ func TestMatch(t *testing.T) {
 					},
 					{
 						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"((b)az)",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"((b)az)",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 8, to: 10},
 							{from: 8, to: 8},
 						},
@@ -1346,7 +1394,7 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
-		"named groups": { // TODO : unions
+		"named groups": {
 			{
 				name: "strings matching and capturing",
 				regexps: []string{
@@ -1357,129 +1405,86 @@ func TestMatch(t *testing.T) {
 					"(?<first>f)(?<second>o)(?<third>o)",
 				},
 				input: "foo bar baz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"fo(?<name>o|b)",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{
+						expressions: newDict(
+							"fo(?<name>o|b)",
+						),
+						namedGroups: map[string]span{
 							"name": {from: 2, to: 2},
 						},
-						groups: []Bounds{},
+						groups: []span{},
 					},
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"f(?<name>o|b)o",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{
+						expressions: newDict(
+							"f(?<name>o|b)o",
+						),
+						namedGroups: map[string]span{
 							"name": {from: 1, to: 1},
 						},
-						groups: []Bounds{},
+						groups: []span{},
 					},
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   2,
+						},
+						expressions: newDict(
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
-						},
-						namedGroups: map[string]Bounds{
-							"first":  {from: 0, to: 0},
-							"second": {from: 1, to: 1},
-							"third":  {from: 2, to: 2},
-						},
-						groups: []Bounds{},
-					},
-					{
-						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
-						},
-						namedGroups: map[string]Bounds{
-							"first":  {from: 4, to: 4},
-							"second": {from: 5, to: 5},
-							"third":  {from: 6, to: 6},
-						},
-						groups: []Bounds{},
-					},
-					{
-						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
-						},
-						namedGroups: map[string]Bounds{
-							"first":  {from: 8, to: 8},
-							"second": {from: 9, to: 9},
-							"third":  {from: 10, to: 10},
-						},
-						groups: []Bounds{},
-					},
-
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{
-							"first":  {from: 0, to: 0},
-							"second": {from: 1, to: 1},
-							"third":  {from: 2, to: 2},
-						},
-						groups: []Bounds{},
-					},
-					{
-						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{
-							"first":  {from: 4, to: 4},
-							"second": {from: 5, to: 5},
-							"third":  {from: 6, to: 6},
-						},
-						groups: []Bounds{},
-					},
-					{
-						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{
-							"first":  {from: 8, to: 8},
-							"second": {from: 9, to: 9},
-							"third":  {from: 10, to: 10},
-						},
-						groups: []Bounds{},
-					},
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"(?<first>f)(?<second>o)(?<third>o)",
-						},
-						namedGroups: map[string]Bounds{
+						),
+						namedGroups: map[string]span{
 							"first":  {from: 0, to: 0},
 							"second": {from: 1, to: 1},
 							"third":  {from: 2, to: 2},
 						},
-						groups: []Bounds{},
+						groups: []span{},
+					},
+					{
+						subString: "bar",
+						span: span{
+							from: 4,
+							to:   6,
+						},
+						expressions: newDict(
+							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
+						),
+						namedGroups: map[string]span{
+							"first":  {from: 4, to: 4},
+							"second": {from: 5, to: 5},
+							"third":  {from: 6, to: 6},
+						},
+						groups: []span{},
+					},
+					{
+						subString: "baz",
+						span: span{
+							from: 8,
+							to:   10,
+						},
+						expressions: newDict(
+							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
+						),
+						namedGroups: map[string]span{
+							"first":  {from: 8, to: 8},
+							"second": {from: 9, to: 9},
+							"third":  {from: 10, to: 10},
+						},
+						groups: []span{},
 					},
 				},
 			},
@@ -1491,51 +1496,57 @@ func TestMatch(t *testing.T) {
 					"(?<first>(?<second>b)az)",
 				},
 				input: "foo bar baz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"f(?<first>o(?<second>o))",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{
+						expressions: newDict(
+							"f(?<first>o(?<second>o))",
+						),
+						namedGroups: map[string]span{
 							"first":  {from: 1, to: 2},
 							"second": {from: 2, to: 2},
 						},
-						groups: []Bounds{},
+						groups: []span{},
 					},
 					{
 						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(?<first>b(?<second>a(?<third>r)))",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{
+						expressions: newDict(
+							"(?<first>b(?<second>a(?<third>r)))",
+						),
+						namedGroups: map[string]span{
 							"first":  {from: 4, to: 6},
 							"second": {from: 5, to: 6},
 							"third":  {from: 6, to: 6},
 						},
-						groups: []Bounds{},
+						groups: []span{},
 					},
 					{
 						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(?<first>(?<second>b)az)",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{
+						expressions: newDict(
+							"(?<first>(?<second>b)az)",
+						),
+						namedGroups: map[string]span{
 							"second": {from: 8, to: 8},
 							"first":  {from: 8, to: 10},
 						},
-						groups: []Bounds{},
+						groups: []span{},
 					},
 				},
 			},
 		},
-		"not captured groups": { // TODO : unions
+		"not captured groups": {
 			{
 				name: "strings matching and capturing",
 				regexps: []string{
@@ -1546,96 +1557,48 @@ func TestMatch(t *testing.T) {
 					"(?:f)(?:o)(?:o)",
 				},
 				input: "foo bar baz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   2,
+						},
+						expressions: newDict(
 							"fo(?:o|b)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"f(?:o|b)o",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"(?:f|b)(?:o|a)(?:o|r|z)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(?:f|b)(?:o|a)(?:o|r|z)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(?:f|b)(?:o|a)(?:o|r|z)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"(?:f)(?:o)(?:o)",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
+					},
+					{
+						subString: "bar",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"(?:f|b)(?:o|a)(?:o|r|z)",
+							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
+					},
+					{
+						subString: "baz",
+						span: span{
+							from: 8,
+							to:   10,
+						},
+						expressions: newDict(
+							"(?:f|b)(?:o|a)(?:o|r|z)",
+							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -1647,36 +1610,42 @@ func TestMatch(t *testing.T) {
 					"(?:(?:b)az)",
 				},
 				input: "foo bar baz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"f(?:o(?:o))",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"f(?:o(?:o))",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "bar",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(?:b(?:a(?:r)))",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"(?:b(?:a(?:r)))",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(?:(?:b)az)",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"(?:(?:b)az)",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -1692,78 +1661,59 @@ func TestMatch(t *testing.T) {
 					"...?.",
 				},
 				input: "pic",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "",
-						from:      0,
-						to:        0,
-						expressions: []string{
-							"c?",
+						span: span{
+							from:  0,
+							to:    0,
+							empty: true,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       true,
+						expressions: newDict(
+							"c?",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "",
-						from:      1,
-						to:        1,
-						expressions: []string{
-							"c?",
+						span: span{
+							from:  1,
+							to:    1,
+							empty: true,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       true,
+						expressions: newDict(
+							"c?",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "c",
-						from:      2,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from: 2,
+							to:   2,
+						},
+						expressions: newDict(
 							"c?",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "pic",
-						from:      0,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   2,
+						},
+						expressions: newDict(
 							"pics?",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "pic",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"pi.?c",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "pic",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"....?",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "pic",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"...?.",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -1778,134 +1728,108 @@ func TestMatch(t *testing.T) {
 					"x.{0,}",
 				},
 				input: "xx x\n x",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "xx",
-						from:      0,
-						to:        1,
-						expressions: []string{
-							"x*",
-							"x{0,}",
+						span: span{
+							from: 0,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"x*",
+							"x*x",
+							"x{0,}",
+							"x{0,}x",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "",
-						from:      2,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from:  2,
+							to:    2,
+							empty: true,
+						},
+						expressions: newDict(
 							"x*",
 							"x{0,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       true,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "x",
-						from:      3,
-						to:        3,
-						expressions: []string{
-							"x*",
-							"x{0,}",
+						span: span{
+							from: 3,
+							to:   3,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "",
-						from:      4,
-						to:        4,
-						expressions: []string{
+						expressions: newDict(
 							"x*",
+							"x*x",
 							"x{0,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       true,
-					},
-					{
-						subString: "",
-						from:      5,
-						to:        5,
-						expressions: []string{
-							"x*",
-							"x{0,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       true,
-					},
-					{
-						subString: "x",
-						from:      6,
-						to:        6,
-						expressions: []string{
-							"x*",
-							"x{0,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+							"x{0,}x",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "xx x",
-						from:      0,
-						to:        3,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   3,
+						},
+						expressions: newDict(
 							"x.*",
 							"x.{0,}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
+					},
+					{
+						subString: "",
+						span: span{
+							from:  4,
+							to:    4,
+							empty: true,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
+						expressions: newDict(
+							"x*",
+							"x{0,}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
+					},
+					{
+						subString: "",
+						span: span{
+							from:  5,
+							to:    5,
+							empty: true,
+						},
+						expressions: newDict(
+							"x*",
+							"x{0,}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "x",
-						from:      6,
-						to:        6,
-						expressions: []string{
+						span: span{
+							from: 6,
+							to:   6,
+						},
+						expressions: newDict(
+							"x*",
+							"x*x",
 							"x.*",
+							"x{0,}",
+							"x{0,}x",
 							"x.{0,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "xx",
-						from:      0,
-						to:        1,
-						expressions: []string{
-							"x*x",
-							"x{0,}x",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-					},
-					{
-						subString: "x",
-						from:      3,
-						to:        3,
-						expressions: []string{
-							"x*x",
-							"x{0,}x",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "x",
-						from:      6,
-						to:        6,
-						expressions: []string{
-							"x*x",
-							"x{0,}x",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -1920,66 +1844,60 @@ func TestMatch(t *testing.T) {
 					"x.{1,}",
 				},
 				input: "xx x\n x",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "xx",
-						from:      0,
-						to:        1,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   1,
+						},
+						expressions: newDict(
 							"x+",
 							"x{1,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "x",
-						from:      3,
-						to:        3,
-						expressions: []string{
-							"x+",
-							"x{1,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "x",
-						from:      6,
-						to:        6,
-						expressions: []string{
-							"x+",
-							"x{1,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "xx",
-						from:      0,
-						to:        1,
-						expressions: []string{
 							"x+x",
 							"x{1,}x",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
+					},
+					{
+						subString: "x",
+						span: span{
+							from: 3,
+							to:   3,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"x+",
+							"x{1,}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
+					},
+					{
+						subString: "x",
+						span: span{
+							from: 6,
+							to:   6,
+						},
+						expressions: newDict(
+							"x+",
+							"x{1,}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "xx x",
-						from:      0,
-						to:        3,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   3,
+						},
+						expressions: newDict(
 							"x.+",
 							"x.{1,}",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -1989,28 +1907,30 @@ func TestMatch(t *testing.T) {
 					"x{2,}",
 				},
 				input: "xx xxx x",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "xx",
-						from:      0,
-						to:        1,
-						expressions: []string{
-							"x{2,}",
+						span: span{
+							from: 0,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"x{2,}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "xxx",
-						from:      3,
-						to:        5,
-						expressions: []string{
-							"x{2,}",
+						span: span{
+							from: 3,
+							to:   5,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"x{2,}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -2020,50 +1940,54 @@ func TestMatch(t *testing.T) {
 					"x{2,4}",
 				},
 				input: "xx xxx x xxxxxx",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "xx",
-						from:      0,
-						to:        1,
-						expressions: []string{
-							"x{2,4}",
+						span: span{
+							from: 0,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"x{2,4}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "xxx",
-						from:      3,
-						to:        5,
-						expressions: []string{
-							"x{2,4}",
+						span: span{
+							from: 3,
+							to:   5,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"x{2,4}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "xxxx",
-						from:      9,
-						to:        12,
-						expressions: []string{
-							"x{2,4}",
+						span: span{
+							from: 9,
+							to:   12,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"x{2,4}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "xx",
-						from:      13,
-						to:        14,
-						expressions: []string{
-							"x{2,4}",
+						span: span{
+							from: 13,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"x{2,4}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -2077,50 +2001,54 @@ func TestMatch(t *testing.T) {
 					".^",
 				},
 				input: "foo bar\nbaz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"^...",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"^...",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"^...",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"^...",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "f",
-						from:      0,
-						to:        0,
-						expressions: []string{
-							"^.",
+						span: span{
+							from: 0,
+							to:   0,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"^.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "b",
-						from:      8,
-						to:        8,
-						expressions: []string{
-							"^.",
+						span: span{
+							from: 8,
+							to:   8,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"^.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -2133,39 +2061,43 @@ func TestMatch(t *testing.T) {
 					".\\A",
 				},
 				input: "foo bar\nbaz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"\\A...",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"\\A...",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "f",
-						from:      0,
-						to:        0,
-						expressions: []string{
-							"\\A.",
+						span: span{
+							from: 0,
+							to:   0,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"\\A.",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "",
-						from:      0,
-						to:        0,
-						expressions: []string{
-							"\\A",
+						span: span{
+							from:  0,
+							to:    0,
+							empty: true,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       true,
+						expressions: newDict(
+							"\\A",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -2175,56 +2107,87 @@ func TestMatch(t *testing.T) {
 				name: "line",
 				regexps: []string{
 					"...$",
-					// ".$", //TODO : fix conflict with upper regexp
+					".$",
 					"$.",
 					"$",
 				},
 				input: "foo bar\nbaz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "bar",
-						from:      4,
-						to:        7,
-						expressions: []string{
-							"...$",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"...$",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"...$",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"...$",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
-					// {
-					// 	subString: "r",
-					// 	from:      6,
-					// 	to:        7,
-					// 	expressions: []string{
-					// 		".$",
-					// 	},
-					// 	namedGroups: map[string]Bounds{},
-					// 	groups:      []Bounds{},
-					// 	empty: false,
-					// },
+					{
+						subString: "r",
+						span: span{
+							from: 6,
+							to:   6,
+						},
+						expressions: newDict(
+							".$",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
+					},
 					{
 						subString: "",
-						from:      7,
-						to:        7,
-						expressions: []string{
-							"$",
+						span: span{
+							from:  7,
+							to:    7,
+							empty: true,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       true,
+						expressions: newDict(
+							"$",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
+					{
+						subString: "z",
+						span: span{
+							from: 10,
+							to:   10,
+						},
+						expressions: newDict(
+							".$",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
+					},
+					// TODO: match or not?
+					// {
+					// 	subString: "",
+					// 	span: span{
+					// 		from:  11,
+					// 		to:    11,
+					// 		empty: true,
+					// 	},
+					// 	expressions: newDict(
+					// 		"$",
+					// 	),
+					// 	namedGroups: map[string]span{},
+					// 	groups:      []span{},
+					// },
 				},
 			},
 			{
@@ -2236,7 +2199,7 @@ func TestMatch(t *testing.T) {
 					// ".\\z",
 				},
 				input: "foo bar\nbaz",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					// {
 					// 	subString: "z",
 					// 	from:      10,
@@ -2244,25 +2207,26 @@ func TestMatch(t *testing.T) {
 					// 	expressions: []string{
 					// 		".\\z",
 					// 	},
-					// 	namedGroups: map[string]Bounds{},
-					// 	groups:      []Bounds{},
+					// 	namedGroups: map[string]span{},
+					// 	groups:      []span{},
 					// 	empty: false,
 					// },
 					{
 						subString: "baz",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"...\\z",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"...\\z",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
 		},
-		"sets": {
+		"character classes": {
 			{
 				name: "positive",
 				regexps: []string{
@@ -2273,143 +2237,111 @@ func TestMatch(t *testing.T) {
 					"[bar][bar][baz]",
 				},
 				input: "foo 1 bar\nbaz 123",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "1",
-						from:      4,
-						to:        4,
-						expressions: []string{
-							"[0-9]",
+						span: span{
+							from: 4,
+							to:   4,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[0-9]",
+							"[0-9]+",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "1",
-						from:      14,
-						to:        14,
-						expressions: []string{
-							"[0-9]",
+						span: span{
+							from: 14,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[0-9]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "2",
-						from:      15,
-						to:        15,
-						expressions: []string{
-							"[0-9]",
+						span: span{
+							from: 15,
+							to:   15,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[0-9]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "3",
-						from:      16,
-						to:        16,
-						expressions: []string{
+						span: span{
+							from: 16,
+							to:   16,
+						},
+						expressions: newDict(
 							"[0-9]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "1",
-						from:      4,
-						to:        4,
-						expressions: []string{
-							"[0-9]+",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "123",
-						from:      14,
-						to:        16,
-						expressions: []string{
-							"[0-9]+",
+						span: span{
+							from: 14,
+							to:   16,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[0-9]+",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "bar",
-						from:      6,
-						to:        8,
-						expressions: []string{
-							"ba[rz]",
+						span: span{
+							from: 6,
+							to:   8,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"ba[rz]",
+							"[faborz]+",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "baz",
-						from:      10,
-						to:        12,
-						expressions: []string{
-							"ba[rz]",
+						span: span{
+							from: 10,
+							to:   12,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"ba[rz]",
+							"[faborz]+",
+							"[bar][bar][baz]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   2,
+						},
+						expressions: newDict(
 							"[faborz]+",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "bar",
-						from:      6,
-						to:        8,
-						expressions: []string{
-							"[faborz]+",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "baz",
-						from:      10,
-						to:        12,
-						expressions: []string{
-							"[faborz]+",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "baz",
-						from:      10,
-						to:        12,
-						expressions: []string{
-							"[bar][bar][baz]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
 			{
-				name: "negative",
+				name: "negated",
 				regexps: []string{
 					"[^a-z]",
 					"[^\\s]+",
@@ -2417,215 +2349,156 @@ func TestMatch(t *testing.T) {
 					"[^\\s][^\\s][^\\s]",
 				},
 				input: "foo 1 bar baz 123",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: " ",
-						from:      3,
-						to:        3,
-						expressions: []string{
-							"[^a-z]",
+						span: span{
+							from: 3,
+							to:   3,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^a-z]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "1",
-						from:      4,
-						to:        4,
-						expressions: []string{
-							"[^a-z]",
+						span: span{
+							from: 4,
+							to:   4,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^a-z]",
+							"[^\\s]+",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      5,
-						to:        5,
-						expressions: []string{
-							"[^a-z]",
+						span: span{
+							from: 5,
+							to:   5,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^a-z]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      9,
-						to:        9,
-						expressions: []string{
-							"[^a-z]",
+						span: span{
+							from: 9,
+							to:   9,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^a-z]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: " ",
-						from:      13,
-						to:        13,
-						expressions: []string{
-							"[^a-z]",
+						span: span{
+							from: 13,
+							to:   13,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^a-z]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "1",
-						from:      14,
-						to:        14,
-						expressions: []string{
-							"[^a-z]",
+						span: span{
+							from: 14,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^a-z]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "2",
-						from:      15,
-						to:        15,
-						expressions: []string{
-							"[^a-z]",
+						span: span{
+							from: 15,
+							to:   15,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^a-z]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "3",
-						from:      16,
-						to:        16,
-						expressions: []string{
+						span: span{
+							from: 16,
+							to:   16,
+						},
+						expressions: newDict(
 							"[^a-z]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"[^\\s]+",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "1",
-						from:      4,
-						to:        4,
-						expressions: []string{
+						expressions: newDict(
 							"[^\\s]+",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+							"[^\\s][^\\s][^\\s]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "bar",
-						from:      6,
-						to:        8,
-						expressions: []string{
-							"[^\\s]+",
+						span: span{
+							from: 6,
+							to:   8,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^\\s]+",
+							"[^\\s][^\\s][^\\s]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "baz",
-						from:      10,
-						to:        12,
-						expressions: []string{
-							"[^\\s]+",
+						span: span{
+							from: 10,
+							to:   12,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[^\\s]+",
+							"ba[^for]",
+							"[^\\s][^\\s][^\\s]",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "123",
-						from:      14,
-						to:        16,
-						expressions: []string{
+						span: span{
+							from: 14,
+							to:   16,
+						},
+						expressions: newDict(
 							"[^\\s]+",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "bar",
-						from:      6,
-						to:        8,
-						expressions: []string{
-							"ba[^for]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "baz",
-						from:      10,
-						to:        12,
-						expressions: []string{
-							"ba[^for]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "foo",
-						from:      0,
-						to:        2,
-						expressions: []string{
 							"[^\\s][^\\s][^\\s]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "bar",
-						from:      6,
-						to:        8,
-						expressions: []string{
-							"[^\\s][^\\s][^\\s]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "baz",
-						from:      10,
-						to:        12,
-						expressions: []string{
-							"[^\\s][^\\s][^\\s]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "123",
-						from:      14,
-						to:        16,
-						expressions: []string{
-							"[^\\s][^\\s][^\\s]",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -2637,45 +2510,48 @@ func TestMatch(t *testing.T) {
 					"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 				},
 				input: "000 111 255 256 00 25x 1 2 5",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "000",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 0, to: 2},
 						},
-						empty: false,
 					},
 					{
 						subString: "111",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 4, to: 6},
 						},
-						empty: false,
 					},
 					{
 						subString: "255",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 8, to: 10},
 						},
-						empty: false,
 					},
 				},
 			},
@@ -2685,110 +2561,118 @@ func TestMatch(t *testing.T) {
 					"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 				},
 				input: "000 111 255 256 0 12 025",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "000",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 0, to: 2},
 						},
-						empty: false,
 					},
 					{
 						subString: "111",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 4, to: 6},
 						},
-						empty: false,
 					},
 					{
 						subString: "255",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 8, to: 10},
 						},
-						empty: false,
 					},
 					{
 						subString: "25",
-						from:      12,
-						to:        13,
-						expressions: []string{
-							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 12,
+							to:   13,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 12, to: 13},
 						},
-						empty: false,
 					},
 					{
 						subString: "6",
-						from:      14,
-						to:        14,
-						expressions: []string{
-							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 14,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 14, to: 14},
 						},
-						empty: false,
 					},
 					{
 						subString: "0",
-						from:      16,
-						to:        16,
-						expressions: []string{
-							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 16,
+							to:   16,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 16, to: 16},
 						},
-						empty: false,
 					},
 					{
 						subString: "12",
-						from:      18,
-						to:        19,
-						expressions: []string{
-							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 18,
+							to:   19,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 18, to: 19},
 						},
-						empty: false,
 					},
 					{
 						subString: "025",
-						from:      21,
-						to:        23,
-						expressions: []string{
-							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						span: span{
+							from: 21,
+							to:   23,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 21, to: 23},
 						},
-						empty: false,
 					},
 				},
 			},
@@ -2798,110 +2682,118 @@ func TestMatch(t *testing.T) {
 					"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 				},
 				input: "000 111 127 128 0 12 025",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "000",
-						from:      0,
-						to:        2,
-						expressions: []string{
-							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						span: span{
+							from: 0,
+							to:   2,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 0, to: 2},
 						},
-						empty: false,
 					},
 					{
 						subString: "111",
-						from:      4,
-						to:        6,
-						expressions: []string{
-							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						span: span{
+							from: 4,
+							to:   6,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 4, to: 6},
 						},
-						empty: false,
 					},
 					{
 						subString: "127",
-						from:      8,
-						to:        10,
-						expressions: []string{
-							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						span: span{
+							from: 8,
+							to:   10,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 8, to: 10},
 						},
-						empty: false,
 					},
 					{
 						subString: "12",
-						from:      12,
-						to:        13,
-						expressions: []string{
-							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						span: span{
+							from: 12,
+							to:   13,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 12, to: 13},
 						},
-						empty: false,
 					},
 					{
 						subString: "8",
-						from:      14,
-						to:        14,
-						expressions: []string{
-							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						span: span{
+							from: 14,
+							to:   14,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 14, to: 14},
 						},
-						empty: false,
 					},
 					{
 						subString: "0",
-						from:      16,
-						to:        16,
-						expressions: []string{
-							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						span: span{
+							from: 16,
+							to:   16,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 16, to: 16},
 						},
-						empty: false,
 					},
 					{
 						subString: "12",
-						from:      18,
-						to:        19,
-						expressions: []string{
-							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						span: span{
+							from: 18,
+							to:   19,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 18, to: 19},
 						},
-						empty: false,
 					},
 					{
 						subString: "025",
-						from:      21,
-						to:        23,
-						expressions: []string{
-							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						span: span{
+							from: 21,
+							to:   23,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 21, to: 23},
 						},
-						empty: false,
 					},
 				},
 			},
@@ -2912,66 +2804,71 @@ func TestMatch(t *testing.T) {
 					`[-+]?[0-9]+.?[0-9]+`,
 				},
 				input: "+3.14 9.8 2.718 -1.1 +100.500",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "+3.14",
-						from:      0,
-						to:        4,
-						expressions: []string{
+						span: span{
+							from: 0,
+							to:   4,
+						},
+						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "9.8",
-						from:      6,
-						to:        8,
-						expressions: []string{
+						span: span{
+							from: 6,
+							to:   8,
+						},
+						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "2.718",
-						from:      10,
-						to:        14,
-						expressions: []string{
+						span: span{
+							from: 10,
+							to:   14,
+						},
+						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "-1.1",
-						from:      16,
-						to:        19,
-						expressions: []string{
+						span: span{
+							from: 16,
+							to:   19,
+						},
+						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "+100.500",
-						from:      21,
-						to:        28,
-						expressions: []string{
+						span: span{
+							from: 21,
+							to:   28,
+						},
+						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -2984,87 +2881,73 @@ func TestMatch(t *testing.T) {
 					"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
 				},
 				input: "123 asd c test@mail.ru asd da a.b@x.y.ru",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "test@mail.ru",
-						from:      10,
-						to:        21,
-						expressions: []string{
-							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
+						span: span{
+							from: 10,
+							to:   21,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
+							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "a.b@x.y.ru",
-						from:      30,
-						to:        39,
-						expressions: []string{
-							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
+						span: span{
+							from: 30,
+							to:   39,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
+							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "test@mail.ru",
-						from:      10,
-						to:        21,
-						expressions: []string{
-							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
+						span: span{
+							from: 10,
+							to:   21,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 10, to: 13},
 							{from: 15, to: 21},
 						},
-						empty: false,
 					},
 					{
 						subString: "a.b@x.y.ru",
-						from:      30,
-						to:        39,
-						expressions: []string{
-							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
+						span: span{
+							from: 30,
+							to:   39,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 30, to: 32},
 							{from: 34, to: 39},
 						},
-						empty: false,
 					},
 					{
 						subString: "test@mail.ru",
-						from:      10,
-						to:        21,
-						expressions: []string{
-							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
+						span: span{
+							from: 10,
+							to:   21,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "a.b@x.y.ru",
-						from:      30,
-						to:        39,
-						expressions: []string{
-							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
-						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
-					},
-					{
-						subString: "test@mail.ru",
-						from:      10,
-						to:        21,
-						expressions: []string{
+						expressions: newDict(
 							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
-						},
-						namedGroups: map[string]Bounds{
+						),
+						namedGroups: map[string]span{
 							"name": {
 								from: 10,
 								to:   13,
@@ -3074,17 +2957,18 @@ func TestMatch(t *testing.T) {
 								to:   21,
 							},
 						},
-						groups: []Bounds{},
-						empty:  false,
+						groups: []span{},
 					},
 					{
 						subString: "a.b@x.y.ru",
-						from:      30,
-						to:        39,
-						expressions: []string{
-							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
+						span: span{
+							from: 30,
+							to:   39,
 						},
-						namedGroups: map[string]Bounds{
+						expressions: newDict(
+							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
+						),
+						namedGroups: map[string]span{
 							"name": {
 								from: 30,
 								to:   32,
@@ -3094,8 +2978,7 @@ func TestMatch(t *testing.T) {
 								to:   39,
 							},
 						},
-						groups: []Bounds{},
-						empty:  false,
+						groups: []span{},
 					},
 				},
 			},
@@ -3106,61 +2989,66 @@ func TestMatch(t *testing.T) {
 					"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
 				},
 				input: "4111111111111111 5105105105105100 4012888888881881 4222222222222 5555555555554444",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "4111111111111111",
-						from:      0,
-						to:        15,
-						expressions: []string{
-							"4[0-9]{12}(?:[0-9]{3})?",
+						span: span{
+							from: 0,
+							to:   15,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"4[0-9]{12}(?:[0-9]{3})?",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "4012888888881881",
-						from:      34,
-						to:        49,
-						expressions: []string{
-							"4[0-9]{12}(?:[0-9]{3})?",
+						span: span{
+							from: 34,
+							to:   49,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"4[0-9]{12}(?:[0-9]{3})?",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "4222222222222",
-						from:      51,
-						to:        63,
-						expressions: []string{
-							"4[0-9]{12}(?:[0-9]{3})?",
+						span: span{
+							from: 51,
+							to:   63,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"4[0-9]{12}(?:[0-9]{3})?",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "5105105105105100",
-						from:      17,
-						to:        32,
-						expressions: []string{
-							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
+						span: span{
+							from: 17,
+							to:   32,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "5555555555554444",
-						from:      65,
-						to:        80,
-						expressions: []string{
-							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
+						span: span{
+							from: 65,
+							to:   80,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 				},
 			},
@@ -3173,52 +3061,56 @@ func TestMatch(t *testing.T) {
 					".{2}$",
 				},
 				input: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-						from:      0,
-						to:        73,
-						expressions: []string{
-							"^.*$",
+						span: span{
+							from: 0,
+							to:   73,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"^.*$",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "Lo",
-						from:      0,
-						to:        1,
-						expressions: []string{
-							"^.{2}",
+						span: span{
+							from: 0,
+							to:   1,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							"^.{2}",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "y.",
-						from:      72,
-						to:        73,
-						expressions: []string{
-							".{2}$",
+						span: span{
+							from: 72,
+							to:   73,
 						},
-						namedGroups: map[string]Bounds{},
-						groups:      []Bounds{},
-						empty:       false,
+						expressions: newDict(
+							".{2}$",
+						),
+						namedGroups: map[string]span{},
+						groups:      []span{},
 					},
 					{
 						subString: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-						from:      0,
-						to:        73,
-						expressions: []string{
-							"^(.*)$",
+						span: span{
+							from: 0,
+							to:   73,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							"^(.*)$",
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 0, to: 73},
 						},
-						empty: false,
 					},
 				},
 			},
@@ -3229,19 +3121,20 @@ func TestMatch(t *testing.T) {
 					`<p>(.*)</p>`,
 				},
 				input: "Lorem Ipsum is <p>simply dummy text</p> of the printing and typesetting industry.",
-				output: []*FullMatch{
+				output: []*stringMatch{
 					{
 						subString: "<p>simply dummy text</p>",
-						from:      15,
-						to:        38,
-						expressions: []string{
-							`<p>(.*)</p>`,
+						span: span{
+							from: 15,
+							to:   38,
 						},
-						namedGroups: map[string]Bounds{},
-						groups: []Bounds{
+						expressions: newDict(
+							`<p>(.*)</p>`,
+						),
+						namedGroups: map[string]span{},
+						groups: []span{
 							{from: 18, to: 34},
 						},
-						empty: false,
 					},
 				},
 			},
@@ -3252,36 +3145,50 @@ func TestMatch(t *testing.T) {
 		t.Run(groupName, func(t *testing.T) {
 			for _, ex := range subGroups {
 				test := ex
+
 				t.Run(ex.name, func(t *testing.T) {
 					tr, err := NewTrie(test.regexps...)
 					require.NoError(t, err)
 
-					t.Log(tr.String())
-					t.Logf("input: '%s'", string(test.input))
-
-					sort.SliceStable(test.output, func(i, j int) bool {
-						return comparator(test.output[i], test.output[j])
-					})
+					// t.Log(tr.String())
+					// t.Logf("input: '%s'", string(test.input))
 
 					actual := tr.Match(test.input)
 					require.NoError(t, err)
 
 					sort.SliceStable(actual, func(i, j int) bool {
-						return comparator(actual[i], actual[j])
+						return actual[i].Key() < actual[j].Key()
+					})
+
+					sort.SliceStable(test.output, func(i, j int) bool {
+						return test.output[i].Key() < test.output[j].Key()
 					})
 
 					if len(test.output) != len(actual) {
-						require.Equal(t, test.output, actual)
+						expectedStrings := make([]string, len(test.output))
+						actualStrings := make([]string, len(actual))
+
+						for i, x := range test.output {
+							expectedStrings[i] = x.String()
+						}
+
+						for i, x := range actual {
+							actualStrings[i] = x.String()
+						}
+
+						// t.Log("expected strings: ", expectedStrings)
+						// t.Log("actual strings: ", actualStrings)
+
+						require.Equal(
+							t,
+							expectedStrings,
+							actualStrings,
+						)
 					}
 
 					for i := range test.output {
-						sort.SliceStable(test.output[i].expressions, func(x, y int) bool {
-							return test.output[i].expressions[x] < test.output[i].expressions[y]
-						})
-
-						sort.SliceStable(actual[i].expressions, func(x, y int) bool {
-							return actual[i].expressions[x] < actual[i].expressions[y]
-						})
+						// t.Log("output", *test.output[i])
+						// t.Log("actual", *actual[i])
 
 						require.Equalf(t, *test.output[i], *actual[i], "compare %d match", i)
 					}
@@ -3295,35 +3202,64 @@ type example struct {
 	name    string
 	regexps []string
 	input   string
-	output  []*FullMatch
+	output  []*stringMatch
 }
 
-func comparator(x, y *FullMatch) bool {
-	if x.From() != y.From() {
-		return x.From() < y.From()
-	}
-
-	if x.To() != y.To() {
-		return x.To() < y.To()
-	}
-
-	if x.String() != y.String() {
-		return x.String() < y.String()
-	}
-
-	sort.Slice(x.expressions, func(i, j int) bool {
-		return x.expressions[i] < x.expressions[j]
-	})
-
-	sort.Slice(y.expressions, func(i, j int) bool {
-		return y.expressions[i] < y.expressions[j]
-	})
-
-	return strings.Join(x.expressions, ", ") < strings.Join(y.expressions, ", ")
+func comparator(x, y *stringMatch) bool {
+	return x.Key() < y.Key()
 }
 
 func pointer[T any](x T) *T {
 	return &x
+}
+
+func Test_It(t *testing.T) {
+	tr, err := NewTrie(
+		"ba[^for]",
+	)
+	require.NoError(t, err)
+
+	t.Log(tr.String())
+
+	expected := []*stringMatch{
+		{
+			subString: "baz",
+			span: span{
+				from: 0,
+				to:   2,
+			},
+			expressions: newDict(
+				"ba[^for]",
+			),
+			namedGroups: map[string]span{},
+			groups:      []span{},
+		},
+	}
+
+	sort.SliceStable(expected, func(i, j int) bool {
+		return comparator(expected[i], expected[j])
+	})
+
+	actual := tr.Match("baz")
+	require.NoError(t, err)
+
+	sort.SliceStable(actual, func(i, j int) bool {
+		return comparator(actual[i], actual[j])
+	})
+
+	if len(expected) != len(actual) {
+		require.Equal(t, expected, actual)
+	}
+
+	for i := range expected {
+		es := expected[i].expressions.Slice()
+		as := actual[i].expressions.Slice()
+
+		sort.SliceStable(es, func(x, y int) bool { return es[x] < as[y] })
+		sort.SliceStable(as, func(x, y int) bool { return as[x] < as[y] })
+
+		require.Equalf(t, *expected[i], *actual[i], "compare %d match", i)
+	}
 }
 
 // func Test_Chain(t *testing.T) {
@@ -3335,7 +3271,7 @@ func pointer[T any](x T) *T {
 
 // 	t.Log(tr.String())
 
-// 	expected := []*FullMatch{
+// 	expected := []*stringMatch{
 // 		{
 // 			subString: "bar",
 // 			from:      4,
@@ -3343,8 +3279,8 @@ func pointer[T any](x T) *T {
 // 			expressions: []string{
 // 				"...$",
 // 			},
-// 			namedGroups: map[string]Bounds{},
-// 			groups:      []Bounds{},
+// 			namedGroups: map[string]span{},
+// 			groups:      []span{},
 // 			empty:       false,
 // 		},
 // 		{
@@ -3354,8 +3290,8 @@ func pointer[T any](x T) *T {
 // 			expressions: []string{
 // 				"...$",
 // 			},
-// 			namedGroups: map[string]Bounds{},
-// 			groups:      []Bounds{},
+// 			namedGroups: map[string]span{},
+// 			groups:      []span{},
 // 			empty:       false,
 // 		},
 // 		{
@@ -3365,8 +3301,8 @@ func pointer[T any](x T) *T {
 // 			expressions: []string{
 // 				".$",
 // 			},
-// 			namedGroups: map[string]Bounds{},
-//  			groups:      []Bounds{},
+// 			namedGroups: map[string]span{},
+//  			groups:      []span{},
 // 			empty: false,
 // 		},
 // 		{
@@ -3376,8 +3312,8 @@ func pointer[T any](x T) *T {
 // 			expressions: []string{
 // 				".$",
 // 			},
-// 			namedGroups: map[string]Bounds{},
-// 			groups:      []Bounds{},
+// 			namedGroups: map[string]span{},
+// 			groups:      []span{},
 // 			empty: false,
 // 		},
 // 	}

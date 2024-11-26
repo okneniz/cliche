@@ -10,8 +10,8 @@ type truncatedList[T fmt.Stringer] struct {
 	size int
 }
 
-func newTruncatedList[T fmt.Stringer](cap int) truncatedList[T] {
-	return truncatedList[T]{
+func newTruncatedList[T fmt.Stringer](cap int) *truncatedList[T] {
+	return &truncatedList[T]{
 		data: make([]T, 0, cap),
 		size: 0,
 	}
@@ -88,7 +88,7 @@ func (l *truncatedList[T]) String() string {
 		return "[]"
 	}
 
-	items := make([]string, l.size)
+	items := make([]string, l.size) // TODO : use buffer instead
 	for i := 0; i < l.size; i++ {
 		items[i] = l.data[i].String()
 	}

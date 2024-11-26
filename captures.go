@@ -2,7 +2,6 @@ package regular
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 type captures struct {
@@ -63,8 +62,8 @@ func (c *captures) Delete(name string) {
 	c.order = remove[string](c.order, name)
 }
 
-func (c *captures) ToSlice() []Bounds {
-	result := make([]Bounds, 0, len(c.to))
+func (c *captures) ToSlice() []span {
+	result := make([]span, 0, len(c.to))
 
 	var (
 		start  int
@@ -81,7 +80,7 @@ func (c *captures) ToSlice() []Bounds {
 			break
 		}
 
-		result = append(result, Bounds{
+		result = append(result, span{
 			from: start,
 			to:   finish,
 		})
@@ -90,8 +89,8 @@ func (c *captures) ToSlice() []Bounds {
 	return result
 }
 
-func (c *captures) ToMap() map[string]Bounds {
-	result := make(map[string]Bounds, len(c.to))
+func (c *captures) ToMap() map[string]span {
+	result := make(map[string]span, len(c.to))
 
 	var (
 		start  int
@@ -108,7 +107,7 @@ func (c *captures) ToMap() map[string]Bounds {
 			break
 		}
 
-		result[name] = Bounds{
+		result[name] = span{
 			from: start,
 			to:   finish,
 		}
@@ -125,12 +124,4 @@ func remove[T comparable](l []T, item T) []T {
 	}
 
 	return l
-}
-
-type Bounds struct {
-	from, to int
-}
-
-func (b Bounds) String() string {
-	return fmt.Sprintf("%d-%d", b.from, b.to)
 }

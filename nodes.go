@@ -3,7 +3,6 @@ package regular
 import (
 	"bytes"
 	"fmt"
-	"sort"
 	"strings"
 	"unicode"
 )
@@ -36,17 +35,27 @@ func (ix index) merge(other index) {
 
 type dict map[string]struct{}
 
+func newDict(items ...string) dict {
+	d := make(dict)
+	for _, x := range items {
+		d.add(x)
+	}
+	return d
+}
+
 func (d dict) add(str string) {
 	d[str] = struct{}{}
 }
 
-func (d dict) merge(other dict) {
+func (d dict) merge(other dict) dict {
 	for key, value := range other {
 		d[key] = value
 	}
+
+	return d
 }
 
-func (d dict) toSlice() []string {
+func (d dict) Slice() []string {
 	result := make([]string, len(d))
 	i := 0
 	for key := range d {
@@ -100,23 +109,54 @@ func (n *nestedNode) match(handler Handler, input TextBuffer, from, to int, onMa
 	}
 }
 
-type union struct {
-	key       string
+// https://www.regular-expressions.info/posix.html
+//
+// - what is better behaviour, first match or longest match?
+// - it's important for compaction
+
+// https://www.regular-expressions.info/alternation.html
+//
+// Remember That The Regex Engine Is Eager
+//
+// The consequence is that in certain situations, the order of the alternatives matters.
+// With expression "Get|GetValue|Set|SetValue" and string SetValue,
+// should be matched third variant - "Set"
+//
+// TODO : add test for if it possible
+
+// BUT
+
+// POSIX ERE Alternation Returns The Longest Match
+
+// In the tutorial topic about alternation, I explained that the regex engine will stop as soon as it finds a matching alternative.
+// The POSIX standard, however, mandates that the longest match be returned.
+// When applying Set|SetValue to SetValue, a POSIX-compliant regex engine will match SetValue entirely.
+// Even if the engine is a regex-directed NFA engine, POSIX requires that it simulates DFA text-directed matching by trying all alternatives,
+// and returning the longest match, in this case SetValue.
+// A traditional NFA engine would match Set, as do all other regex flavors discussed on this website.
+
+// A POSIX-compliant engine will still find the leftmost match.
+// If you apply Set|SetValue to Set or SetValue once, it will match Set.
+// The first position in the string is the leftmost position where our regex can find a valid match.
+// The fact that a longer match can be found further in the string is irrelevant.
+// If you apply the regex a second time, continuing at the first space in the string, then SetValue will be matched.
+// A traditional NFA engine would match Set at the start of the string as the first match, and Set at the start of the 3rd word in the string as the second match.
+
+type alternation struct {
 	Value     map[string]node   `json:"value,omitempty"`
 	lastNodes map[node]struct{} // TODO : interface like key, is it ok?
+	*nestedNode
 }
 
-func newUnion(variants []node) *union {
-	n := new(union)
+func newAlternation(variants []node) *alternation {
+	n := new(alternation)
 	n.Value = make(map[string]node, len(variants))
 	n.lastNodes = make(map[node]struct{}, len(variants))
+	n.nestedNode = newNestedNode()
 
 	variantKey := bytes.NewBuffer(nil)
-	key := bytes.NewBuffer(nil)
 
-	last := len(variants) - 1
-
-	for i, variant := range variants {
+	for _, variant := range variants {
 		variant.walk(func(x node) {
 			variantKey.WriteString(x.getKey())
 
@@ -125,28 +165,27 @@ func newUnion(variants []node) *union {
 			}
 		})
 
-		n.Value[variantKey.String()] = variant
-		key.Write(variantKey.Bytes())
+		x := variantKey.String()
+		n.Value[x] = variant
 		variantKey.Reset()
-
-		if i != last {
-			key.WriteRune('|')
-		}
 	}
 
-	n.key = key.String()
-
 	variantKey.Reset()
-	key.Reset()
 
 	return n
 }
 
-func (n *union) getKey() string {
-	return n.key
+func (n *alternation) getKey() string {
+	variantKeys := make([]string, 0, len(n.Value))
+
+	for _, variant := range n.Value {
+		variantKeys = append(variantKeys, variant.getKey())
+	}
+
+	return strings.Join(variantKeys, ",")
 }
 
-func (n *union) walk(f func(node)) {
+func (n *alternation) walk(f func(node)) {
 	f(n)
 
 	for _, x := range n.Value {
@@ -154,50 +193,41 @@ func (n *union) walk(f func(node)) {
 	}
 }
 
-func (n *union) getExpressions() dict {
-	for _, x := range n.Value {
-		return x.getExpressions()
-	}
-
-	return nil
+// TODO : check it without groups too
+func (n *alternation) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+	n.scanVariants(
+		handler,
+		input,
+		from,
+		to,
+		func(_ node, vFrom, vTo int, empty bool) {
+			handler.Match(n, from, vTo, n.isEnd(), false)
+			onMatch(n, from, vTo, empty)
+			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
+		},
+	)
 }
 
-func (n *union) addExpression(exp string) {
-	for _, x := range n.Value {
-		x.addExpression(exp)
-	}
-}
-
-func (n *union) getNestedNodes() index {
-	return nil
-}
-
-func (n *union) isEnd() bool {
-	return len(n.getExpressions()) == 0
-}
-
-func (n *union) merge(x node) {
-	panic(fmt.Sprintf("union can't be merged with : %v", x))
-}
-
-func (n *union) scan(_ Handler, _ TextBuffer, _, _ int, _ Callback) {
-	panic("not implemented")
-}
-
-func (n *union) matchUnion(
+func (n *alternation) scanAlternation(
 	handler Handler,
 	input TextBuffer,
 	from, to int,
 	onMatch Callback,
 ) {
-	n.scanVariants(handler, input, from, to, func(variant node, vFrom, vTo int, empty bool) {
-		if _, exists := n.lastNodes[variant]; exists {
-			onMatch(variant, vFrom, vTo, empty)
-		}
-	})
+	n.scanVariants(
+		handler,
+		input,
+		from,
+		to,
+		func(variant node, vFrom, vTo int, empty bool) {
+			if _, exists := n.lastNodes[variant]; exists {
+				onMatch(variant, vFrom, vTo, empty)
+			}
+		},
+	)
 }
 
-func (n *union) scanVariants(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *alternation) scanVariants(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	position := handler.Position()
 
 	for _, variant := range n.Value {
@@ -206,15 +236,10 @@ func (n *union) scanVariants(handler Handler, input TextBuffer, from, to int, on
 	}
 }
 
-// is (foo|bar) is equal (bar|foo) ?
-// (fo|f)(o|oo)
-
 type group struct {
 	// TODO : it's not really uniq id
-	// because the same union in another group is possible
-	// probable use node interface like key for map
 	uniqID string
-	Value  *union `json:"value,omitempty"`
+	Value  *alternation `json:"value,omitempty"`
 	*nestedNode
 }
 
@@ -232,14 +257,15 @@ func (n *group) walk(f func(node)) {
 
 func (n *group) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	handler.AddGroup(n.uniqID, from)
-	n.Value.matchUnion(
+	n.Value.scanAlternation(
 		handler,
 		input,
 		from,
 		to,
 		func(_ node, vFrom, vTo int, empty bool) {
 			handler.MatchGroup(n.uniqID, vTo)
-			handler.Match(n, from, vTo, n.isEnd(), false)
+			// a lot of line like belowe, maybe move it in handler or trie?
+			handler.Match(n, from, vTo, n.isEnd(), false) // is it possible to remove and use only onMatch?
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
 		},
@@ -248,8 +274,8 @@ func (n *group) scan(handler Handler, input TextBuffer, from, to int, onMatch Ca
 }
 
 type namedGroup struct {
-	Name  string `json:"name,omitempty"`
-	Value *union `json:"value,omitempty"`
+	Name  string       `json:"name,omitempty"`
+	Value *alternation `json:"value,omitempty"`
 	*nestedNode
 }
 
@@ -267,7 +293,7 @@ func (n *namedGroup) walk(f func(node)) {
 
 func (n *namedGroup) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	handler.AddNamedGroup(n.Name, from)
-	n.Value.matchUnion(
+	n.Value.scanAlternation(
 		handler,
 		input,
 		from,
@@ -283,7 +309,7 @@ func (n *namedGroup) scan(handler Handler, input TextBuffer, from, to int, onMat
 }
 
 type notCapturedGroup struct {
-	Value *union `json:"value,omitempty"`
+	Value *alternation `json:"value,omitempty"`
 	*nestedNode
 }
 
@@ -300,7 +326,7 @@ func (n *notCapturedGroup) walk(f func(node)) {
 }
 
 func (n *notCapturedGroup) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
-	n.Value.matchUnion(
+	n.Value.scanAlternation(
 		handler,
 		input,
 		from,
@@ -334,10 +360,6 @@ func (n *char) scan(handler Handler, input TextBuffer, from, to int, onMatch Cal
 	if from >= input.Size() {
 		return
 	}
-
-	// if handler.AlreadyScanned(from) {
-	// 	return
-	// }
 
 	if input.ReadAt(from) == n.Value {
 		pos := handler.Position()
@@ -644,7 +666,7 @@ func (n *endOfLine) walk(f func(node)) {
 func (n *endOfLine) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	// TODO : precache new line positions in buffer?
 
-	if n.isEndOfLine(input, from) { // TODO : check \n\r too
+	if n.isEndOfLine(input, from) {
 		pos := handler.Position()
 		handler.Match(n, from, from, n.isEnd(), true)
 		onMatch(n, from, from, true)
@@ -653,6 +675,7 @@ func (n *endOfLine) scan(handler Handler, input TextBuffer, from, to int, onMatc
 	}
 }
 
+// TODO : check \n\r too
 func (n *endOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 	if idx > input.Size() {
 		return false
@@ -717,39 +740,7 @@ func (n *endOfString) scan(handler Handler, input TextBuffer, from, to int, onMa
 	}
 }
 
-type rangeNode struct {
-	From rune `json:"from,omitempty"`
-	To   rune `json:"to,omitempty"`
-	*nestedNode
-}
-
-func (n *rangeNode) getKey() string {
-	return string([]rune{n.From, '-', n.To})
-}
-
-func (n *rangeNode) walk(f func(node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.walk(f)
-	}
-}
-
-func (n *rangeNode) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if x >= n.From && x <= n.To {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
-	}
-}
+// https://www.regular-expressions.info/repeat.html
 
 type quantifier struct {
 	From  int  `json:"from"`
@@ -783,9 +774,8 @@ func (n *quantifier) getQuantifierKey() string {
 
 	if n.More {
 		b.WriteRune(',')
-	}
-
-	if n.To != nil {
+	} else if n.To != nil {
+		b.WriteRune(',')
 		b.WriteString(fmt.Sprintf("%d", *n.To))
 	}
 
@@ -805,7 +795,7 @@ func (n *quantifier) walk(f func(node)) {
 func (n *quantifier) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
 	start := handler.Position()
 
-	n.recursiveMatch(1, handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
+	n.recursiveScan(1, handler, input, from, to, func(_ node, _, mTo int, empty bool) {
 		pos := handler.Position()
 		handler.Match(n, from, mTo, n.isEnd(), false)
 		onMatch(n, from, mTo, empty)
@@ -821,7 +811,7 @@ func (n *quantifier) scan(handler Handler, input TextBuffer, from, to int, onMat
 
 		if m != nil {
 			// TODO : remove condition and this line?
-			handler.Match(n, m.to, m.to, n.isEnd(), false)
+			handler.Match(n, m.span.to, m.span.to, n.isEnd(), false)
 		} else {
 			handler.Match(n, from, from, n.isEnd(), true)
 		}
@@ -832,7 +822,7 @@ func (n *quantifier) scan(handler Handler, input TextBuffer, from, to int, onMat
 	handler.Rewind(start)
 }
 
-func (n *quantifier) recursiveMatch(
+func (n *quantifier) recursiveScan(
 	count int,
 	handler Handler,
 	input TextBuffer,
@@ -848,7 +838,7 @@ func (n *quantifier) recursiveMatch(
 			next := count + 1
 
 			if n.To == nil || *n.To >= next {
-				n.recursiveMatch(next, handler, input, mTo+1, to, onMatch)
+				n.recursiveScan(next, handler, input, mTo+1, to, onMatch)
 			}
 		}
 	})
@@ -870,25 +860,41 @@ func (n *quantifier) inBounds(q int) bool {
 	return n.From == q
 }
 
+// https://www.regular-expressions.info/charclass.html
+
 type characterClass struct {
-	Value []node `json:"value,omitempty"`
+	table *unicode.RangeTable
 	*nestedNode
 }
 
 func (n *characterClass) getKey() string {
-	subKeys := make([]string, len(n.Value))
+	b := new(strings.Builder)
 
-	for i, value := range n.Value {
-		subKeys[i] = value.getKey()
+	b.WriteString("Class[R16(")
+
+	for _, r := range n.table.R16 {
+		b.WriteString(fmt.Sprintf("%d", r.Lo))
+		b.WriteString("-")
+		b.WriteString(fmt.Sprintf("%d", r.Hi))
+		b.WriteString("-")
+		b.WriteString(fmt.Sprintf("%d", r.Stride))
+		b.WriteString(",")
 	}
 
-	sort.Slice(subKeys, func(i, j int) bool {
-		return subKeys[i] < subKeys[j]
-	})
+	b.WriteString("),R32(")
 
-	x := strings.Join(subKeys, "")
+	for _, r := range n.table.R32 {
+		b.WriteString(fmt.Sprintf("%d", r.Lo))
+		b.WriteString("-")
+		b.WriteString(fmt.Sprintf("%d", r.Hi))
+		b.WriteString("-")
+		b.WriteString(fmt.Sprintf("%d", r.Stride))
+		b.WriteString(",")
+	}
 
-	return fmt.Sprintf("[%s]", x)
+	b.WriteString(")]")
+
+	return b.String()
 }
 
 func (n *characterClass) walk(f func(node)) {
@@ -904,42 +910,53 @@ func (n *characterClass) scan(handler Handler, input TextBuffer, from, to int, o
 		return
 	}
 
-	// TODO : cache isEnd before loop?
+	x := input.ReadAt(from)
 
-	pos := handler.Position()
+	// TODO : always only one character?
+	if unicode.In(x, n.table) {
+		pos := handler.Position()
 
-	for _, item := range n.Value {
-		item.scan(handler, input, from, to, func(match node, mFrom, mTo int, empty bool) {
-			handler.Match(n, from, mTo, n.isEnd(), false)
-			onMatch(n, from, mTo, empty)
-			n.nestedNode.match(handler, input, mTo+1, to, onMatch)
-		})
+		handler.Match(n, from, from, n.isEnd(), false)
+		onMatch(n, from, from, false)
+		n.nestedNode.match(handler, input, from+1, to, onMatch)
 
 		handler.Rewind(pos)
 	}
 }
 
-// probably storing in Value range / unicode range tables is better way?
-// simpler and faster?
 type negatedCharacterClass struct {
-	Value []node `json:"value,omitempty"`
+	table *unicode.RangeTable
 	*nestedNode
 }
 
 func (n *negatedCharacterClass) getKey() string {
-	subKeys := make([]string, len(n.Value))
+	b := new(strings.Builder)
 
-	for i, value := range n.Value {
-		subKeys[i] = value.getKey()
+	b.WriteString("NegatedClass[R16(")
+
+	for _, r := range n.table.R16 {
+		b.WriteString(fmt.Sprintf("%d", r.Lo))
+		b.WriteString("-")
+		b.WriteString(fmt.Sprintf("%d", r.Hi))
+		b.WriteString("-")
+		b.WriteString(fmt.Sprintf("%d", r.Stride))
+		b.WriteString(",")
 	}
 
-	sort.Slice(subKeys, func(i, j int) bool {
-		return subKeys[i] < subKeys[j]
-	})
+	b.WriteString("),R32(")
 
-	x := strings.Join(subKeys, "")
+	for _, r := range n.table.R32 {
+		b.WriteString(fmt.Sprintf("%d", r.Lo))
+		b.WriteString("-")
+		b.WriteString(fmt.Sprintf("%d", r.Hi))
+		b.WriteString("-")
+		b.WriteString(fmt.Sprintf("%d", r.Stride))
+		b.WriteString(",")
+	}
 
-	return fmt.Sprintf("[^%s]", x)
+	b.WriteString(")]")
+
+	return b.String()
 }
 
 func (n *negatedCharacterClass) walk(f func(node)) {
@@ -955,22 +972,11 @@ func (n *negatedCharacterClass) scan(handler Handler, input TextBuffer, from, to
 		return
 	}
 
-	// TODO : cache isEnd before loop?
+	x := input.ReadAt(from)
 
-	pos := handler.Position()
-
-	for _, item := range n.Value {
-		matched := false
-
-		item.scan(handler, input, from, to, func(_ node, _, _ int, _ bool) {
-			// TODO : how to propper stop it to avoid pointless iteration?
-			matched = true
-		})
-
-		if matched {
-			handler.Rewind(pos)
-			return
-		}
+	// TODO : always only one character?
+	if !unicode.In(x, n.table) {
+		pos := handler.Position()
 
 		handler.Match(n, from, from, n.isEnd(), false)
 		onMatch(n, from, from, false)

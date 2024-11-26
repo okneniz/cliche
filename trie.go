@@ -3,7 +3,6 @@ package regular
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 )
 
 // https://www.regular-expressions.info/repeat.html
@@ -32,7 +31,7 @@ type Trie interface {
 	Size() int
 	MarshalJSON() ([]byte, error)
 	String() string
-	Match(string) []*FullMatch
+	Match(string) []*stringMatch
 }
 
 var _ Trie = new(trie)
@@ -121,118 +120,40 @@ func (t *trie) addExpression(str string, newNode node) {
 	}
 }
 
-func (t *trie) Match(text string) []*FullMatch {
+func (t *trie) Match(text string) []*stringMatch {
 	if len(text) == 0 {
 		return nil
 	}
 
 	input := newBuffer(text)
-	matches := newMatchesList[match]()
-	groups := newCaptures() // TODO : use node as key for unnamed groups to avoid generate string ID
-	namedGroups := newCaptures()
-
-	// DS for best matches - https://web.engr.oregonstate.edu/~erwig/diet/
-	acc := make(map[node]*matchesList[*FullMatch])
-
-	var scanner *fullScanner
-
-	scanner = newFullScanner(
-		groups,
-		namedGroups,
-		func(n node, from, to int, empty bool) {
-			matches.push(
-				match{
-					from:  from,
-					to:    to,
-					node:  n,
-					empty: empty,
-				},
-			)
-
-			begin := scanner.FirstMatch()
-			end := scanner.LastMatch()
-
-			beginSubstring := scanner.FirstNotEmptyMatch()
-			endSubstring := scanner.LastNotEmptyMatch()
-
-			fmt.Println("scanner", scanner)
-
-			m := &FullMatch{
-				expressions: n.getExpressions().toSlice(),
-				from:        begin.From(),
-				to:          end.To(),
-				groups:      groups.ToSlice(),
-				namedGroups: namedGroups.ToMap(),
-			}
-
-			if m.from >= input.Size() {
-				m.from = input.Size() - 1
-			}
-
-			if m.to >= input.Size() {
-				m.to = input.Size() - 1
-			}
-
-			if beginSubstring != nil && endSubstring != nil {
-				subString, err := input.Substring(
-					beginSubstring.From(),
-					endSubstring.To(),
-				)
-
-				if err != nil {
-					// TODO : how to handle error
-					fmt.Println("error", err)
-				}
-
-				m.subString = subString
-			} else {
-				m.empty = true
-			}
-
-			fmt.Printf("full match: %v\n", m)
-
-			if list, exists := acc[n]; exists {
-				list.push(m)
-			} else {
-				newList := newMatchesList[*FullMatch]()
-				newList.push(m)
-				acc[n] = newList
-			}
-
-			fmt.Println(" ")
-		},
-	)
-
 	from := 0
 	to := input.Size() - 1
+	scanner := newFullScanner(input, from, to)
 
-	// - как правильно матчить
-	// - как избегать лишних сканирований?
+	return t.Scan(from, to, input, scanner)
+}
+
+func (t *trie) Scan(from, to int, input TextBuffer, handler Handler) []*stringMatch {
+	skip := func(_ node, _, _ int, _ bool) {}
 
 	for _, n := range t.nodes {
 		nextFrom := from
 
 		for nextFrom <= to {
-			n.scan(scanner, input, nextFrom, to, func(_ node, _, _ int, _ bool) {})
+			lastFrom := nextFrom
+			n.scan(handler, input, nextFrom, to, skip)
 
-			longestMatch := matches.maximum()
-
-			if longestMatch != nil {
-				nextFrom = longestMatch.To()
+			if pos, ok := handler.LastPosOf(n); ok && pos >= nextFrom {
+				nextFrom = pos
 			}
 
-			nextFrom++
-			scanner.Rewind(0)
-			matches.clear()
+			if lastFrom == nextFrom {
+				nextFrom++
+			}
+
+			handler.Rewind(0)
 		}
 	}
 
-	result := make([]*FullMatch, 0, len(acc))
-	for _, list := range acc {
-		for _, item := range list.toMap() {
-			result = append(result, item)
-		}
-	}
-
-	return result
+	return handler.Matches()
 }
