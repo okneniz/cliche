@@ -862,6 +862,7 @@ func (n *quantifier) inBounds(q int) bool {
 
 // https://www.regular-expressions.info/charclass.html
 
+// `TODO : rename to charClass`
 type characterClass struct {
 	table *unicode.RangeTable
 	*nestedNode

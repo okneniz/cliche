@@ -1700,6 +1700,7 @@ func TestMatch(t *testing.T) {
 						namedGroups: map[string]span{},
 						groups:      []span{},
 					},
+					// TODO : check c? in rubular again (it's want end of string too)
 					{
 						subString: "pic",
 						span: span{
