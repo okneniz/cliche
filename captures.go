@@ -2,6 +2,8 @@ package regular
 
 import (
 	"encoding/json"
+
+	"github.com/okneniz/regular/span"
 )
 
 type captures struct {
@@ -62,8 +64,8 @@ func (c *captures) Delete(name string) {
 	c.order = remove[string](c.order, name)
 }
 
-func (c *captures) ToSlice() []span {
-	result := make([]span, 0, len(c.to))
+func (c *captures) ToSlice() []span.Interface {
+	result := make([]span.Interface, 0, len(c.to))
 
 	var (
 		start  int
@@ -80,17 +82,14 @@ func (c *captures) ToSlice() []span {
 			break
 		}
 
-		result = append(result, span{
-			from: start,
-			to:   finish,
-		})
+		result = append(result, span.New(start, finish))
 	}
 
 	return result
 }
 
-func (c *captures) ToMap() map[string]span {
-	result := make(map[string]span, len(c.to))
+func (c *captures) ToMap() map[string]span.Interface {
+	result := make(map[string]span.Interface, len(c.to))
 
 	var (
 		start  int
@@ -107,10 +106,13 @@ func (c *captures) ToMap() map[string]span {
 			break
 		}
 
-		result[name] = span{
-			from: start,
-			to:   finish,
-		}
+		// is it possible to capture empty string?
+		//
+		// example:
+		//
+		// (^)foo($)
+
+		result[name] = span.New(start, finish)
 	}
 
 	return result

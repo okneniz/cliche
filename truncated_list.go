@@ -59,20 +59,22 @@ func (l *truncatedList[T]) at(idx int) T {
 	return l.data[idx]
 }
 
-func (l *truncatedList[T]) first() *T {
+func (l *truncatedList[T]) first() (T, bool) {
 	if l.size == 0 {
-		return nil
+		var x T
+		return x, false
 	}
 
-	return &l.data[0]
+	return l.data[0], true
 }
 
-func (l *truncatedList[T]) last() *T {
+func (l *truncatedList[T]) last() (T, bool) {
 	if l.size == 0 {
-		return nil
+		var x T
+		return x, false
 	}
 
-	return &l.data[l.size-1]
+	return l.data[l.size-1], true
 }
 
 func (l *truncatedList[T]) toSlice() []T {

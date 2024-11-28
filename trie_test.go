@@ -4,6 +4,8 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/okneniz/regular/span"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -99,207 +101,204 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "te",
-						span: span{
-							from: 0,
-							to:   1,
-						},
+						span:      span.New(0, 1),
 						expressions: newDict(
 							"te",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "test",
-						span: span{
-							from: 0,
-							to:   3,
-						},
+						span: span.New(
+							0,
+							3,
+						),
 						expressions: newDict(
 							"test",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 2,
-							to:   2,
-						},
+						span: span.New(
+							2,
+							2,
+						),
 						expressions: newDict(
 							"s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "ing",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"ing",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 8,
-							to:   8,
-						},
+						span: span.New(
+							8,
+							8,
+						),
 						expressions: newDict(
 							"s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "string",
-						span: span{
-							from: 8,
-							to:   13,
-						},
+						span: span.New(
+							8,
+							13,
+						),
 						expressions: newDict(
 							"string",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "ing",
-						span: span{
-							from: 11,
-							to:   13,
-						},
+						span: span.New(
+							11,
+							13,
+						),
 						expressions: newDict(
 							"ing",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "te",
-						span: span{
-							from: 15,
-							to:   16,
-						},
+						span: span.New(
+							15,
+							16,
+						),
 						expressions: newDict(
 							"te",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "test",
-						span: span{
-							from: 15,
-							to:   18,
-						},
+						span: span.New(
+							15,
+							18,
+						),
 						expressions: newDict(
 							"test",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 17,
-							to:   17,
-						},
+						span: span.New(
+							17,
+							17,
+						),
 						expressions: newDict(
 							"s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 20,
-							to:   20,
-						},
+						span: span.New(
+							20,
+							20,
+						),
 						expressions: newDict(
 							"s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 21,
-							to:   21,
-						},
+						span: span.New(
+							21,
+							21,
+						),
 						expressions: newDict(
 							"s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 22,
-							to:   22,
-						},
+						span: span.New(
+							22,
+							22,
+						),
 						expressions: newDict(
 							"s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 23,
-							to:   23,
-						},
+						span: span.New(
+							23,
+							23,
+						),
 						expressions: newDict(
 							"s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "word",
-						span: span{
-							from: 25,
-							to:   28,
-						},
+						span: span.New(
+							25,
+							28,
+						),
 						expressions: newDict(
 							"word",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "word",
-						span: span{
-							from: 30,
-							to:   33,
-						},
+						span: span.New(
+							30,
+							33,
+						),
 						expressions: newDict(
 							"word",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 34,
-							to:   34,
-						},
+						span: span.New(
+							34,
+							34,
+						),
 						expressions: newDict(
 							"s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -310,63 +309,63 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "te",
-						span: span{
-							from: 0,
-							to:   1,
-						},
+						span: span.New(
+							0,
+							1,
+						),
 						expressions: newDict(
 							"t.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "ti",
-						span: span{
-							from: 3,
-							to:   4,
-						},
+						span: span.New(
+							3,
+							4,
+						),
 						expressions: newDict(
 							"t.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "tr",
-						span: span{
-							from: 9,
-							to:   10,
-						},
+						span: span.New(
+							9,
+							10,
+						),
 						expressions: newDict(
 							"t.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "te",
-						span: span{
-							from: 15,
-							to:   16,
-						},
+						span: span.New(
+							15,
+							16,
+						),
 						expressions: newDict(
 							"t.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "t ",
-						span: span{
-							from: 18,
-							to:   19,
-						},
+						span: span.New(
+							18,
+							19,
+						),
 						expressions: newDict(
 							"t.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -377,63 +376,63 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "tes",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"t..",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "tin",
-						span: span{
-							from: 3,
-							to:   5,
-						},
+						span: span.New(
+							3,
+							5,
+						),
 						expressions: newDict(
 							"t..",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "tri",
-						span: span{
-							from: 9,
-							to:   11,
-						},
+						span: span.New(
+							9,
+							11,
+						),
 						expressions: newDict(
 							"t..",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "tes",
-						span: span{
-							from: 15,
-							to:   17,
-						},
+						span: span.New(
+							15,
+							17,
+						),
 						expressions: newDict(
 							"t..",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "t s",
-						span: span{
-							from: 18,
-							to:   20,
-						},
+						span: span.New(
+							18,
+							20,
+						),
 						expressions: newDict(
 							"t..",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -444,63 +443,63 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "1",
-						span: span{
-							from: 4,
-							to:   4,
-						},
+						span: span.New(
+							4,
+							4,
+						),
 						expressions: newDict(
 							"\\d",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "4",
-						span: span{
-							from: 12,
-							to:   12,
-						},
+						span: span.New(
+							12,
+							12,
+						),
 						expressions: newDict(
 							"\\d",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "2",
-						span: span{
-							from: 13,
-							to:   13,
-						},
+						span: span.New(
+							13,
+							13,
+						),
 						expressions: newDict(
 							"\\d",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "3",
-						span: span{
-							from: 14,
-							to:   14,
-						},
+						span: span.New(
+							14,
+							14,
+						),
 						expressions: newDict(
 							"\\d",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "4",
-						span: span{
-							from: 15,
-							to:   15,
-						},
+						span: span.New(
+							15,
+							15,
+						),
 						expressions: newDict(
 							"\\d",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -511,135 +510,135 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "a",
-						span: span{
-							from: 0,
-							to:   0,
-						},
+						span: span.New(
+							0,
+							0,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 1,
-							to:   1,
-						},
+						span: span.New(
+							1,
+							1,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "d",
-						span: span{
-							from: 2,
-							to:   2,
-						},
+						span: span.New(
+							2,
+							2,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 3,
-							to:   3,
-						},
+						span: span.New(
+							3,
+							3,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 5,
-							to:   5,
-						},
+						span: span.New(
+							5,
+							5,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "j",
-						span: span{
-							from: 6,
-							to:   6,
-						},
+						span: span.New(
+							6,
+							6,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 7,
-							to:   7,
-						},
+						span: span.New(
+							7,
+							7,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "d",
-						span: span{
-							from: 8,
-							to:   8,
-						},
+						span: span.New(
+							8,
+							8,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "f",
-						span: span{
-							from: 9,
-							to:   9,
-						},
+						span: span.New(
+							9,
+							9,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "k",
-						span: span{
-							from: 10,
-							to:   10,
-						},
+						span: span.New(
+							10,
+							10,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 11,
-							to:   11,
-						},
+						span: span.New(
+							11,
+							11,
+						),
 						expressions: newDict(
 							"\\D",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -650,159 +649,159 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "a",
-						span: span{
-							from: 0,
-							to:   0,
-						},
+						span: span.New(
+							0,
+							0,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 1,
-							to:   1,
-						},
+						span: span.New(
+							1,
+							1,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "d",
-						span: span{
-							from: 2,
-							to:   2,
-						},
+						span: span.New(
+							2,
+							2,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "1",
-						span: span{
-							from: 4,
-							to:   4,
-						},
+						span: span.New(
+							4,
+							4,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "j",
-						span: span{
-							from: 6,
-							to:   6,
-						},
+						span: span.New(
+							6,
+							6,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 7,
-							to:   7,
-						},
+						span: span.New(
+							7,
+							7,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "d",
-						span: span{
-							from: 8,
-							to:   8,
-						},
+						span: span.New(
+							8,
+							8,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "f",
-						span: span{
-							from: 9,
-							to:   9,
-						},
+						span: span.New(
+							9,
+							9,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "k",
-						span: span{
-							from: 10,
-							to:   10,
-						},
+						span: span.New(
+							10,
+							10,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "4",
-						span: span{
-							from: 12,
-							to:   12,
-						},
+						span: span.New(
+							12,
+							12,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "2",
-						span: span{
-							from: 13,
-							to:   13,
-						},
+						span: span.New(
+							13,
+							13,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "3",
-						span: span{
-							from: 14,
-							to:   14,
-						},
+						span: span.New(
+							14,
+							14,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "4",
-						span: span{
-							from: 15,
-							to:   15,
-						},
+						span: span.New(
+							15,
+							15,
+						),
 						expressions: newDict(
 							"\\w",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -813,75 +812,75 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: " ",
-						span: span{
-							from: 3,
-							to:   3,
-						},
+						span: span.New(
+							3,
+							3,
+						),
 						expressions: newDict(
 							"\\W",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 5,
-							to:   5,
-						},
+						span: span.New(
+							5,
+							5,
+						),
 						expressions: newDict(
 							"\\W",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 11,
-							to:   11,
-						},
+						span: span.New(
+							11,
+							11,
+						),
 						expressions: newDict(
 							"\\W",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "!",
-						span: span{
-							from: 16,
-							to:   16,
-						},
+						span: span.New(
+							16,
+							16,
+						),
 						expressions: newDict(
 							"\\W",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "\n",
-						span: span{
-							from: 17,
-							to:   17,
-						},
+						span: span.New(
+							17,
+							17,
+						),
 						expressions: newDict(
 							"\\W",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "\r",
-						span: span{
-							from: 18,
-							to:   18,
-						},
+						span: span.New(
+							18,
+							18,
+						),
 						expressions: newDict(
 							"\\W",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -892,39 +891,39 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: " ",
-						span: span{
-							from: 3,
-							to:   3,
-						},
+						span: span.New(
+							3,
+							3,
+						),
 						expressions: newDict(
 							"\\s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 5,
-							to:   5,
-						},
+						span: span.New(
+							5,
+							5,
+						),
 						expressions: newDict(
 							"\\s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 11,
-							to:   11,
-						},
+						span: span.New(
+							11,
+							11,
+						),
 						expressions: newDict(
 							"\\s",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -935,171 +934,171 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "a",
-						span: span{
-							from: 0,
-							to:   0,
-						},
+						span: span.New(
+							0,
+							0,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 1,
-							to:   1,
-						},
+						span: span.New(
+							1,
+							1,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "d",
-						span: span{
-							from: 2,
-							to:   2,
-						},
+						span: span.New(
+							2,
+							2,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "1",
-						span: span{
-							from: 4,
-							to:   4,
-						},
+						span: span.New(
+							4,
+							4,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "j",
-						span: span{
-							from: 6,
-							to:   6,
-						},
+						span: span.New(
+							6,
+							6,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "s",
-						span: span{
-							from: 7,
-							to:   7,
-						},
+						span: span.New(
+							7,
+							7,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "d",
-						span: span{
-							from: 8,
-							to:   8,
-						},
+						span: span.New(
+							8,
+							8,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "f",
-						span: span{
-							from: 9,
-							to:   9,
-						},
+						span: span.New(
+							9,
+							9,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "k",
-						span: span{
-							from: 10,
-							to:   10,
-						},
+						span: span.New(
+							10,
+							10,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "4",
-						span: span{
-							from: 12,
-							to:   12,
-						},
+						span: span.New(
+							12,
+							12,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "2",
-						span: span{
-							from: 13,
-							to:   13,
-						},
+						span: span.New(
+							13,
+							13,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "3",
-						span: span{
-							from: 14,
-							to:   14,
-						},
+						span: span.New(
+							14,
+							14,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "4",
-						span: span{
-							from: 15,
-							to:   15,
-						},
+						span: span.New(
+							15,
+							15,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "!",
-						span: span{
-							from: 16,
-							to:   16,
-						},
+						span: span.New(
+							16,
+							16,
+						),
 						expressions: newDict(
 							"\\S",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -1121,123 +1120,123 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: ".",
-						span: span{
-							from: 0,
-							to:   0,
-						},
+						span: span.New(
+							0,
+							0,
+						),
 						expressions: newDict(
 							"\\.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "?",
-						span: span{
-							from: 2,
-							to:   2,
-						},
+						span: span.New(
+							2,
+							2,
+						),
 						expressions: newDict(
 							"\\?",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "+",
-						span: span{
-							from: 4,
-							to:   4,
-						},
+						span: span.New(
+							4,
+							4,
+						),
 						expressions: newDict(
 							"\\+",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "*",
-						span: span{
-							from: 6,
-							to:   6,
-						},
+						span: span.New(
+							6,
+							6,
+						),
 						expressions: newDict(
 							"\\*",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "^",
-						span: span{
-							from: 8,
-							to:   8,
-						},
+						span: span.New(
+							8,
+							8,
+						),
 						expressions: newDict(
 							"\\^",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "$",
-						span: span{
-							from: 10,
-							to:   10,
-						},
+						span: span.New(
+							10,
+							10,
+						),
 						expressions: newDict(
 							"\\$",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "[",
-						span: span{
-							from: 12,
-							to:   12,
-						},
+						span: span.New(
+							12,
+							12,
+						),
 						expressions: newDict(
 							"\\[",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "]",
-						span: span{
-							from: 14,
-							to:   14,
-						},
+						span: span.New(
+							14,
+							14,
+						),
 						expressions: newDict(
 							"\\]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "{",
-						span: span{
-							from: 16,
-							to:   16,
-						},
+						span: span.New(
+							16,
+							16,
+						),
 						expressions: newDict(
 							"\\{",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "}",
-						span: span{
-							from: 18,
-							to:   18,
-						},
+						span: span.New(
+							18,
+							18,
+						),
 						expressions: newDict(
 							"\\}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -1256,82 +1255,82 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"fo(o|b)",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 2, to: 2},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(2, 2),
 						},
 					},
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"f(o|b)o",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 1, to: 1},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(1, 1),
 						},
 					},
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"(f|b)(o|a)(o|r|z)",
 							"(f|b)(o|a)(o|\\w|\\D)",
 							"(f)(o)(o)",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 0, to: 0},
-							{from: 1, to: 1},
-							{from: 2, to: 2},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(0, 0),
+							span.New(1, 1),
+							span.New(2, 2),
 						},
 					},
 					{
 						subString: "bar",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"(f|b)(o|a)(o|r|z)",
 							"(f|b)(o|a)(o|\\w|\\D)",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 4, to: 4},
-							{from: 5, to: 5},
-							{from: 6, to: 6},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(4, 4),
+							span.New(5, 5),
+							span.New(6, 6),
 						},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"(f|b)(o|a)(o|r|z)",
 							"(f|b)(o|a)(o|\\w|\\D)",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 8, to: 8},
-							{from: 9, to: 9},
-							{from: 10, to: 10},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(8, 8),
+							span.New(9, 9),
+							span.New(10, 10),
 						},
 					},
 				},
@@ -1347,48 +1346,48 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"f(o(o))",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 1, to: 2},
-							{from: 2, to: 2},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(1, 2),
+							span.New(2, 2),
 						},
 					},
 					{
 						subString: "bar",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"(b(a(r)))",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 4, to: 6},
-							{from: 5, to: 6},
-							{from: 6, to: 6},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(4, 6),
+							span.New(5, 6),
+							span.New(6, 6),
 						},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"((b)az)",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 8, to: 10},
-							{from: 8, to: 8},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(8, 10),
+							span.New(8, 8),
 						},
 					},
 				},
@@ -1408,83 +1407,83 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"fo(?<name>o|b)",
 						),
-						namedGroups: map[string]span{
-							"name": {from: 2, to: 2},
+						namedGroups: map[string]span.Interface{
+							"name": span.New(2, 2),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"f(?<name>o|b)o",
 						),
-						namedGroups: map[string]span{
-							"name": {from: 1, to: 1},
+						namedGroups: map[string]span.Interface{
+							"name": span.New(1, 1),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 							"(?<first>f)(?<second>o)(?<third>o)",
 						),
-						namedGroups: map[string]span{
-							"first":  {from: 0, to: 0},
-							"second": {from: 1, to: 1},
-							"third":  {from: 2, to: 2},
+						namedGroups: map[string]span.Interface{
+							"first":  span.New(0, 0),
+							"second": span.New(1, 1),
+							"third":  span.New(2, 2),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 					{
 						subString: "bar",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 						),
-						namedGroups: map[string]span{
-							"first":  {from: 4, to: 4},
-							"second": {from: 5, to: 5},
-							"third":  {from: 6, to: 6},
+						namedGroups: map[string]span.Interface{
+							"first":  span.New(4, 4),
+							"second": span.New(5, 5),
+							"third":  span.New(6, 6),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 						),
-						namedGroups: map[string]span{
-							"first":  {from: 8, to: 8},
-							"second": {from: 9, to: 9},
-							"third":  {from: 10, to: 10},
+						namedGroups: map[string]span.Interface{
+							"first":  span.New(8, 8),
+							"second": span.New(9, 9),
+							"third":  span.New(10, 10),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 				},
 			},
@@ -1499,49 +1498,49 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"f(?<first>o(?<second>o))",
 						),
-						namedGroups: map[string]span{
-							"first":  {from: 1, to: 2},
-							"second": {from: 2, to: 2},
+						namedGroups: map[string]span.Interface{
+							"first":  span.New(1, 2),
+							"second": span.New(2, 2),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 					{
 						subString: "bar",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"(?<first>b(?<second>a(?<third>r)))",
 						),
-						namedGroups: map[string]span{
-							"first":  {from: 4, to: 6},
-							"second": {from: 5, to: 6},
-							"third":  {from: 6, to: 6},
+						namedGroups: map[string]span.Interface{
+							"first":  span.New(4, 6),
+							"second": span.New(5, 6),
+							"third":  span.New(6, 6),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"(?<first>(?<second>b)az)",
 						),
-						namedGroups: map[string]span{
-							"second": {from: 8, to: 8},
-							"first":  {from: 8, to: 10},
+						namedGroups: map[string]span.Interface{
+							"second": span.New(8, 8),
+							"first":  span.New(8, 10),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 				},
 			},
@@ -1560,10 +1559,10 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"fo(?:o|b)",
 							"f(?:o|b)o",
@@ -1571,34 +1570,34 @@ func TestMatch(t *testing.T) {
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
 							"(?:f)(?:o)(?:o)",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "bar",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"(?:f|b)(?:o|a)(?:o|r|z)",
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"(?:f|b)(?:o|a)(?:o|r|z)",
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -1613,39 +1612,39 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"f(?:o(?:o))",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "bar",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"(?:b(?:a(?:r)))",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"(?:(?:b)az)",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -1664,57 +1663,46 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "",
-						span: span{
-							from:  0,
-							to:    0,
-							empty: true,
-						},
+						span:      span.Empty(0),
 						expressions: newDict(
 							"c?",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "",
-						span: span{
-							from:  1,
-							to:    1,
-							empty: true,
-						},
+						span:      span.Empty(1),
 						expressions: newDict(
 							"c?",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "c",
-						span: span{
-							from: 2,
-							to:   2,
-						},
+						span: span.New(
+							2,
+							2,
+						),
 						expressions: newDict(
 							"c?",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					// TODO : check c? in rubular again (it's want end of string too)
 					{
 						subString: "pic",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span:      span.New(0, 2),
 						expressions: newDict(
 							"pics?",
 							"pi.?c",
 							"....?",
 							"...?.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -1732,95 +1720,83 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "xx",
-						span: span{
-							from: 0,
-							to:   1,
-						},
+						span: span.New(
+							0,
+							1,
+						),
 						expressions: newDict(
 							"x*",
 							"x*x",
 							"x{0,}",
 							"x{0,}x",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "",
-						span: span{
-							from:  2,
-							to:    2,
-							empty: true,
-						},
+						span:      span.Empty(2),
 						expressions: newDict(
 							"x*",
 							"x{0,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "x",
-						span: span{
-							from: 3,
-							to:   3,
-						},
+						span: span.New(
+							3,
+							3,
+						),
 						expressions: newDict(
 							"x*",
 							"x*x",
 							"x{0,}",
 							"x{0,}x",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "xx x",
-						span: span{
-							from: 0,
-							to:   3,
-						},
+						span: span.New(
+							0,
+							3,
+						),
 						expressions: newDict(
 							"x.*",
 							"x.{0,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "",
-						span: span{
-							from:  4,
-							to:    4,
-							empty: true,
-						},
+						span:      span.Empty(4),
 						expressions: newDict(
 							"x*",
 							"x{0,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "",
-						span: span{
-							from:  5,
-							to:    5,
-							empty: true,
-						},
+						span:      span.Empty(5),
 						expressions: newDict(
 							"x*",
 							"x{0,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "x",
-						span: span{
-							from: 6,
-							to:   6,
-						},
+						span: span.New(
+							6,
+							6,
+						),
 						expressions: newDict(
 							"x*",
 							"x*x",
@@ -1829,8 +1805,8 @@ func TestMatch(t *testing.T) {
 							"x{0,}x",
 							"x.{0,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -1848,57 +1824,57 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "xx",
-						span: span{
-							from: 0,
-							to:   1,
-						},
+						span: span.New(
+							0,
+							1,
+						),
 						expressions: newDict(
 							"x+",
 							"x{1,}",
 							"x+x",
 							"x{1,}x",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "x",
-						span: span{
-							from: 3,
-							to:   3,
-						},
+						span: span.New(
+							3,
+							3,
+						),
 						expressions: newDict(
 							"x+",
 							"x{1,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "x",
-						span: span{
-							from: 6,
-							to:   6,
-						},
+						span: span.New(
+							6,
+							6,
+						),
 						expressions: newDict(
 							"x+",
 							"x{1,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "xx x",
-						span: span{
-							from: 0,
-							to:   3,
-						},
+						span: span.New(
+							0,
+							3,
+						),
 						expressions: newDict(
 							"x.+",
 							"x.{1,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -1911,27 +1887,27 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "xx",
-						span: span{
-							from: 0,
-							to:   1,
-						},
+						span: span.New(
+							0,
+							1,
+						),
 						expressions: newDict(
 							"x{2,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "xxx",
-						span: span{
-							from: 3,
-							to:   5,
-						},
+						span: span.New(
+							3,
+							5,
+						),
 						expressions: newDict(
 							"x{2,}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -1944,51 +1920,51 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "xx",
-						span: span{
-							from: 0,
-							to:   1,
-						},
+						span: span.New(
+							0,
+							1,
+						),
 						expressions: newDict(
 							"x{2,4}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "xxx",
-						span: span{
-							from: 3,
-							to:   5,
-						},
+						span: span.New(
+							3,
+							5,
+						),
 						expressions: newDict(
 							"x{2,4}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "xxxx",
-						span: span{
-							from: 9,
-							to:   12,
-						},
+						span: span.New(
+							9,
+							12,
+						),
 						expressions: newDict(
 							"x{2,4}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "xx",
-						span: span{
-							from: 13,
-							to:   14,
-						},
+						span: span.New(
+							13,
+							14,
+						),
 						expressions: newDict(
 							"x{2,4}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -2005,51 +1981,51 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"^...",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"^...",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "f",
-						span: span{
-							from: 0,
-							to:   0,
-						},
+						span: span.New(
+							0,
+							0,
+						),
 						expressions: newDict(
 							"^.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "b",
-						span: span{
-							from: 8,
-							to:   8,
-						},
+						span: span.New(
+							8,
+							8,
+						),
 						expressions: newDict(
 							"^.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -2065,40 +2041,36 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"\\A...",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "f",
-						span: span{
-							from: 0,
-							to:   0,
-						},
+						span: span.New(
+							0,
+							0,
+						),
 						expressions: newDict(
 							"\\A.",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "",
-						span: span{
-							from:  0,
-							to:    0,
-							empty: true,
-						},
+						span:      span.Empty(0),
 						expressions: newDict(
 							"\\A",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -2116,78 +2088,74 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "bar",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"...$",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"...$",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "r",
-						span: span{
-							from: 6,
-							to:   6,
-						},
+						span: span.New(
+							6,
+							6,
+						),
 						expressions: newDict(
 							".$",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "",
-						span: span{
-							from:  7,
-							to:    7,
-							empty: true,
-						},
+						span:      span.Empty(7),
 						expressions: newDict(
 							"$",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "z",
-						span: span{
-							from: 10,
-							to:   10,
-						},
+						span: span.New(
+							10,
+							10,
+						),
 						expressions: newDict(
 							".$",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					// TODO: match or not?
 					// {
 					// 	subString: "",
-					// 	span: span{
+					// 	span: span.New(
 					// 		from:  11,
 					// 		to:    11,
 					// 		empty: true,
-					// 	},
+					// ),
 					// 	expressions: newDict(
 					// 		"$",
 					// 	),
-					// 	namedGroups: map[string]span{},
-					// 	groups:      []span{},
+					// 	namedGroups: map[string]span.Interface{},
+					// 	groups:      []span.Interface{},
 					// },
 				},
 			},
@@ -2208,21 +2176,21 @@ func TestMatch(t *testing.T) {
 					// 	expressions: []string{
 					// 		".\\z",
 					// 	},
-					// 	namedGroups: map[string]span{},
-					// 	groups:      []span{},
+					// 	namedGroups: map[string]span.Interface{},
+					// 	groups:      []span.Interface{},
 					// 	empty: false,
 					// },
 					{
 						subString: "baz",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"...\\z",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -2241,103 +2209,103 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "1",
-						span: span{
-							from: 4,
-							to:   4,
-						},
+						span: span.New(
+							4,
+							4,
+						),
 						expressions: newDict(
 							"[0-9]",
 							"[0-9]+",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "1",
-						span: span{
-							from: 14,
-							to:   14,
-						},
+						span: span.New(
+							14,
+							14,
+						),
 						expressions: newDict(
 							"[0-9]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "2",
-						span: span{
-							from: 15,
-							to:   15,
-						},
+						span: span.New(
+							15,
+							15,
+						),
 						expressions: newDict(
 							"[0-9]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "3",
-						span: span{
-							from: 16,
-							to:   16,
-						},
+						span: span.New(
+							16,
+							16,
+						),
 						expressions: newDict(
 							"[0-9]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "123",
-						span: span{
-							from: 14,
-							to:   16,
-						},
+						span: span.New(
+							14,
+							16,
+						),
 						expressions: newDict(
 							"[0-9]+",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "bar",
-						span: span{
-							from: 6,
-							to:   8,
-						},
+						span: span.New(
+							6,
+							8,
+						),
 						expressions: newDict(
 							"ba[rz]",
 							"[faborz]+",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 10,
-							to:   12,
-						},
+						span: span.New(
+							10,
+							12,
+						),
 						expressions: newDict(
 							"ba[rz]",
 							"[faborz]+",
 							"[bar][bar][baz]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"[faborz]+",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -2353,153 +2321,153 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: " ",
-						span: span{
-							from: 3,
-							to:   3,
-						},
+						span: span.New(
+							3,
+							3,
+						),
 						expressions: newDict(
 							"[^a-z]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "1",
-						span: span{
-							from: 4,
-							to:   4,
-						},
+						span: span.New(
+							4,
+							4,
+						),
 						expressions: newDict(
 							"[^a-z]",
 							"[^\\s]+",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 5,
-							to:   5,
-						},
+						span: span.New(
+							5,
+							5,
+						),
 						expressions: newDict(
 							"[^a-z]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 9,
-							to:   9,
-						},
+						span: span.New(
+							9,
+							9,
+						),
 						expressions: newDict(
 							"[^a-z]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: " ",
-						span: span{
-							from: 13,
-							to:   13,
-						},
+						span: span.New(
+							13,
+							13,
+						),
 						expressions: newDict(
 							"[^a-z]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "1",
-						span: span{
-							from: 14,
-							to:   14,
-						},
+						span: span.New(
+							14,
+							14,
+						),
 						expressions: newDict(
 							"[^a-z]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "2",
-						span: span{
-							from: 15,
-							to:   15,
-						},
+						span: span.New(
+							15,
+							15,
+						),
 						expressions: newDict(
 							"[^a-z]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "3",
-						span: span{
-							from: 16,
-							to:   16,
-						},
+						span: span.New(
+							16,
+							16,
+						),
 						expressions: newDict(
 							"[^a-z]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "foo",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"[^\\s]+",
 							"[^\\s][^\\s][^\\s]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "bar",
-						span: span{
-							from: 6,
-							to:   8,
-						},
+						span: span.New(
+							6,
+							8,
+						),
 						expressions: newDict(
 							"[^\\s]+",
 							"[^\\s][^\\s][^\\s]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "baz",
-						span: span{
-							from: 10,
-							to:   12,
-						},
+						span: span.New(
+							10,
+							12,
+						),
 						expressions: newDict(
 							"[^\\s]+",
 							"ba[^for]",
 							"[^\\s][^\\s][^\\s]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "123",
-						span: span{
-							from: 14,
-							to:   16,
-						},
+						span: span.New(
+							14,
+							16,
+						),
 						expressions: newDict(
 							"[^\\s]+",
 							"[^\\s][^\\s][^\\s]",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -2514,44 +2482,44 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "000",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 0, to: 2},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(0, 2),
 						},
 					},
 					{
 						subString: "111",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 4, to: 6},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(4, 6),
 						},
 					},
 					{
 						subString: "255",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 8, to: 10},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(8, 10),
 						},
 					},
 				},
@@ -2565,114 +2533,114 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "000",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 0, to: 2},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(0, 2),
 						},
 					},
 					{
 						subString: "111",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 4, to: 6},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(4, 6),
 						},
 					},
 					{
 						subString: "255",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 8, to: 10},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(8, 10),
 						},
 					},
 					{
 						subString: "25",
-						span: span{
-							from: 12,
-							to:   13,
-						},
+						span: span.New(
+							12,
+							13,
+						),
 						expressions: newDict(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 12, to: 13},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(12, 13),
 						},
 					},
 					{
 						subString: "6",
-						span: span{
-							from: 14,
-							to:   14,
-						},
+						span: span.New(
+							14,
+							14,
+						),
 						expressions: newDict(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 14, to: 14},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(14, 14),
 						},
 					},
 					{
 						subString: "0",
-						span: span{
-							from: 16,
-							to:   16,
-						},
+						span: span.New(
+							16,
+							16,
+						),
 						expressions: newDict(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 16, to: 16},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(16, 16),
 						},
 					},
 					{
 						subString: "12",
-						span: span{
-							from: 18,
-							to:   19,
-						},
+						span: span.New(
+							18,
+							19,
+						),
 						expressions: newDict(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 18, to: 19},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(18, 19),
 						},
 					},
 					{
 						subString: "025",
-						span: span{
-							from: 21,
-							to:   23,
-						},
+						span: span.New(
+							21,
+							23,
+						),
 						expressions: newDict(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 21, to: 23},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(21, 23),
 						},
 					},
 				},
@@ -2686,114 +2654,114 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "000",
-						span: span{
-							from: 0,
-							to:   2,
-						},
+						span: span.New(
+							0,
+							2,
+						),
 						expressions: newDict(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 0, to: 2},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(0, 2),
 						},
 					},
 					{
 						subString: "111",
-						span: span{
-							from: 4,
-							to:   6,
-						},
+						span: span.New(
+							4,
+							6,
+						),
 						expressions: newDict(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 4, to: 6},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(4, 6),
 						},
 					},
 					{
 						subString: "127",
-						span: span{
-							from: 8,
-							to:   10,
-						},
+						span: span.New(
+							8,
+							10,
+						),
 						expressions: newDict(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 8, to: 10},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(8, 10),
 						},
 					},
 					{
 						subString: "12",
-						span: span{
-							from: 12,
-							to:   13,
-						},
+						span: span.New(
+							12,
+							13,
+						),
 						expressions: newDict(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 12, to: 13},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(12, 13),
 						},
 					},
 					{
 						subString: "8",
-						span: span{
-							from: 14,
-							to:   14,
-						},
+						span: span.New(
+							14,
+							14,
+						),
 						expressions: newDict(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 14, to: 14},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(14, 14),
 						},
 					},
 					{
 						subString: "0",
-						span: span{
-							from: 16,
-							to:   16,
-						},
+						span: span.New(
+							16,
+							16,
+						),
 						expressions: newDict(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 16, to: 16},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(16, 16),
 						},
 					},
 					{
 						subString: "12",
-						span: span{
-							from: 18,
-							to:   19,
-						},
+						span: span.New(
+							18,
+							19,
+						),
 						expressions: newDict(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 18, to: 19},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(18, 19),
 						},
 					},
 					{
 						subString: "025",
-						span: span{
-							from: 21,
-							to:   23,
-						},
+						span: span.New(
+							21,
+							23,
+						),
 						expressions: newDict(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 21, to: 23},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(21, 23),
 						},
 					},
 				},
@@ -2808,68 +2776,68 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "+3.14",
-						span: span{
-							from: 0,
-							to:   4,
-						},
+						span: span.New(
+							0,
+							4,
+						),
 						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "9.8",
-						span: span{
-							from: 6,
-							to:   8,
-						},
+						span: span.New(
+							6,
+							8,
+						),
 						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "2.718",
-						span: span{
-							from: 10,
-							to:   14,
-						},
+						span: span.New(
+							10,
+							14,
+						),
 						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "-1.1",
-						span: span{
-							from: 16,
-							to:   19,
-						},
+						span: span.New(
+							16,
+							19,
+						),
 						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "+100.500",
-						span: span{
-							from: 21,
-							to:   28,
-						},
+						span: span.New(
+							21,
+							28,
+						),
 						expressions: newDict(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -2885,101 +2853,101 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "test@mail.ru",
-						span: span{
-							from: 10,
-							to:   21,
-						},
+						span: span.New(
+							10,
+							21,
+						),
 						expressions: newDict(
 							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
 							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "a.b@x.y.ru",
-						span: span{
-							from: 30,
-							to:   39,
-						},
+						span: span.New(
+							30,
+							39,
+						),
 						expressions: newDict(
 							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
 							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "test@mail.ru",
-						span: span{
-							from: 10,
-							to:   21,
-						},
+						span: span.New(
+							10,
+							21,
+						),
 						expressions: newDict(
 							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 10, to: 13},
-							{from: 15, to: 21},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(10, 13),
+							span.New(15, 21),
 						},
 					},
 					{
 						subString: "a.b@x.y.ru",
-						span: span{
-							from: 30,
-							to:   39,
-						},
+						span: span.New(
+							30,
+							39,
+						),
 						expressions: newDict(
 							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 30, to: 32},
-							{from: 34, to: 39},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(30, 32),
+							span.New(34, 39),
 						},
 					},
 					{
 						subString: "test@mail.ru",
-						span: span{
-							from: 10,
-							to:   21,
-						},
+						span: span.New(
+							10,
+							21,
+						),
 						expressions: newDict(
 							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
 						),
-						namedGroups: map[string]span{
-							"name": {
-								from: 10,
-								to:   13,
-							},
-							"domain": {
-								from: 15,
-								to:   21,
-							},
+						namedGroups: map[string]span.Interface{
+							"name": span.New(
+								10,
+								13,
+							),
+							"domain": span.New(
+								15,
+								21,
+							),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 					{
 						subString: "a.b@x.y.ru",
-						span: span{
-							from: 30,
-							to:   39,
-						},
+						span: span.New(
+							30,
+							39,
+						),
 						expressions: newDict(
 							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
 						),
-						namedGroups: map[string]span{
-							"name": {
-								from: 30,
-								to:   32,
-							},
-							"domain": {
-								from: 34,
-								to:   39,
-							},
+						namedGroups: map[string]span.Interface{
+							"name": span.New(
+								30,
+								32,
+							),
+							"domain": span.New(
+								34,
+								39,
+							),
 						},
-						groups: []span{},
+						groups: []span.Interface{},
 					},
 				},
 			},
@@ -2993,63 +2961,63 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "4111111111111111",
-						span: span{
-							from: 0,
-							to:   15,
-						},
+						span: span.New(
+							0,
+							15,
+						),
 						expressions: newDict(
 							"4[0-9]{12}(?:[0-9]{3})?",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "4012888888881881",
-						span: span{
-							from: 34,
-							to:   49,
-						},
+						span: span.New(
+							34,
+							49,
+						),
 						expressions: newDict(
 							"4[0-9]{12}(?:[0-9]{3})?",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "4222222222222",
-						span: span{
-							from: 51,
-							to:   63,
-						},
+						span: span.New(
+							51,
+							63,
+						),
 						expressions: newDict(
 							"4[0-9]{12}(?:[0-9]{3})?",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "5105105105105100",
-						span: span{
-							from: 17,
-							to:   32,
-						},
+						span: span.New(
+							17,
+							32,
+						),
 						expressions: newDict(
 							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "5555555555554444",
-						span: span{
-							from: 65,
-							to:   80,
-						},
+						span: span.New(
+							65,
+							80,
+						),
 						expressions: newDict(
 							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 				},
 			},
@@ -3065,52 +3033,52 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-						span: span{
-							from: 0,
-							to:   73,
-						},
+						span: span.New(
+							0,
+							73,
+						),
 						expressions: newDict(
 							"^.*$",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "Lo",
-						span: span{
-							from: 0,
-							to:   1,
-						},
+						span: span.New(
+							0,
+							1,
+						),
 						expressions: newDict(
 							"^.{2}",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "y.",
-						span: span{
-							from: 72,
-							to:   73,
-						},
+						span: span.New(
+							72,
+							73,
+						),
 						expressions: newDict(
 							".{2}$",
 						),
-						namedGroups: map[string]span{},
-						groups:      []span{},
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
 					},
 					{
 						subString: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-						span: span{
-							from: 0,
-							to:   73,
-						},
+						span: span.New(
+							0,
+							73,
+						),
 						expressions: newDict(
 							"^(.*)$",
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 0, to: 73},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(0, 73),
 						},
 					},
 				},
@@ -3125,16 +3093,16 @@ func TestMatch(t *testing.T) {
 				output: []*stringMatch{
 					{
 						subString: "<p>simply dummy text</p>",
-						span: span{
-							from: 15,
-							to:   38,
-						},
+						span: span.New(
+							15,
+							38,
+						),
 						expressions: newDict(
 							`<p>(.*)</p>`,
 						),
-						namedGroups: map[string]span{},
-						groups: []span{
-							{from: 18, to: 34},
+						namedGroups: map[string]span.Interface{},
+						groups: []span.Interface{
+							span.New(18, 34),
 						},
 					},
 				},
@@ -3225,15 +3193,15 @@ func Test_It(t *testing.T) {
 	expected := []*stringMatch{
 		{
 			subString: "baz",
-			span: span{
-				from: 0,
-				to:   2,
-			},
+			span: span.New(
+				0,
+				2,
+			),
 			expressions: newDict(
 				"ba[^for]",
 			),
-			namedGroups: map[string]span{},
-			groups:      []span{},
+			namedGroups: map[string]span.Interface{},
+			groups:      []span.Interface{},
 		},
 	}
 
@@ -3280,8 +3248,8 @@ func Test_It(t *testing.T) {
 // 			expressions: []string{
 // 				"...$",
 // 			},
-// 			namedGroups: map[string]span{},
-// 			groups:      []span{},
+// 			namedGroups: map[string]span.Interface{},
+// 			groups:      []span.Interface{},
 // 			empty:       false,
 // 		},
 // 		{
@@ -3291,8 +3259,8 @@ func Test_It(t *testing.T) {
 // 			expressions: []string{
 // 				"...$",
 // 			},
-// 			namedGroups: map[string]span{},
-// 			groups:      []span{},
+// 			namedGroups: map[string]span.Interface{},
+// 			groups:      []span.Interface{},
 // 			empty:       false,
 // 		},
 // 		{
@@ -3302,8 +3270,8 @@ func Test_It(t *testing.T) {
 // 			expressions: []string{
 // 				".$",
 // 			},
-// 			namedGroups: map[string]span{},
-//  			groups:      []span{},
+// 			namedGroups: map[string]span.Interface{},
+//  			groups:      []span.Interface{},
 // 			empty: false,
 // 		},
 // 		{
@@ -3313,8 +3281,8 @@ func Test_It(t *testing.T) {
 // 			expressions: []string{
 // 				".$",
 // 			},
-// 			namedGroups: map[string]span{},
-// 			groups:      []span{},
+// 			namedGroups: map[string]span.Interface{},
+// 			groups:      []span.Interface{},
 // 			empty: false,
 // 		},
 // 	}

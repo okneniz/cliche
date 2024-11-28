@@ -807,11 +807,9 @@ func (n *quantifier) scan(handler Handler, input TextBuffer, from, to int, onMat
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.From == 0 {
-		m := handler.LastMatch()
-
-		if m != nil {
+		if m, exists := handler.LastMatch(); exists {
 			// TODO : remove condition and this line?
-			handler.Match(n, m.span.to, m.span.to, n.isEnd(), false)
+			handler.Match(n, m.span.To(), m.span.To(), n.isEnd(), false)
 		} else {
 			handler.Match(n, from, from, n.isEnd(), true)
 		}

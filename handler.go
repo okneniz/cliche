@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/okneniz/regular/span"
 )
 
 type Handler interface {
@@ -14,7 +16,7 @@ type Handler interface {
 	// required only for quantifier
 	//
 	// maybe use LastPosOf in quantifier?
-	LastMatch() *nodeMatch
+	LastMatch() (*nodeMatch, bool)
 
 	Position() int
 	Rewind(pos int)
@@ -62,6 +64,7 @@ func newFullScanner(input TextBuffer, from, to int) *Scanner {
 
 	// TODO : capacity = height of tree
 	s.expression = newTruncatedList[nodeMatch](50)
+	// TODO : clean matches after scan is really required?
 	s.matches = make(map[node]*matchesList)
 
 	return s
@@ -83,74 +86,81 @@ func (s *Scanner) String() string {
 }
 
 func (s *Scanner) Match(n node, from, to int, leaf, empty bool) {
-	x := nodeMatch{
-		node: n,
-		span: span{
-			from:  from,
-			to:    to,
-			empty: empty,
-		},
+	x := nodeMatch{node: n}
+
+	if empty {
+		x.span = span.Empty(from)
+	} else {
+		x.span = span.New(from, to)
 	}
 
 	s.expression.append(x)
+	if !leaf {
+		return
+	}
 
-	if leaf {
-		begin := s.firstSpan()
-		beginSubstring := s.firstNotEmptySpan()
-		endSubstring := s.lastNotEmptySpan()
-
-		m := &stringMatch{
-			span: span{
-				from: begin.From(),
-				to:   begin.From(),
-			},
-			expressions: newDict().merge(n.getExpressions()), // вот это можно делать только в методе Matches,
-			groups:      s.groups.ToSlice(),                  // а в matches list хранить только спаны, так быстрее
-			namedGroups: s.namedGroups.ToMap(),
-		}
-
-		if m.span.from >= s.input.Size() { // fix for empty matches
-			m.span.from = s.input.Size() - 1
-		}
-
-		m.span.empty = true
-
-		if beginSubstring != nil && endSubstring != nil {
-			subString, err := s.input.Substring(
-				beginSubstring.From(),
-				endSubstring.To(),
-			)
-
-			if err != nil {
-				// TODO : how to handle error?
-				fmt.Println("error", err)
-			}
-
-			m.subString = subString
-
-			m.span.from = beginSubstring.From()
-			m.span.to = endSubstring.To()
-			m.span.empty = len(subString) == 0
-		}
-
+	if strMatch, ok := s.lastMatch(); ok {
 		list, exists := s.matches[n]
 		if !exists {
 			list = newMatchesList()
 			s.matches[n] = list
 		}
 
-		list.push(m)
+		list.push(strMatch)
 	}
 }
 
-func (s *Scanner) matchesToString() string {
-	x := ""
-
-	for k, v := range s.matches {
-		x += k.getKey() + " - " + v.String() + "\n"
+func (s *Scanner) lastMatch() (*stringMatch, bool) {
+	n, exists := s.expression.last()
+	if !exists {
+		return nil, false
 	}
 
-	return x
+	begin, exists := s.firstSpan()
+	if !exists {
+		return nil, false
+	}
+
+	m := &stringMatch{
+		expressions: newDict().merge(n.node.getExpressions()),
+		groups:      s.groups.ToSlice(),
+		namedGroups: s.namedGroups.ToMap(),
+		span:        n.span,
+	}
+
+	if begin.From() >= s.input.Size() {
+		// TODO : size - 1 or size?
+		m.span = span.Empty(s.input.Size() - 1)
+		return m, true
+	}
+
+	beginSubstring, exists := s.firstNotEmptySpan()
+	if !exists {
+		return m, true
+	}
+
+	endSubstring, exists := s.lastNotEmptySpan()
+	if !exists {
+		return m, true
+	}
+
+	subString, err := s.input.Substring(
+		beginSubstring.From(),
+		endSubstring.To(),
+	)
+
+	if err != nil {
+		// TODO : how to handle error?
+		fmt.Println("error", err)
+	}
+
+	m.subString = subString
+	m.span = span.New(
+		beginSubstring.From(),
+		endSubstring.To(),
+	)
+
+	return m, true
 }
 
 func (s *Scanner) LastPosOf(n node) (int, bool) {
@@ -159,12 +169,16 @@ func (s *Scanner) LastPosOf(n node) (int, bool) {
 		return -1, false
 	}
 
-	stringMatch, exists := m.maximum()
+	match, exists := m.maximum()
 	if !exists {
 		return -1, false
 	}
 
-	return stringMatch.To(), true
+	if match == nil {
+		panic(match)
+	}
+
+	return match.Span().To(), true
 }
 
 func (s *Scanner) Matches() []*stringMatch {
@@ -204,42 +218,43 @@ func (s *Scanner) Rewind(pos int) {
 	s.expression.truncate(pos)
 }
 
-func (s *Scanner) firstSpan() *span {
-	if s.expression.len() > 0 {
-		return &s.expression.first().span
+func (s *Scanner) firstSpan() (span.Interface, bool) {
+	if x, ok := s.expression.first(); ok {
+		return x.span, true
 	}
 
-	return nil
+	return nil, false
 }
 
-func (s *Scanner) LastMatch() *nodeMatch {
-	if s.expression.len() > 0 {
-		return s.expression.last()
+func (s *Scanner) LastMatch() (*nodeMatch, bool) {
+	if x, ok := s.expression.last(); ok {
+		return &x, true
 	}
 
-	return nil
+	return nil, false
 }
 
-func (s *Scanner) firstNotEmptySpan() *span {
+func (s *Scanner) firstNotEmptySpan() (span.Interface, bool) {
 	for i := 0; i < s.expression.len(); i++ {
 		m := s.expression.at(i)
-		if !m.span.empty {
-			return &m.span
+
+		if !m.span.Empty() {
+			return m.span, true
 		}
 	}
 
-	return nil
+	return nil, false
 }
 
-func (s *Scanner) lastNotEmptySpan() *span {
+func (s *Scanner) lastNotEmptySpan() (span.Interface, bool) {
 	for i := s.expression.len() - 1; i >= 0; i-- {
 		m := s.expression.at(i)
-		if !m.span.empty {
-			return &m.span
+		if !m.span.Empty() {
+			return m.span, true
 		}
 	}
 
-	return nil
+	return nil, false
 }
 
 func (s *Scanner) AddNamedGroup(name string, index int) {
@@ -268,7 +283,7 @@ func (s *Scanner) DeleteGroup(name string) {
 
 type nodeMatch struct {
 	node node
-	span span
+	span span.Interface
 }
 
 func (m nodeMatch) String() string {
@@ -276,64 +291,21 @@ func (m nodeMatch) String() string {
 }
 
 type Match interface {
-	From() int
-	To() int
-	Size() int
+	Span() span.Interface
+	Key() string
 	String() string
-}
-
-type span struct {
-	from  int
-	to    int  // TODO : remove store size and remove "empty" flag?
-	empty bool // required for empty matches like .? or .*
-}
-
-func (m span) From() int {
-	return m.from
-}
-
-func (m span) To() int {
-	return m.to
-}
-
-// required for empty matches like .? or .*
-func (m span) Empty() bool {
-	return m.empty
-}
-
-func (m span) Size() int {
-	if m.empty {
-		return 0
-	}
-
-	return m.to - m.from + 1
-}
-
-func (m span) String() string {
-	if m.empty {
-		return fmt.Sprintf("(%d)", m.from)
-	}
-
-	return fmt.Sprintf("[%d-%d]", m.from, m.to)
+	// Expressions() []string
 }
 
 type stringMatch struct {
 	subString   string
-	span        span
+	span        span.Interface
 	expressions dict
-	groups      []span
-	namedGroups map[string]span
+	groups      []span.Interface
+	namedGroups map[string]span.Interface
 }
 
-func (m *stringMatch) From() int {
-	return m.span.From()
-}
-
-func (m *stringMatch) To() int {
-	return m.span.To()
-}
-
-func (m *stringMatch) GetSpan() span {
+func (m *stringMatch) Span() span.Interface {
 	return m.span
 }
 
@@ -367,7 +339,7 @@ func (m *stringMatch) groupsToString() string {
 	return strings.Join(s, ", ")
 }
 
-// TODO : в тестах проверять, что groups входят в span / bouns строки
+// TODO : в тестах проверять, что groups входят в span строки
 
 func (m *stringMatch) namedGroupsToString() string {
 	pairs := make([]string, 0, len(m.namedGroups))
@@ -382,11 +354,11 @@ func (m *stringMatch) Expressions() []string {
 	return m.expressions.Slice()
 }
 
-func (m *stringMatch) NamedGroups() map[string]span {
+func (m *stringMatch) NamedGroups() map[string]span.Interface {
 	return m.namedGroups
 }
 
-func (m *stringMatch) Groups() []span {
+func (m *stringMatch) Groups() []span.Interface {
 	return m.groups
 }
 
