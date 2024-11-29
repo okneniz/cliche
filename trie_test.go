@@ -2163,23 +2163,23 @@ func TestMatch(t *testing.T) {
 				name: "string",
 				regexps: []string{
 					"...\\z",
-					// ".\\z", // TODO : fix conflict with upper
-					// "\\z", // TODO : should be matched?
-					// ".\\z",
+					".\\z",
+					// "\\z", should be matched?
 				},
 				input: "foo bar\nbaz",
 				output: []*stringMatch{
-					// {
-					// 	subString: "z",
-					// 	from:      10,
-					// 	to:        10,
-					// 	expressions: []string{
-					// 		".\\z",
-					// 	},
-					// 	namedGroups: map[string]span.Interface{},
-					// 	groups:      []span.Interface{},
-					// 	empty: false,
-					// },
+					{
+						subString: "z",
+						span: span.New(
+							10,
+							10,
+						),
+						expressions: newDict(
+							".\\z",
+						),
+						namedGroups: map[string]span.Interface{},
+						groups:      []span.Interface{},
+					},
 					{
 						subString: "baz",
 						span: span.New(
@@ -2192,6 +2192,15 @@ func TestMatch(t *testing.T) {
 						namedGroups: map[string]span.Interface{},
 						groups:      []span.Interface{},
 					},
+					// {
+					// 	subString: "",
+					// 	span:      span.Empty(11),
+					// 	expressions: newDict(
+					// 		"\\z",
+					// 	),
+					// 	namedGroups: map[string]span.Interface{},
+					// 	groups:      []span.Interface{},
+					// },
 				},
 			},
 		},
@@ -3174,10 +3183,6 @@ type example struct {
 	output  []*stringMatch
 }
 
-func comparator(x, y *stringMatch) bool {
-	return x.Key() < y.Key()
-}
-
 func pointer[T any](x T) *T {
 	return &x
 }
@@ -3206,14 +3211,14 @@ func Test_It(t *testing.T) {
 	}
 
 	sort.SliceStable(expected, func(i, j int) bool {
-		return comparator(expected[i], expected[j])
+		return expected[i].Key() < expected[j].Key()
 	})
 
 	actual := tr.Match("baz")
 	require.NoError(t, err)
 
 	sort.SliceStable(actual, func(i, j int) bool {
-		return comparator(actual[i], actual[j])
+		return actual[i].Key() < actual[j].Key()
 	})
 
 	if len(expected) != len(actual) {
@@ -3230,87 +3235,3 @@ func Test_It(t *testing.T) {
 		require.Equalf(t, *expected[i], *actual[i], "compare %d match", i)
 	}
 }
-
-// func Test_Chain(t *testing.T) {
-// 	tr, err := NewTrie(
-// 		"...$",
-// 		".$",
-// 	)
-// 	require.NoError(t, err)
-
-// 	t.Log(tr.String())
-
-// 	expected := []*stringMatch{
-// 		{
-// 			subString: "bar",
-// 			from:      4,
-// 			to:        7,
-// 			expressions: []string{
-// 				"...$",
-// 			},
-// 			namedGroups: map[string]span.Interface{},
-// 			groups:      []span.Interface{},
-// 			empty:       false,
-// 		},
-// 		{
-// 			subString: "baz",
-// 			from:      8,
-// 			to:        10,
-// 			expressions: []string{
-// 				"...$",
-// 			},
-// 			namedGroups: map[string]span.Interface{},
-// 			groups:      []span.Interface{},
-// 			empty:       false,
-// 		},
-// 		{
-// 			subString: "r",
-// 			from:      6,
-// 			to:        7,
-// 			expressions: []string{
-// 				".$",
-// 			},
-// 			namedGroups: map[string]span.Interface{},
-//  			groups:      []span.Interface{},
-// 			empty: false,
-// 		},
-// 		{
-// 			subString: "z",
-// 			from:      10,
-// 			to:        10,
-// 			expressions: []string{
-// 				".$",
-// 			},
-// 			namedGroups: map[string]span.Interface{},
-// 			groups:      []span.Interface{},
-// 			empty: false,
-// 		},
-// 	}
-
-// 	sort.SliceStable(expected, func(i, j int) bool {
-// 		return comparator(expected[i], expected[j])
-// 	})
-
-// 	actual := tr.Match("foo bar\nbaz")
-// 	require.NoError(t, err)
-
-// 	sort.SliceStable(actual, func(i, j int) bool {
-// 		return comparator(actual[i], actual[j])
-// 	})
-
-// 	if len(expected) != len(actual) {
-// 		require.Equal(t, expected, actual)
-// 	}
-
-// 	for i := range expected {
-// 		sort.SliceStable(expected[i].expressions, func(x, y int) bool {
-// 			return expected[i].expressions[x] < expected[i].expressions[y]
-// 		})
-
-// 		sort.SliceStable(actual[i].expressions, func(x, y int) bool {
-// 			return actual[i].expressions[x] < actual[i].expressions[y]
-// 		})
-
-// 		require.Equalf(t, *expected[i], *actual[i], "compare %d match", i)
-// 	}
-// }
