@@ -1,9 +1,9 @@
-package regular
+package cliche
 
 import (
 	"encoding/json"
 
-	"github.com/okneniz/regular/span"
+	"github.com/okneniz/cliche/span"
 )
 
 type captures struct {

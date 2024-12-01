@@ -1,11 +1,11 @@
-package regular
+package cliche
 
 import (
 	"fmt"
 	"sort"
 	"strings"
 
-	"github.com/okneniz/regular/span"
+	"github.com/okneniz/cliche/span"
 )
 
 type Handler interface {
@@ -31,6 +31,9 @@ type Handler interface {
 	MatchGroup(name string, pos int)
 	DeleteGroup(name string)
 }
+
+// https://www.regular-expressions.info/engine.html
+// This is a very important point to understand: a regex engine always returns the leftmost match, even if a “better” match could be found later.
 
 type Scanner struct {
 	input TextBuffer

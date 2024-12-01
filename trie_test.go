@@ -1,10 +1,10 @@
-package regular
+package cliche
 
 import (
 	"sort"
 	"testing"
 
-	"github.com/okneniz/regular/span"
+	"github.com/okneniz/cliche/span"
 
 	"github.com/stretchr/testify/require"
 )

@@ -1,4 +1,4 @@
-package regular
+package cliche
 
 import (
 	"math"

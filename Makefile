@@ -17,7 +17,6 @@ benchmark:
 	# go test -v -bench=. -benchmem -memprofile memprofile.out -cpuprofile profile.out -count=3 -run=^# ./hash-map/...
 	go test -v -bench=. -benchmem -count=3 -run=^# ./...
 
-
 coverage:
 	go tool cover -func=coverage.out
 	go tool cover -html=coverage.out
@@ -26,4 +25,4 @@ build:
 	go build ./...
 
 pub:
-	GOPROXY=https://proxy.golang.org GO111MODULE=on go get github.com/okneniz/regular
+	GOPROXY=https://proxy.golang.org GO111MODULE=on go get github.com/okneniz/cliche

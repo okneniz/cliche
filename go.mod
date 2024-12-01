@@ -1,4 +1,4 @@
-module github.com/okneniz/regular
+module github.com/okneniz/cliche
 
 go 1.20
 
