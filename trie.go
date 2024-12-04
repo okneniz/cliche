@@ -37,12 +37,12 @@ type Trie interface {
 var _ Trie = new(trie)
 
 type trie struct {
-	nodes index
+	nodes map[string]node
 }
 
 func NewTrie(regexps ...string) (*trie, error) {
 	tr := new(trie)
-	tr.nodes = make(index)
+	tr.nodes = make(map[string]node)
 
 	for _, regexp := range regexps {
 		err := tr.Add(regexp)

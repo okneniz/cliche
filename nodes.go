@@ -11,7 +11,7 @@ type node interface {
 	getKey() string
 	getExpressions() dict
 	addExpression(string)
-	getNestedNodes() index
+	getNestedNodes() map[string]node
 	isEnd() bool
 
 	scan(Handler, TextBuffer, int, int, Callback)
@@ -20,18 +20,6 @@ type node interface {
 }
 
 type Callback func(x node, from int, to int, empty bool)
-
-type index map[string]node
-
-func (ix index) merge(other index) {
-	for key, newNode := range other {
-		if prev, exists := ix[key]; exists {
-			prev.merge(newNode)
-		} else {
-			ix[key] = newNode
-		}
-	}
-}
 
 type dict map[string]struct{}
 
@@ -66,11 +54,11 @@ func (d dict) Slice() []string {
 }
 
 type nestedNode struct {
-	Expressions dict  `json:"expressions,omitempty"`
-	Nested      index `json:"nested,omitempty"`
+	Expressions dict            `json:"expressions,omitempty"`
+	Nested      map[string]node `json:"nested,omitempty"`
 }
 
-func (n *nestedNode) getNestedNodes() index {
+func (n *nestedNode) getNestedNodes() map[string]node {
 	return n.Nested
 }
 
@@ -91,7 +79,13 @@ func (n *nestedNode) isEnd() bool {
 }
 
 func (n *nestedNode) merge(other node) {
-	n.Nested.merge(other.getNestedNodes())
+	for key, newNode := range other.getNestedNodes() {
+		if prev, exists := n.Nested[key]; exists {
+			prev.merge(newNode)
+		} else {
+			n.Nested[key] = newNode
+		}
+	}
 
 	if n.Expressions == nil {
 		n.Expressions = other.getExpressions()

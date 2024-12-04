@@ -151,10 +151,8 @@ func (s *Scanner) lastMatch() (*stringMatch, bool) {
 		beginSubstring.From(),
 		endSubstring.To(),
 	)
-
 	if err != nil {
-		// TODO : how to handle error?
-		fmt.Println("error", err)
+		panic(err)
 	}
 
 	m.subString = subString
@@ -175,10 +173,6 @@ func (s *Scanner) LastPosOf(n node) (int, bool) {
 	match, exists := m.maximum()
 	if !exists {
 		return -1, false
-	}
-
-	if match == nil {
-		panic(match)
 	}
 
 	return match.Span().To(), true

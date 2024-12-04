@@ -78,6 +78,26 @@ func TestTrie(t *testing.T) {
 	t.Log(tr)
 }
 
+type TestFile struct {
+	Name  string
+	Tests []Test
+}
+
+type Test struct {
+	Name        string
+	Expressions []string
+	Input       string
+	Want        []*stringMatch
+}
+
+type Expectation struct {
+	SubString   string
+	Span        span.Interface
+	Expressions dict
+	Groups      []span.Interface
+	NamedGroups map[string]span.Interface
+}
+
 func TestMatch(t *testing.T) {
 	t.Parallel()
 
@@ -3187,7 +3207,7 @@ func pointer[T any](x T) *T {
 	return &x
 }
 
-func Test_It(t *testing.T) {
+func Test_It(t *testing.T) { // TODO : move it to examples
 	tr, err := NewTrie(
 		"ba[^for]",
 	)

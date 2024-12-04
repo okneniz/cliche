@@ -457,7 +457,7 @@ func parseCharacter(except ...rune) parser {
 
 func newNestedNode() *nestedNode {
 	n := new(nestedNode)
-	n.Nested = make(index)
+	n.Nested = make(map[string]node)
 	return n
 }
 
