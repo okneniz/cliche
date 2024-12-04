@@ -126,11 +126,9 @@ func (t *trie) Match(text string) []*stringMatch {
 	}
 
 	input := newBuffer(text)
-	from := 0
-	to := input.Size() - 1
-	scanner := newFullScanner(input, from, to)
+	scanner := newFullScanner(input)
 
-	return t.Scan(from, to, input, scanner)
+	return t.Scan(0, input.Size()-1, input, scanner)
 }
 
 func (t *trie) Scan(from, to int, input TextBuffer, output Output) []*stringMatch {

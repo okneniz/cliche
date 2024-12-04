@@ -94,7 +94,13 @@ func (n *nestedNode) Merge(other Node) {
 	}
 }
 
-func (n *nestedNode) match(output Output, input TextBuffer, from, to int, onMatch Callback) {
+// TODO : rename to Match?
+func (n *nestedNode) match(
+	output Output,
+	input TextBuffer,
+	from, to int,
+	onMatch Callback,
+) {
 	pos := output.Position()
 
 	for _, nested := range n.Nested {
@@ -250,21 +256,21 @@ func (n *group) Walk(f func(Node)) {
 }
 
 func (n *group) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
-	output.AddGroup(n.uniqID, from)
+	output.Groups().From(n.uniqID, from)
 	n.Value.scanAlternation(
 		output,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			output.MatchGroup(n.uniqID, vTo)
+			output.Groups().To(n.uniqID, vTo)
 			// a lot of line like belowe, maybe move it in output or trie?
 			output.Yield(n, from, vTo, n.IsEnd(), false) // is it possible to remove and use only onMatch?
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.match(output, input, vTo+1, to, onMatch)
 		},
 	)
-	output.DeleteGroup(n.uniqID)
+	output.Groups().Delete(n.uniqID)
 }
 
 type namedGroup struct {
@@ -286,20 +292,20 @@ func (n *namedGroup) Walk(f func(Node)) {
 }
 
 func (n *namedGroup) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
-	output.AddNamedGroup(n.Name, from)
+	output.NamedGroups().From(n.Name, from)
 	n.Value.scanAlternation(
 		output,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			output.MatchNamedGroup(n.Name, vTo)
+			output.NamedGroups().To(n.Name, vTo)
 			output.Yield(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.match(output, input, vTo+1, to, onMatch)
 		},
 	)
-	output.DeleteNamedGroup(n.Name)
+	output.NamedGroups().Delete(n.Name)
 }
 
 type notCapturedGroup struct {

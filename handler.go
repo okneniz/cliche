@@ -12,28 +12,31 @@ type Output interface {
 	Yield(n Node, from, to int, isLeaf, isEmpty bool)
 	Matches() []*stringMatch
 
-	Position() int
-	Rewind(pos int)
-
 	LastMatchSpan() (span.Interface, bool)
 	LastPosOf(n Node) (int, bool)
 
-	AddNamedGroup(name string, pos int)
-	MatchNamedGroup(name string, pos int)
-	DeleteNamedGroup(name string)
+	Groups() Captures
+	NamedGroups() Captures
 
-	AddGroup(name string, pos int)
-	MatchGroup(name string, pos int)
-	DeleteGroup(name string)
+	Handler
+}
+
+type Handler interface {
+	Position() int
+	Rewind(pos int)
+}
+
+type Captures interface {
+	From(name string, pos int)
+	To(name string, pos int)
+	Delete(name string)
 }
 
 // https://www.regular-expressions.info/engine.html
 // This is a very important point to understand: a regex engine always returns the leftmost match, even if a “better” match could be found later.
 
-type Scanner struct {
+type scanner struct {
 	input TextBuffer
-	from  int
-	to    int
 
 	// current matched expression
 	expression *truncatedList[nodeMatch]
@@ -48,13 +51,11 @@ type Scanner struct {
 	matches map[Node]*matchesList
 }
 
-var _ Output = new(Scanner)
+var _ Output = new(scanner)
 
-func newFullScanner(input TextBuffer, from, to int) *Scanner {
-	s := new(Scanner)
+func newFullScanner(input TextBuffer) *scanner {
+	s := new(scanner)
 	s.input = input
-	s.from = from
-	s.to = to
 
 	// TODO : use node as key for unnamed groups to avoid generate string ID
 	s.groups = newCaptures()
@@ -68,7 +69,7 @@ func newFullScanner(input TextBuffer, from, to int) *Scanner {
 	return s
 }
 
-func (s *Scanner) String() string {
+func (s *scanner) String() string {
 	ms := make([]string, 0, 10)
 	for _, v := range s.Matches() {
 		ms = append(ms, v.String())
@@ -83,7 +84,7 @@ func (s *Scanner) String() string {
 	)
 }
 
-func (s *Scanner) Yield(n Node, from, to int, leaf, empty bool) {
+func (s *scanner) Yield(n Node, from, to int, leaf, empty bool) {
 	x := nodeMatch{node: n}
 
 	if empty {
@@ -108,7 +109,7 @@ func (s *Scanner) Yield(n Node, from, to int, leaf, empty bool) {
 	}
 }
 
-func (s *Scanner) lastMatch() (*stringMatch, bool) {
+func (s *scanner) lastMatch() (*stringMatch, bool) {
 	n, exists := s.expression.last()
 	if !exists {
 		return nil, false
@@ -159,7 +160,7 @@ func (s *Scanner) lastMatch() (*stringMatch, bool) {
 	return m, true
 }
 
-func (s *Scanner) LastPosOf(n Node) (int, bool) {
+func (s *scanner) LastPosOf(n Node) (int, bool) {
 	m, exists := s.matches[n]
 	if !exists {
 		return -1, false
@@ -173,7 +174,7 @@ func (s *Scanner) LastPosOf(n Node) (int, bool) {
 	return match.Span().To(), true
 }
 
-func (s *Scanner) Matches() []*stringMatch {
+func (s *scanner) Matches() []*stringMatch {
 	size := 0
 	for _, v := range s.matches {
 		size += v.size()
@@ -198,11 +199,11 @@ func (s *Scanner) Matches() []*stringMatch {
 	return result
 }
 
-func (s *Scanner) Position() int {
+func (s *scanner) Position() int {
 	return s.expression.len()
 }
 
-func (s *Scanner) Rewind(pos int) {
+func (s *scanner) Rewind(pos int) {
 	if s.expression.len() < pos {
 		return
 	}
@@ -210,7 +211,7 @@ func (s *Scanner) Rewind(pos int) {
 	s.expression.truncate(pos)
 }
 
-func (s *Scanner) firstSpan() (span.Interface, bool) {
+func (s *scanner) firstSpan() (span.Interface, bool) {
 	if x, ok := s.expression.first(); ok {
 		return x.span, true
 	}
@@ -218,7 +219,7 @@ func (s *Scanner) firstSpan() (span.Interface, bool) {
 	return nil, false
 }
 
-func (s *Scanner) LastMatchSpan() (span.Interface, bool) {
+func (s *scanner) LastMatchSpan() (span.Interface, bool) {
 	if x, ok := s.expression.last(); ok {
 		return x.span, true
 	}
@@ -226,7 +227,7 @@ func (s *Scanner) LastMatchSpan() (span.Interface, bool) {
 	return nil, false
 }
 
-func (s *Scanner) firstNotEmptySpan() (span.Interface, bool) {
+func (s *scanner) firstNotEmptySpan() (span.Interface, bool) {
 	for i := 0; i < s.expression.len(); i++ {
 		m := s.expression.at(i)
 
@@ -238,7 +239,7 @@ func (s *Scanner) firstNotEmptySpan() (span.Interface, bool) {
 	return nil, false
 }
 
-func (s *Scanner) lastNotEmptySpan() (span.Interface, bool) {
+func (s *scanner) lastNotEmptySpan() (span.Interface, bool) {
 	for i := s.expression.len() - 1; i >= 0; i-- {
 		m := s.expression.at(i)
 		if !m.span.Empty() {
@@ -249,28 +250,12 @@ func (s *Scanner) lastNotEmptySpan() (span.Interface, bool) {
 	return nil, false
 }
 
-func (s *Scanner) AddNamedGroup(name string, index int) {
-	s.namedGroups.From(name, index)
+func (s *scanner) Groups() Captures {
+	return s.groups
 }
 
-func (s *Scanner) MatchNamedGroup(name string, index int) {
-	s.namedGroups.To(name, index)
-}
-
-func (s *Scanner) DeleteNamedGroup(name string) {
-	s.namedGroups.Delete(name)
-}
-
-func (s *Scanner) AddGroup(name string, index int) {
-	s.groups.From(name, index)
-}
-
-func (s *Scanner) MatchGroup(name string, index int) {
-	s.groups.To(name, index)
-}
-
-func (s *Scanner) DeleteGroup(name string) {
-	s.groups.Delete(name)
+func (s *scanner) NamedGroups() Captures {
+	return s.namedGroups
 }
 
 type nodeMatch struct {
