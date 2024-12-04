@@ -292,7 +292,7 @@ func TestQuantifierBounds(t *testing.T) {
 	}
 }
 
-func TestQuantifier_getKey(t *testing.T) {
+func TestQuantifier_GetKey(t *testing.T) {
 	t.Parallel()
 
 	type example struct {
@@ -410,10 +410,10 @@ func TestQuantifier_getKey(t *testing.T) {
 					)
 				}
 
-				if q.getKey() != test.key {
+				if q.GetKey() != test.key {
 					t.Fatalf(
 						"expected key %v, actual key %v",
-						q.getKey(),
+						q.GetKey(),
 						test.key,
 					)
 				}

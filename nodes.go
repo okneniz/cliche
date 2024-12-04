@@ -8,15 +8,15 @@ import (
 )
 
 type Node interface {
-	getKey() string
-	getExpressions() dict
-	addExpression(string)
-	getNestedNodes() map[string]Node
-	isEnd() bool
+	GetKey() string
+	GetExpressions() dict
+	AddExpression(string)
+	GetNestedNodes() map[string]Node
+	IsEnd() bool
 
-	scan(Handler, TextBuffer, int, int, Callback)
-	merge(Node)
-	walk(func(Node))
+	Scan(Output, TextBuffer, int, int, Callback)
+	Merge(Node)
+	Walk(func(Node))
 }
 
 type Callback func(x Node, from int, to int, empty bool)
@@ -58,15 +58,15 @@ type nestedNode struct {
 	Nested      map[string]Node `json:"nested,omitempty"`
 }
 
-func (n *nestedNode) getNestedNodes() map[string]Node {
+func (n *nestedNode) GetNestedNodes() map[string]Node {
 	return n.Nested
 }
 
-func (n *nestedNode) getExpressions() dict {
+func (n *nestedNode) GetExpressions() dict {
 	return n.Expressions
 }
 
-func (n *nestedNode) addExpression(exp string) {
+func (n *nestedNode) AddExpression(exp string) {
 	if n.Expressions == nil {
 		n.Expressions = make(dict)
 	}
@@ -74,32 +74,32 @@ func (n *nestedNode) addExpression(exp string) {
 	n.Expressions.add(exp)
 }
 
-func (n *nestedNode) isEnd() bool {
+func (n *nestedNode) IsEnd() bool {
 	return len(n.Expressions) > 0
 }
 
-func (n *nestedNode) merge(other Node) {
-	for key, newNode := range other.getNestedNodes() {
+func (n *nestedNode) Merge(other Node) {
+	for key, newNode := range other.GetNestedNodes() {
 		if prev, exists := n.Nested[key]; exists {
-			prev.merge(newNode)
+			prev.Merge(newNode)
 		} else {
 			n.Nested[key] = newNode
 		}
 	}
 
 	if n.Expressions == nil {
-		n.Expressions = other.getExpressions()
+		n.Expressions = other.GetExpressions()
 	} else {
-		n.Expressions.merge(other.getExpressions())
+		n.Expressions.merge(other.GetExpressions())
 	}
 }
 
-func (n *nestedNode) match(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
-	pos := handler.Position()
+func (n *nestedNode) match(output Output, input TextBuffer, from, to int, onMatch Callback) {
+	pos := output.Position()
 
 	for _, nested := range n.Nested {
-		nested.scan(handler, input, from, to, onMatch)
-		handler.Rewind(pos)
+		nested.Scan(output, input, from, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -151,10 +151,10 @@ func newAlternation(variants []Node) *alternation {
 	variantKey := bytes.NewBuffer(nil)
 
 	for _, variant := range variants {
-		variant.walk(func(x Node) {
-			variantKey.WriteString(x.getKey())
+		variant.Walk(func(x Node) {
+			variantKey.WriteString(x.GetKey())
 
-			if len(x.getNestedNodes()) == 0 {
+			if len(x.GetNestedNodes()) == 0 {
 				n.lastNodes[x] = struct{}{}
 			}
 		})
@@ -169,47 +169,47 @@ func newAlternation(variants []Node) *alternation {
 	return n
 }
 
-func (n *alternation) getKey() string {
+func (n *alternation) GetKey() string {
 	variantKeys := make([]string, 0, len(n.Value))
 
 	for _, variant := range n.Value {
-		variantKeys = append(variantKeys, variant.getKey())
+		variantKeys = append(variantKeys, variant.GetKey())
 	}
 
 	return strings.Join(variantKeys, ",")
 }
 
-func (n *alternation) walk(f func(Node)) {
+func (n *alternation) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Value {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
 // TODO : check it without groups too
-func (n *alternation) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *alternation) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	n.scanVariants(
-		handler,
+		output,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			handler.Match(n, from, vTo, n.isEnd(), false)
+			output.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
+			n.nestedNode.match(output, input, vTo+1, to, onMatch)
 		},
 	)
 }
 
 func (n *alternation) scanAlternation(
-	handler Handler,
+	output Output,
 	input TextBuffer,
 	from, to int,
 	onMatch Callback,
 ) {
 	n.scanVariants(
-		handler,
+		output,
 		input,
 		from,
 		to,
@@ -221,12 +221,12 @@ func (n *alternation) scanAlternation(
 	)
 }
 
-func (n *alternation) scanVariants(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
-	position := handler.Position()
+func (n *alternation) scanVariants(output Output, input TextBuffer, from, to int, onMatch Callback) {
+	position := output.Position()
 
 	for _, variant := range n.Value {
-		variant.scan(handler, input, from, to, onMatch)
-		handler.Rewind(position)
+		variant.Scan(output, input, from, to, onMatch)
+		output.Rewind(position)
 	}
 }
 
@@ -237,34 +237,34 @@ type group struct {
 	*nestedNode
 }
 
-func (n *group) getKey() string {
-	return fmt.Sprintf("(%s)", n.Value.getKey())
+func (n *group) GetKey() string {
+	return fmt.Sprintf("(%s)", n.Value.GetKey())
 }
 
-func (n *group) walk(f func(Node)) {
+func (n *group) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *group) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
-	handler.AddGroup(n.uniqID, from)
+func (n *group) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+	output.AddGroup(n.uniqID, from)
 	n.Value.scanAlternation(
-		handler,
+		output,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			handler.MatchGroup(n.uniqID, vTo)
-			// a lot of line like belowe, maybe move it in handler or trie?
-			handler.Match(n, from, vTo, n.isEnd(), false) // is it possible to remove and use only onMatch?
+			output.MatchGroup(n.uniqID, vTo)
+			// a lot of line like belowe, maybe move it in output or trie?
+			output.Match(n, from, vTo, n.IsEnd(), false) // is it possible to remove and use only onMatch?
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
+			n.nestedNode.match(output, input, vTo+1, to, onMatch)
 		},
 	)
-	handler.DeleteGroup(n.uniqID)
+	output.DeleteGroup(n.uniqID)
 }
 
 type namedGroup struct {
@@ -273,33 +273,33 @@ type namedGroup struct {
 	*nestedNode
 }
 
-func (n *namedGroup) getKey() string {
-	return fmt.Sprintf("(?<%s>%s)", n.Name, n.Value.getKey())
+func (n *namedGroup) GetKey() string {
+	return fmt.Sprintf("(?<%s>%s)", n.Name, n.Value.GetKey())
 }
 
-func (n *namedGroup) walk(f func(Node)) {
+func (n *namedGroup) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *namedGroup) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
-	handler.AddNamedGroup(n.Name, from)
+func (n *namedGroup) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+	output.AddNamedGroup(n.Name, from)
 	n.Value.scanAlternation(
-		handler,
+		output,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			handler.MatchNamedGroup(n.Name, vTo)
-			handler.Match(n, from, vTo, n.isEnd(), false)
+			output.MatchNamedGroup(n.Name, vTo)
+			output.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
+			n.nestedNode.match(output, input, vTo+1, to, onMatch)
 		},
 	)
-	handler.DeleteNamedGroup(n.Name)
+	output.DeleteNamedGroup(n.Name)
 }
 
 type notCapturedGroup struct {
@@ -307,28 +307,28 @@ type notCapturedGroup struct {
 	*nestedNode
 }
 
-func (n *notCapturedGroup) getKey() string {
-	return fmt.Sprintf("(?:%s)", n.Value.getKey())
+func (n *notCapturedGroup) GetKey() string {
+	return fmt.Sprintf("(?:%s)", n.Value.GetKey())
 }
 
-func (n *notCapturedGroup) walk(f func(Node)) {
+func (n *notCapturedGroup) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *notCapturedGroup) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *notCapturedGroup) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	n.Value.scanAlternation(
-		handler,
+		output,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			handler.Match(n, from, vTo, n.isEnd(), false)
+			output.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.match(handler, input, vTo+1, to, onMatch)
+			n.nestedNode.match(output, input, vTo+1, to, onMatch)
 		},
 	)
 }
@@ -338,29 +338,29 @@ type char struct {
 	*nestedNode
 }
 
-func (n *char) getKey() string {
+func (n *char) GetKey() string {
 	return string(n.Value)
 }
 
-func (n *char) walk(f func(Node)) {
+func (n *char) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *char) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *char) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
 
 	if input.ReadAt(from) == n.Value {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -369,29 +369,29 @@ type dot struct {
 	*nestedNode
 }
 
-func (n *dot) getKey() string {
+func (n *dot) GetKey() string {
 	return "."
 }
 
-func (n *dot) walk(f func(Node)) {
+func (n *dot) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *dot) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *dot) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
 
 	if input.ReadAt(from) != '\n' {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -399,19 +399,19 @@ type digit struct {
 	*nestedNode
 }
 
-func (n *digit) getKey() string {
+func (n *digit) GetKey() string {
 	return "\\d"
 }
 
-func (n *digit) walk(f func(Node)) {
+func (n *digit) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *digit) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *digit) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -419,11 +419,11 @@ func (n *digit) scan(handler Handler, input TextBuffer, from, to int, onMatch Ca
 	x := input.ReadAt(from)
 
 	if unicode.IsDigit(x) {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -431,19 +431,19 @@ type nonDigit struct {
 	*nestedNode
 }
 
-func (n *nonDigit) getKey() string {
+func (n *nonDigit) GetKey() string {
 	return "\\D"
 }
 
-func (n *nonDigit) walk(f func(Node)) {
+func (n *nonDigit) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *nonDigit) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonDigit) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -451,11 +451,11 @@ func (n *nonDigit) scan(handler Handler, input TextBuffer, from, to int, onMatch
 	x := input.ReadAt(from)
 
 	if !unicode.IsDigit(x) {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -463,19 +463,19 @@ type word struct {
 	*nestedNode
 }
 
-func (n *word) getKey() string {
+func (n *word) GetKey() string {
 	return "\\w"
 }
 
-func (n *word) walk(f func(Node)) {
+func (n *word) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *word) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *word) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -483,11 +483,11 @@ func (n *word) scan(handler Handler, input TextBuffer, from, to int, onMatch Cal
 	x := input.ReadAt(from)
 
 	if x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x) {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -495,19 +495,19 @@ type nonWord struct {
 	*nestedNode
 }
 
-func (n *nonWord) getKey() string {
+func (n *nonWord) GetKey() string {
 	return "\\W"
 }
 
-func (n *nonWord) walk(f func(Node)) {
+func (n *nonWord) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *nonWord) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonWord) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -515,11 +515,11 @@ func (n *nonWord) scan(handler Handler, input TextBuffer, from, to int, onMatch 
 	x := input.ReadAt(from)
 
 	if !(x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x)) {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -527,19 +527,19 @@ type space struct {
 	*nestedNode
 }
 
-func (n *space) getKey() string {
+func (n *space) GetKey() string {
 	return "\\s"
 }
 
-func (n *space) walk(f func(Node)) {
+func (n *space) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *space) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *space) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -547,11 +547,11 @@ func (n *space) scan(handler Handler, input TextBuffer, from, to int, onMatch Ca
 	x := input.ReadAt(from)
 
 	if unicode.IsSpace(x) {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -559,19 +559,19 @@ type nonSpace struct {
 	*nestedNode
 }
 
-func (n *nonSpace) getKey() string {
+func (n *nonSpace) GetKey() string {
 	return "\\S"
 }
 
-func (n *nonSpace) walk(f func(Node)) {
+func (n *nonSpace) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *nonSpace) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonSpace) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -579,11 +579,11 @@ func (n *nonSpace) scan(handler Handler, input TextBuffer, from, to int, onMatch
 	x := input.ReadAt(from)
 
 	if !unicode.IsSpace(x) {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), false)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -591,19 +591,19 @@ type startOfLine struct {
 	*nestedNode
 }
 
-func (n *startOfLine) getKey() string {
+func (n *startOfLine) GetKey() string {
 	return "^"
 }
 
-func (n *startOfLine) walk(f func(Node)) {
+func (n *startOfLine) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *startOfLine) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *startOfLine) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -611,11 +611,11 @@ func (n *startOfLine) scan(handler Handler, input TextBuffer, from, to int, onMa
 	// TODO : precache new line positions in buffer?
 
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), true)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.match(handler, input, from, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -645,27 +645,27 @@ type endOfLine struct {
 	*nestedNode
 }
 
-func (n *endOfLine) getKey() string {
+func (n *endOfLine) GetKey() string {
 	return "$"
 }
 
-func (n *endOfLine) walk(f func(Node)) {
+func (n *endOfLine) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *endOfLine) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *endOfLine) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	// TODO : precache new line positions in buffer?
 
 	if n.isEndOfLine(input, from) {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), true)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.match(handler, input, from, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -686,25 +686,25 @@ type startOfString struct {
 	*nestedNode
 }
 
-func (n *startOfString) getKey() string {
+func (n *startOfString) GetKey() string {
 	return "\\A"
 }
 
-func (n *startOfString) walk(f func(Node)) {
+func (n *startOfString) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *startOfString) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *startOfString) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from == 0 {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), true)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.match(handler, input, from, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -712,25 +712,25 @@ type endOfString struct {
 	*nestedNode
 }
 
-func (n *endOfString) getKey() string {
+func (n *endOfString) GetKey() string {
 	return "\\z"
 }
 
-func (n *endOfString) walk(f func(Node)) {
+func (n *endOfString) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *endOfString) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *endOfString) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from == input.Size() {
-		pos := handler.Position()
-		handler.Match(n, from, from, n.isEnd(), true)
+		pos := output.Position()
+		output.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.match(handler, input, from, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, from, to, onMatch)
+		output.Rewind(pos)
 	}
 }
 
@@ -744,8 +744,8 @@ type quantifier struct {
 	*nestedNode
 }
 
-func (n *quantifier) getKey() string {
-	return n.Value.getKey() + n.getQuantifierKey()
+func (n *quantifier) GetKey() string {
+	return n.Value.GetKey() + n.getQuantifierKey()
 }
 
 func (n *quantifier) getQuantifierKey() string {
@@ -778,50 +778,50 @@ func (n *quantifier) getQuantifierKey() string {
 	return b.String()
 }
 
-func (n *quantifier) walk(f func(Node)) {
+func (n *quantifier) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *quantifier) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
-	start := handler.Position()
+func (n *quantifier) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+	start := output.Position()
 
-	n.recursiveScan(1, handler, input, from, to, func(_ Node, _, mTo int, empty bool) {
-		pos := handler.Position()
-		handler.Match(n, from, mTo, n.isEnd(), false)
+	n.recursiveScan(1, output, input, from, to, func(_ Node, _, mTo int, empty bool) {
+		pos := output.Position()
+		output.Match(n, from, mTo, n.IsEnd(), false)
 		onMatch(n, from, mTo, empty)
-		n.nestedNode.match(handler, input, mTo+1, to, onMatch)
-		handler.Rewind(pos)
+		n.nestedNode.match(output, input, mTo+1, to, onMatch)
+		output.Rewind(pos)
 	})
 
-	handler.Rewind(start)
+	output.Rewind(start)
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.From == 0 {
-		if m, exists := handler.LastMatch(); exists {
+		if m, exists := output.LastMatchSpan(); exists {
 			// TODO : remove condition and this line?
-			handler.Match(n, m.span.To(), m.span.To(), n.isEnd(), false)
+			output.Match(n, m.To(), m.To(), n.IsEnd(), false)
 		} else {
-			handler.Match(n, from, from, n.isEnd(), true)
+			output.Match(n, from, from, n.IsEnd(), true)
 		}
 
-		n.nestedNode.match(handler, input, from, to, onMatch)
+		n.nestedNode.match(output, input, from, to, onMatch)
 	}
 
-	handler.Rewind(start)
+	output.Rewind(start)
 }
 
 func (n *quantifier) recursiveScan(
 	count int,
-	handler Handler,
+	output Output,
 	input TextBuffer,
 	from, to int,
 	onMatch Callback,
 ) {
-	n.Value.scan(handler, input, from, to, func(match Node, mFrom, mTo int, empty bool) {
+	n.Value.Scan(output, input, from, to, func(match Node, mFrom, mTo int, empty bool) {
 		if n.To == nil || *n.To >= count {
 			if n.inBounds(count) {
 				onMatch(match, mFrom, mTo, empty)
@@ -830,7 +830,7 @@ func (n *quantifier) recursiveScan(
 			next := count + 1
 
 			if n.To == nil || *n.To >= next {
-				n.recursiveScan(next, handler, input, mTo+1, to, onMatch)
+				n.recursiveScan(next, output, input, mTo+1, to, onMatch)
 			}
 		}
 	})
@@ -859,7 +859,7 @@ type characterClass struct {
 	*nestedNode
 }
 
-func (n *characterClass) getKey() string {
+func (n *characterClass) GetKey() string {
 	b := new(strings.Builder)
 
 	b.WriteString("Class[R16(")
@@ -889,15 +889,15 @@ func (n *characterClass) getKey() string {
 	return b.String()
 }
 
-func (n *characterClass) walk(f func(Node)) {
+func (n *characterClass) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *characterClass) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *characterClass) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -906,13 +906,13 @@ func (n *characterClass) scan(handler Handler, input TextBuffer, from, to int, o
 
 	// TODO : always only one character?
 	if unicode.In(x, n.table) {
-		pos := handler.Position()
+		pos := output.Position()
 
-		handler.Match(n, from, from, n.isEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
 
-		handler.Rewind(pos)
+		output.Rewind(pos)
 	}
 }
 
@@ -921,7 +921,7 @@ type negatedCharacterClass struct {
 	*nestedNode
 }
 
-func (n *negatedCharacterClass) getKey() string {
+func (n *negatedCharacterClass) GetKey() string {
 	b := new(strings.Builder)
 
 	b.WriteString("NegatedClass[R16(")
@@ -951,15 +951,15 @@ func (n *negatedCharacterClass) getKey() string {
 	return b.String()
 }
 
-func (n *negatedCharacterClass) walk(f func(Node)) {
+func (n *negatedCharacterClass) Walk(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.walk(f)
+		x.Walk(f)
 	}
 }
 
-func (n *negatedCharacterClass) scan(handler Handler, input TextBuffer, from, to int, onMatch Callback) {
+func (n *negatedCharacterClass) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -968,12 +968,12 @@ func (n *negatedCharacterClass) scan(handler Handler, input TextBuffer, from, to
 
 	// TODO : always only one character?
 	if !unicode.In(x, n.table) {
-		pos := handler.Position()
+		pos := output.Position()
 
-		handler.Match(n, from, from, n.isEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(handler, input, from+1, to, onMatch)
+		n.nestedNode.match(output, input, from+1, to, onMatch)
 
-		handler.Rewind(pos)
+		output.Rewind(pos)
 	}
 }

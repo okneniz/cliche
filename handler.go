@@ -8,19 +8,14 @@ import (
 	"github.com/okneniz/cliche/span"
 )
 
-type Handler interface {
-	Match(n Node, from, to int, isLeaf, isEmpty bool)
+type Output interface {
+	Match(n Node, from, to int, isLeaf, isEmpty bool) // rename to yield
 	Matches() []*stringMatch
-
-	// TODO : how to remove it?
-	// required only for quantifier
-	//
-	// maybe use LastPosOf in quantifier?
-	LastMatch() (*nodeMatch, bool)
 
 	Position() int
 	Rewind(pos int)
 
+	LastMatchSpan() (span.Interface, bool)
 	LastPosOf(n Node) (int, bool)
 
 	AddNamedGroup(name string, pos int)
@@ -30,9 +25,6 @@ type Handler interface {
 	AddGroup(name string, pos int)
 	MatchGroup(name string, pos int)
 	DeleteGroup(name string)
-}
-
-type Output interface {
 }
 
 // https://www.regular-expressions.info/engine.html
@@ -56,7 +48,7 @@ type Scanner struct {
 	matches map[Node]*matchesList
 }
 
-var _ Handler = new(Scanner)
+var _ Output = new(Scanner)
 
 func newFullScanner(input TextBuffer, from, to int) *Scanner {
 	s := new(Scanner)
@@ -128,7 +120,7 @@ func (s *Scanner) lastMatch() (*stringMatch, bool) {
 	}
 
 	m := &stringMatch{
-		expressions: newDict().merge(n.node.getExpressions()),
+		expressions: newDict().merge(n.node.GetExpressions()),
 		groups:      s.groups.ToSlice(),
 		namedGroups: s.namedGroups.ToMap(),
 		span:        n.span,
@@ -226,9 +218,9 @@ func (s *Scanner) firstSpan() (span.Interface, bool) {
 	return nil, false
 }
 
-func (s *Scanner) LastMatch() (*nodeMatch, bool) {
+func (s *Scanner) LastMatchSpan() (span.Interface, bool) {
 	if x, ok := s.expression.last(); ok {
-		return &x, true
+		return x.span, true
 	}
 
 	return nil, false
@@ -287,7 +279,7 @@ type nodeMatch struct {
 }
 
 func (m nodeMatch) String() string {
-	return fmt.Sprintf("nodeMatch{%s: %s}", m.span, m.node.getKey())
+	return fmt.Sprintf("nodeMatch{%s: %s}", m.span, m.node.GetKey())
 }
 
 type stringMatch struct {

@@ -130,7 +130,7 @@ func parseRegexp() parser {
 				break
 			}
 
-			last.getNestedNodes()[next.getKey()] = next
+			last.GetNestedNodes()[next.GetKey()] = next
 			last = next
 		}
 
@@ -154,7 +154,7 @@ func parseRegexp() parser {
 				break
 			}
 
-			last.getNestedNodes()[next.getKey()] = next
+			last.GetNestedNodes()[next.GetKey()] = next
 			last = next
 		}
 

@@ -73,7 +73,7 @@ func (t *trie) Size() int {
 	size := 0
 
 	for _, x := range t.nodes {
-		x.walk(func(n Node) {
+		x.Walk(func(n Node) {
 			size++
 		})
 	}
@@ -105,16 +105,16 @@ func (t *trie) String() string {
 }
 
 func (t *trie) addExpression(str string, newNode Node) {
-	newNode.walk(func(x Node) {
-		if len(x.getNestedNodes()) == 0 {
-			x.addExpression(str)
+	newNode.Walk(func(x Node) {
+		if len(x.GetNestedNodes()) == 0 {
+			x.AddExpression(str)
 		}
 	})
 
-	key := newNode.getKey()
+	key := newNode.GetKey()
 
 	if prev, exists := t.nodes[key]; exists {
-		prev.merge(newNode)
+		prev.Merge(newNode)
 	} else {
 		t.nodes[key] = newNode
 	}
@@ -133,7 +133,7 @@ func (t *trie) Match(text string) []*stringMatch {
 	return t.Scan(from, to, input, scanner)
 }
 
-func (t *trie) Scan(from, to int, input TextBuffer, handler Handler) []*stringMatch {
+func (t *trie) Scan(from, to int, input TextBuffer, output Output) []*stringMatch {
 	skip := func(_ Node, _, _ int, _ bool) {}
 
 	for _, n := range t.nodes {
@@ -141,9 +141,9 @@ func (t *trie) Scan(from, to int, input TextBuffer, handler Handler) []*stringMa
 
 		for nextFrom <= to {
 			lastFrom := nextFrom
-			n.scan(handler, input, nextFrom, to, skip)
+			n.Scan(output, input, nextFrom, to, skip)
 
-			if pos, ok := handler.LastPosOf(n); ok && pos >= nextFrom {
+			if pos, ok := output.LastPosOf(n); ok && pos >= nextFrom {
 				nextFrom = pos
 			}
 
@@ -151,9 +151,9 @@ func (t *trie) Scan(from, to int, input TextBuffer, handler Handler) []*stringMa
 				nextFrom++
 			}
 
-			handler.Rewind(0)
+			output.Rewind(0)
 		}
 	}
 
-	return handler.Matches()
+	return output.Matches()
 }
