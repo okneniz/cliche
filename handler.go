@@ -9,7 +9,7 @@ import (
 )
 
 type Handler interface {
-	Match(n node, from, to int, isLeaf, isEmpty bool)
+	Match(n Node, from, to int, isLeaf, isEmpty bool)
 	Matches() []*stringMatch
 
 	// TODO : how to remove it?
@@ -21,7 +21,7 @@ type Handler interface {
 	Position() int
 	Rewind(pos int)
 
-	LastPosOf(n node) (int, bool)
+	LastPosOf(n Node) (int, bool)
 
 	AddNamedGroup(name string, pos int)
 	MatchNamedGroup(name string, pos int)
@@ -30,6 +30,9 @@ type Handler interface {
 	AddGroup(name string, pos int)
 	MatchGroup(name string, pos int)
 	DeleteGroup(name string)
+}
+
+type Output interface {
 }
 
 // https://www.regular-expressions.info/engine.html
@@ -50,7 +53,7 @@ type Scanner struct {
 	namedGroups *captures
 
 	// output
-	matches map[node]*matchesList
+	matches map[Node]*matchesList
 }
 
 var _ Handler = new(Scanner)
@@ -68,7 +71,7 @@ func newFullScanner(input TextBuffer, from, to int) *Scanner {
 	// TODO : capacity = height of tree
 	s.expression = newTruncatedList[nodeMatch](50)
 	// TODO : clean matches after scan is really required?
-	s.matches = make(map[node]*matchesList)
+	s.matches = make(map[Node]*matchesList)
 
 	return s
 }
@@ -88,7 +91,7 @@ func (s *Scanner) String() string {
 	)
 }
 
-func (s *Scanner) Match(n node, from, to int, leaf, empty bool) {
+func (s *Scanner) Match(n Node, from, to int, leaf, empty bool) {
 	x := nodeMatch{node: n}
 
 	if empty {
@@ -164,7 +167,7 @@ func (s *Scanner) lastMatch() (*stringMatch, bool) {
 	return m, true
 }
 
-func (s *Scanner) LastPosOf(n node) (int, bool) {
+func (s *Scanner) LastPosOf(n Node) (int, bool) {
 	m, exists := s.matches[n]
 	if !exists {
 		return -1, false
@@ -279,7 +282,7 @@ func (s *Scanner) DeleteGroup(name string) {
 }
 
 type nodeMatch struct {
-	node node
+	node Node
 	span span.Interface
 }
 

@@ -10,7 +10,7 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-type parser = c.Combinator[rune, int, node]
+type parser = c.Combinator[rune, int, Node]
 type tableParser = c.Combinator[rune, int, *unicode.RangeTable]
 
 var (
@@ -57,7 +57,7 @@ func parseRegexp() parser {
 			return nil, err
 		}
 
-		variants := make([]node, 0, 1)
+		variants := make([]Node, 0, 1)
 		variants = append(variants, variant)
 
 		for !buf.IsEOF() {
@@ -113,7 +113,7 @@ func parseRegexp() parser {
 		),
 	)
 
-	parseExpression = func(buf c.Buffer[rune, int]) (node, error) {
+	parseExpression = func(buf c.Buffer[rune, int]) (Node, error) {
 		first, err := parseNode(buf)
 		if err != nil {
 			return nil, err
@@ -137,7 +137,7 @@ func parseRegexp() parser {
 		return first, nil
 	}
 
-	parseNestedExpression = func(buf c.Buffer[rune, int]) (node, error) {
+	parseNestedExpression = func(buf c.Buffer[rune, int]) (Node, error) {
 		first, err := parseNestedNode(buf)
 		if err != nil {
 			return nil, err
@@ -162,7 +162,7 @@ func parseRegexp() parser {
 	}
 
 	// parse alternation or expression
-	return func(buf c.Buffer[rune, int]) (node, error) {
+	return func(buf c.Buffer[rune, int]) (Node, error) {
 		expression, err := parseExpression(buf)
 		if err != nil {
 			return nil, err
@@ -171,7 +171,7 @@ func parseRegexp() parser {
 			return expression, nil
 		}
 
-		variants := make([]node, 0, 1)
+		variants := make([]Node, 0, 1)
 		variants = append(variants, expression)
 
 		for !buf.IsEOF() {
@@ -286,7 +286,7 @@ func parseEscapedSpecSymbols() parser {
 	for _, v := range symbols {
 		r := v
 
-		cases[r] = func(buf c.Buffer[rune, int]) (node, error) {
+		cases[r] = func(buf c.Buffer[rune, int]) (Node, error) {
 			x := char{
 				Value:      r,
 				nestedNode: newNestedNode(),
@@ -312,7 +312,7 @@ func parseInvalidQuantifier() parser {
 		'+': {},
 	}
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
+	return func(buf c.Buffer[rune, int]) (Node, error) {
 		x, err := buf.Read(false)
 		if err != nil {
 			return nil, err
@@ -419,7 +419,7 @@ func parseOptionalQuantifier(expression parser) parser {
 		),
 	)
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
+	return func(buf c.Buffer[rune, int]) (Node, error) {
 		x, err := expression(buf)
 		if err != nil {
 			return nil, err
@@ -440,7 +440,7 @@ func parseOptionalQuantifier(expression parser) parser {
 func parseCharacter(except ...rune) parser {
 	parse := c.NoneOf[rune, int](except...)
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
+	return func(buf c.Buffer[rune, int]) (Node, error) {
 		c, err := parse(buf)
 		if err != nil {
 			return nil, err
@@ -457,28 +457,28 @@ func parseCharacter(except ...rune) parser {
 
 func newNestedNode() *nestedNode {
 	n := new(nestedNode)
-	n.Nested = make(map[string]node)
+	n.Nested = make(map[string]Node)
 	return n
 }
 
 func parseMetaCharacters() parser {
 	return c.MapAs(
-		map[rune]c.Combinator[rune, int, node]{
-			'.': func(buf c.Buffer[rune, int]) (node, error) {
+		map[rune]c.Combinator[rune, int, Node]{
+			'.': func(buf c.Buffer[rune, int]) (Node, error) {
 				x := dot{
 					nestedNode: newNestedNode(),
 				}
 
 				return &x, nil
 			},
-			'^': func(buf c.Buffer[rune, int]) (node, error) {
+			'^': func(buf c.Buffer[rune, int]) (Node, error) {
 				x := startOfLine{
 					nestedNode: newNestedNode(),
 				}
 
 				return &x, nil
 			},
-			'$': func(buf c.Buffer[rune, int]) (node, error) {
+			'$': func(buf c.Buffer[rune, int]) (Node, error) {
 				x := endOfLine{
 					nestedNode: newNestedNode(),
 				}
@@ -494,57 +494,57 @@ func parseEscapedMetaCharacters() parser {
 	return c.Skip(
 		c.Eq[rune, int]('\\'),
 		c.MapAs(
-			map[rune]c.Combinator[rune, int, node]{
-				'd': func(buf c.Buffer[rune, int]) (node, error) {
+			map[rune]c.Combinator[rune, int, Node]{
+				'd': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := digit{
 						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
-				'D': func(buf c.Buffer[rune, int]) (node, error) {
+				'D': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := nonDigit{
 						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
-				'w': func(buf c.Buffer[rune, int]) (node, error) {
+				'w': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := word{
 						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
-				'W': func(buf c.Buffer[rune, int]) (node, error) {
+				'W': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := nonWord{
 						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
-				's': func(buf c.Buffer[rune, int]) (node, error) {
+				's': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := space{
 						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
-				'S': func(buf c.Buffer[rune, int]) (node, error) {
+				'S': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := nonSpace{
 						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
-				'A': func(buf c.Buffer[rune, int]) (node, error) {
+				'A': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := startOfString{
 						nestedNode: newNestedNode(),
 					}
 
 					return &x, nil
 				},
-				'z': func(buf c.Buffer[rune, int]) (node, error) {
+				'z': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := endOfString{
 						nestedNode: newNestedNode(),
 					}
@@ -559,7 +559,7 @@ func parseEscapedMetaCharacters() parser {
 
 func parseGroup(parse c.Combinator[rune, int, *alternation]) parser {
 	return parens(
-		func(buf c.Buffer[rune, int]) (node, error) {
+		func(buf c.Buffer[rune, int]) (Node, error) {
 			value, err := parse(buf)
 			if err != nil {
 				return nil, err
@@ -582,7 +582,7 @@ func parseNotCapturedGroup(parse c.Combinator[rune, int, *alternation]) parser {
 	before := SkipString("?:")
 
 	return parens(
-		func(buf c.Buffer[rune, int]) (node, error) {
+		func(buf c.Buffer[rune, int]) (Node, error) {
 			_, err := before(buf)
 			if err != nil {
 				return nil, err
@@ -615,7 +615,7 @@ func parseNamedGroup(parse c.Combinator[rune, int, *alternation], except ...rune
 	)
 
 	return parens(
-		func(buf c.Buffer[rune, int]) (node, error) {
+		func(buf c.Buffer[rune, int]) (Node, error) {
 			name, err := groupName(buf)
 			if err != nil {
 				return nil, err
@@ -640,7 +640,7 @@ func parseNamedGroup(parse c.Combinator[rune, int, *alternation], except ...rune
 func parseCharacterClass(table tableParser) parser {
 	parse := squares(c.Some(1, table))
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
+	return func(buf c.Buffer[rune, int]) (Node, error) {
 		tables, err := parse(buf)
 		if err != nil {
 			return nil, err
@@ -663,7 +663,7 @@ func parseNegatedCharacterClass(table tableParser) parser {
 		),
 	)
 
-	return func(buf c.Buffer[rune, int]) (node, error) {
+	return func(buf c.Buffer[rune, int]) (Node, error) {
 		tables, err := parse(buf)
 		if err != nil {
 			return nil, err

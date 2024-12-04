@@ -37,12 +37,12 @@ type Trie interface {
 var _ Trie = new(trie)
 
 type trie struct {
-	nodes map[string]node
+	nodes map[string]Node
 }
 
 func NewTrie(regexps ...string) (*trie, error) {
 	tr := new(trie)
-	tr.nodes = make(map[string]node)
+	tr.nodes = make(map[string]Node)
 
 	for _, regexp := range regexps {
 		err := tr.Add(regexp)
@@ -73,7 +73,7 @@ func (t *trie) Size() int {
 	size := 0
 
 	for _, x := range t.nodes {
-		x.walk(func(n node) {
+		x.walk(func(n Node) {
 			size++
 		})
 	}
@@ -104,8 +104,8 @@ func (t *trie) String() string {
 	return string(data)
 }
 
-func (t *trie) addExpression(str string, newNode node) {
-	newNode.walk(func(x node) {
+func (t *trie) addExpression(str string, newNode Node) {
+	newNode.walk(func(x Node) {
 		if len(x.getNestedNodes()) == 0 {
 			x.addExpression(str)
 		}
@@ -134,7 +134,7 @@ func (t *trie) Match(text string) []*stringMatch {
 }
 
 func (t *trie) Scan(from, to int, input TextBuffer, handler Handler) []*stringMatch {
-	skip := func(_ node, _, _ int, _ bool) {}
+	skip := func(_ Node, _, _ int, _ bool) {}
 
 	for _, n := range t.nodes {
 		nextFrom := from
