@@ -9,7 +9,7 @@ import (
 )
 
 type Output interface {
-	Match(n Node, from, to int, isLeaf, isEmpty bool) // rename to yield
+	Yield(n Node, from, to int, isLeaf, isEmpty bool)
 	Matches() []*stringMatch
 
 	Position() int
@@ -83,7 +83,7 @@ func (s *Scanner) String() string {
 	)
 }
 
-func (s *Scanner) Match(n Node, from, to int, leaf, empty bool) {
+func (s *Scanner) Yield(n Node, from, to int, leaf, empty bool) {
 	x := nodeMatch{node: n}
 
 	if empty {
