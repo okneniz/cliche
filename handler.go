@@ -290,13 +290,6 @@ func (m nodeMatch) String() string {
 	return fmt.Sprintf("nodeMatch{%s: %s}", m.span, m.node.getKey())
 }
 
-type Match interface {
-	Span() span.Interface
-	Key() string
-	String() string
-	// Expressions() []string
-}
-
 type stringMatch struct {
 	subString   string
 	span        span.Interface
