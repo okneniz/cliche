@@ -4,8 +4,6 @@ import (
 	"fmt"
 )
 
-// TODO : move to span package?
-
 type Interface interface {
 	From() int
 	To() int
@@ -41,7 +39,6 @@ func (m span) To() int {
 	return m.to
 }
 
-// required for empty matches like .? or .*
 func (m span) Empty() bool {
 	return false
 }
@@ -72,7 +69,6 @@ func (m empty) To() int {
 	return int(m)
 }
 
-// required for empty matches like .? or .*
 func (m empty) Empty() bool {
 	return true
 }
