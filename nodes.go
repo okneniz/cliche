@@ -94,8 +94,7 @@ func (n *nestedNode) Merge(other Node) {
 	}
 }
 
-// TODO : rename to Match?
-func (n *nestedNode) match(
+func (n *nestedNode) Match(
 	output Output,
 	input TextBuffer,
 	from, to int,
@@ -203,7 +202,7 @@ func (n *alternation) Scan(output Output, input TextBuffer, from, to int, onMatc
 		func(_ Node, vFrom, vTo int, empty bool) {
 			output.Yield(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.match(output, input, vTo+1, to, onMatch)
+			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
 	)
 }
@@ -267,7 +266,7 @@ func (n *group) Scan(output Output, input TextBuffer, from, to int, onMatch Call
 			// a lot of line like belowe, maybe move it in output or trie?
 			output.Yield(n, from, vTo, n.IsEnd(), false) // is it possible to remove and use only onMatch?
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.match(output, input, vTo+1, to, onMatch)
+			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
 	)
 	output.Groups().Delete(n.uniqID)
@@ -302,7 +301,7 @@ func (n *namedGroup) Scan(output Output, input TextBuffer, from, to int, onMatch
 			output.NamedGroups().To(n.Name, vTo)
 			output.Yield(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.match(output, input, vTo+1, to, onMatch)
+			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
 	)
 	output.NamedGroups().Delete(n.Name)
@@ -334,7 +333,7 @@ func (n *notCapturedGroup) Scan(output Output, input TextBuffer, from, to int, o
 		func(_ Node, vFrom, vTo int, empty bool) {
 			output.Yield(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.match(output, input, vTo+1, to, onMatch)
+			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
 	)
 }
@@ -365,7 +364,7 @@ func (n *char) Scan(output Output, input TextBuffer, from, to int, onMatch Callb
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -396,7 +395,7 @@ func (n *dot) Scan(output Output, input TextBuffer, from, to int, onMatch Callba
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -428,7 +427,7 @@ func (n *digit) Scan(output Output, input TextBuffer, from, to int, onMatch Call
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -460,7 +459,7 @@ func (n *nonDigit) Scan(output Output, input TextBuffer, from, to int, onMatch C
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -492,7 +491,7 @@ func (n *word) Scan(output Output, input TextBuffer, from, to int, onMatch Callb
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -524,7 +523,7 @@ func (n *nonWord) Scan(output Output, input TextBuffer, from, to int, onMatch Ca
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -556,7 +555,7 @@ func (n *space) Scan(output Output, input TextBuffer, from, to int, onMatch Call
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -588,7 +587,7 @@ func (n *nonSpace) Scan(output Output, input TextBuffer, from, to int, onMatch C
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -620,7 +619,7 @@ func (n *startOfLine) Scan(output Output, input TextBuffer, from, to int, onMatc
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.match(output, input, from, to, onMatch)
+		n.nestedNode.Match(output, input, from, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -670,7 +669,7 @@ func (n *endOfLine) Scan(output Output, input TextBuffer, from, to int, onMatch 
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.match(output, input, from, to, onMatch)
+		n.nestedNode.Match(output, input, from, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -709,7 +708,7 @@ func (n *startOfString) Scan(output Output, input TextBuffer, from, to int, onMa
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.match(output, input, from, to, onMatch)
+		n.nestedNode.Match(output, input, from, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -735,7 +734,7 @@ func (n *endOfString) Scan(output Output, input TextBuffer, from, to int, onMatc
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.match(output, input, from, to, onMatch)
+		n.nestedNode.Match(output, input, from, to, onMatch)
 		output.Rewind(pos)
 	}
 }
@@ -799,7 +798,7 @@ func (n *quantifier) Scan(output Output, input TextBuffer, from, to int, onMatch
 		pos := output.Position()
 		output.Yield(n, from, mTo, n.IsEnd(), false)
 		onMatch(n, from, mTo, empty)
-		n.nestedNode.match(output, input, mTo+1, to, onMatch)
+		n.nestedNode.Match(output, input, mTo+1, to, onMatch)
 		output.Rewind(pos)
 	})
 
@@ -814,7 +813,7 @@ func (n *quantifier) Scan(output Output, input TextBuffer, from, to int, onMatch
 			output.Yield(n, from, from, n.IsEnd(), true)
 		}
 
-		n.nestedNode.match(output, input, from, to, onMatch)
+		n.nestedNode.Match(output, input, from, to, onMatch)
 	}
 
 	output.Rewind(start)
@@ -916,7 +915,7 @@ func (n *characterClass) Scan(output Output, input TextBuffer, from, to int, onM
 
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 
 		output.Rewind(pos)
 	}
@@ -978,7 +977,7 @@ func (n *negatedCharacterClass) Scan(output Output, input TextBuffer, from, to i
 
 		output.Yield(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.match(output, input, from+1, to, onMatch)
+		n.nestedNode.Match(output, input, from+1, to, onMatch)
 
 		output.Rewind(pos)
 	}
