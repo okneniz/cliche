@@ -46,7 +46,7 @@ func (b *matchesList) push(m *stringMatch) {
 	last := b.list[len(b.list)-1]
 	lastSpan := last.Span()
 
-	if b.include(lastSpan, s.From()) {
+	if lastSpan.IsInclude(s.From()) {
 		z := b.compare(lastSpan, s)
 		if z < 0 {
 			b.list[len(b.list)-1] = m
@@ -57,25 +57,6 @@ func (b *matchesList) push(m *stringMatch) {
 	}
 
 	b.list = append(b.list, m)
-}
-
-// TODO : move this methods to span.Interface
-func (b *matchesList) include(s span.Interface, x int) bool {
-	// TODO:
-	//
-	// if s.Empty() {
-	// 	return false
-	// }
-
-	if x < s.From() {
-		return false
-	}
-
-	if x > s.To() {
-		return false
-	}
-
-	return true
 }
 
 func (b *matchesList) maximum() (*stringMatch, bool) {
