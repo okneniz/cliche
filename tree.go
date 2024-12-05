@@ -31,7 +31,7 @@ type Tree interface {
 	Size() int
 	MarshalJSON() ([]byte, error)
 	String() string
-	Match(string) []*stringMatch
+	Match(string) []*Match
 }
 
 var _ Tree = new(tree)
@@ -119,7 +119,7 @@ func (t *tree) addExpression(str string, newNode Node) {
 	}
 }
 
-func (t *tree) Match(text string) []*stringMatch {
+func (t *tree) Match(text string) []*Match {
 	if len(text) == 0 {
 		return nil
 	}
@@ -130,7 +130,7 @@ func (t *tree) Match(text string) []*stringMatch {
 	return t.Scan(0, input.Size()-1, input, scanner)
 }
 
-func (t *tree) Scan(from, to int, input TextBuffer, output Output) []*stringMatch {
+func (t *tree) Scan(from, to int, input TextBuffer, output Output) []*Match {
 	skip := func(_ Node, _, _ int, _ bool) {}
 
 	for _, n := range t.nodes {

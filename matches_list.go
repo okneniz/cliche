@@ -6,7 +6,7 @@ import (
 )
 
 type matchesList struct {
-	list []*stringMatch
+	list []*Match
 }
 
 func newMatchesList() *matchesList {
@@ -36,7 +36,7 @@ func (b *matchesList) compare(m1, m2 span.Interface) int {
 	}
 }
 
-func (b *matchesList) push(m *stringMatch) {
+func (b *matchesList) push(m *Match) {
 	if len(b.list) == 0 {
 		b.list = append(b.list, m)
 		return
@@ -59,7 +59,7 @@ func (b *matchesList) push(m *stringMatch) {
 	b.list = append(b.list, m)
 }
 
-func (b *matchesList) maximum() (*stringMatch, bool) {
+func (b *matchesList) maximum() (*Match, bool) {
 	if len(b.list) == 0 {
 		return nil, false
 	}
@@ -75,6 +75,6 @@ func (b matchesList) String() string {
 	return fmt.Sprintln(b.list)
 }
 
-func (b *matchesList) Slice() []*stringMatch {
+func (b *matchesList) Slice() []*Match {
 	return b.list
 }

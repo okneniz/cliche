@@ -87,7 +87,7 @@ type Test struct {
 	Name        string
 	Expressions []string
 	Input       string
-	Want        []*stringMatch
+	Want        []*Match
 }
 
 type Expectation struct {
@@ -118,7 +118,7 @@ func TestMatch(t *testing.T) {
 					"ing",
 				},
 				input: "testing string test ssss word words",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "te",
 						span:      span.New(0, 1),
@@ -326,7 +326,7 @@ func TestMatch(t *testing.T) {
 				name:    "match '.'",
 				regexps: []string{"t."},
 				input:   "testing string test ssss word words",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "te",
 						span: span.New(
@@ -393,7 +393,7 @@ func TestMatch(t *testing.T) {
 				name:    "match multiple '.'",
 				regexps: []string{"t.."},
 				input:   "testing string test ssss word words",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "tes",
 						span: span.New(
@@ -460,7 +460,7 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\d'",
 				regexps: []string{"\\d"},
 				input:   "asd 1 jsdfk 4234",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "1",
 						span: span.New(
@@ -527,7 +527,7 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\D'",
 				regexps: []string{"\\D"},
 				input:   "asd 1 jsdfk 4234",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "a",
 						span: span.New(
@@ -666,7 +666,7 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\w'",
 				regexps: []string{"\\w"},
 				input:   "asd 1 jsdfk 4234",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "a",
 						span: span.New(
@@ -829,7 +829,7 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\W'",
 				regexps: []string{"\\W"},
 				input:   "asd 1 jsdfk 4234!\n\r",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: " ",
 						span: span.New(
@@ -908,7 +908,7 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\s'",
 				regexps: []string{"\\s"},
 				input:   "asd 1 jsdfk 4234",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: " ",
 						span: span.New(
@@ -951,7 +951,7 @@ func TestMatch(t *testing.T) {
 				name:    "match '\\S'",
 				regexps: []string{"\\S"},
 				input:   "asd 1 jsdfk 4234!",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "a",
 						span: span.New(
@@ -1137,7 +1137,7 @@ func TestMatch(t *testing.T) {
 					"\\}",
 				},
 				input: ". ? + * ^ $ [ ] { }",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: ".",
 						span: span.New(
@@ -1272,7 +1272,7 @@ func TestMatch(t *testing.T) {
 					"(f)(o)(o)",
 				},
 				input: "foo bar baz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "foo",
 						span: span.New(
@@ -1363,7 +1363,7 @@ func TestMatch(t *testing.T) {
 					"((b)az)",
 				},
 				input: "foo bar baz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "foo",
 						span: span.New(
@@ -1424,7 +1424,7 @@ func TestMatch(t *testing.T) {
 					"(?<first>f)(?<second>o)(?<third>o)",
 				},
 				input: "foo bar baz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "foo",
 						span: span.New(
@@ -1515,7 +1515,7 @@ func TestMatch(t *testing.T) {
 					"(?<first>(?<second>b)az)",
 				},
 				input: "foo bar baz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "foo",
 						span: span.New(
@@ -1576,7 +1576,7 @@ func TestMatch(t *testing.T) {
 					"(?:f)(?:o)(?:o)",
 				},
 				input: "foo bar baz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "foo",
 						span: span.New(
@@ -1629,7 +1629,7 @@ func TestMatch(t *testing.T) {
 					"(?:(?:b)az)",
 				},
 				input: "foo bar baz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "foo",
 						span: span.New(
@@ -1680,7 +1680,7 @@ func TestMatch(t *testing.T) {
 					"...?.",
 				},
 				input: "pic",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "",
 						span:      span.Empty(0),
@@ -1737,7 +1737,7 @@ func TestMatch(t *testing.T) {
 					"x.{0,}",
 				},
 				input: "xx x\n x",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "xx",
 						span: span.New(
@@ -1841,7 +1841,7 @@ func TestMatch(t *testing.T) {
 					"x.{1,}",
 				},
 				input: "xx x\n x",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "xx",
 						span: span.New(
@@ -1904,7 +1904,7 @@ func TestMatch(t *testing.T) {
 					"x{2,}",
 				},
 				input: "xx xxx x",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "xx",
 						span: span.New(
@@ -1937,7 +1937,7 @@ func TestMatch(t *testing.T) {
 					"x{2,4}",
 				},
 				input: "xx xxx x xxxxxx",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "xx",
 						span: span.New(
@@ -1998,7 +1998,7 @@ func TestMatch(t *testing.T) {
 					".^",
 				},
 				input: "foo bar\nbaz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "foo",
 						span: span.New(
@@ -2058,7 +2058,7 @@ func TestMatch(t *testing.T) {
 					".\\A",
 				},
 				input: "foo bar\nbaz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "foo",
 						span: span.New(
@@ -2105,7 +2105,7 @@ func TestMatch(t *testing.T) {
 					"$",
 				},
 				input: "foo bar\nbaz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "bar",
 						span: span.New(
@@ -2187,7 +2187,7 @@ func TestMatch(t *testing.T) {
 					// "\\z", should be matched?
 				},
 				input: "foo bar\nbaz",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "z",
 						span: span.New(
@@ -2235,7 +2235,7 @@ func TestMatch(t *testing.T) {
 					"[bar][bar][baz]",
 				},
 				input: "foo 1 bar\nbaz 123",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "1",
 						span: span.New(
@@ -2347,7 +2347,7 @@ func TestMatch(t *testing.T) {
 					"[^\\s][^\\s][^\\s]",
 				},
 				input: "foo 1 bar baz 123",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: " ",
 						span: span.New(
@@ -2508,7 +2508,7 @@ func TestMatch(t *testing.T) {
 					"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 				},
 				input: "000 111 255 256 00 25x 1 2 5",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "000",
 						span: span.New(
@@ -2559,7 +2559,7 @@ func TestMatch(t *testing.T) {
 					"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 				},
 				input: "000 111 255 256 0 12 025",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "000",
 						span: span.New(
@@ -2680,7 +2680,7 @@ func TestMatch(t *testing.T) {
 					"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 				},
 				input: "000 111 127 128 0 12 025",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "000",
 						span: span.New(
@@ -2802,7 +2802,7 @@ func TestMatch(t *testing.T) {
 					`[-+]?[0-9]+.?[0-9]+`,
 				},
 				input: "+3.14 9.8 2.718 -1.1 +100.500",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "+3.14",
 						span: span.New(
@@ -2879,7 +2879,7 @@ func TestMatch(t *testing.T) {
 					"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
 				},
 				input: "123 asd c test@mail.ru asd da a.b@x.y.ru",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "test@mail.ru",
 						span: span.New(
@@ -2987,7 +2987,7 @@ func TestMatch(t *testing.T) {
 					"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
 				},
 				input: "4111111111111111 5105105105105100 4012888888881881 4222222222222 5555555555554444",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "4111111111111111",
 						span: span.New(
@@ -3059,7 +3059,7 @@ func TestMatch(t *testing.T) {
 					".{2}$",
 				},
 				input: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
 						span: span.New(
@@ -3119,7 +3119,7 @@ func TestMatch(t *testing.T) {
 					`<p>(.*)</p>`,
 				},
 				input: "Lorem Ipsum is <p>simply dummy text</p> of the printing and typesetting industry.",
-				output: []*stringMatch{
+				output: []*Match{
 					{
 						subString: "<p>simply dummy text</p>",
 						span: span.New(
@@ -3200,7 +3200,7 @@ type example struct {
 	name    string
 	regexps []string
 	input   string
-	output  []*stringMatch
+	output  []*Match
 }
 
 func pointer[T any](x T) *T {
@@ -3215,7 +3215,7 @@ func Test_It(t *testing.T) { // TODO : move it to examples
 
 	t.Log(tr.String())
 
-	expected := []*stringMatch{
+	expected := []*Match{
 		{
 			subString: "baz",
 			span: span.New(

@@ -2,7 +2,6 @@ package cliche
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/okneniz/cliche/span"
@@ -10,7 +9,7 @@ import (
 
 type Output interface {
 	Yield(n Node, from, to int, isLeaf, isEmpty bool)
-	Matches() []*stringMatch
+	Matches() []*Match
 
 	LastMatchSpan() (span.Interface, bool)
 	LastPosOf(n Node) (int, bool)
@@ -109,7 +108,7 @@ func (s *scanner) Yield(n Node, from, to int, leaf, empty bool) {
 	}
 }
 
-func (s *scanner) lastMatch() (*stringMatch, bool) {
+func (s *scanner) lastMatch() (*Match, bool) {
 	n, exists := s.expression.last()
 	if !exists {
 		return nil, false
@@ -120,7 +119,7 @@ func (s *scanner) lastMatch() (*stringMatch, bool) {
 		return nil, false
 	}
 
-	m := &stringMatch{
+	m := &Match{
 		expressions: newSet().merge(n.node.GetExpressions()),
 		groups:      s.groups.ToSlice(),
 		namedGroups: s.namedGroups.ToMap(),
@@ -174,13 +173,13 @@ func (s *scanner) LastPosOf(n Node) (int, bool) {
 	return match.Span().To(), true
 }
 
-func (s *scanner) Matches() []*stringMatch {
+func (s *scanner) Matches() []*Match {
 	size := 0
 	for _, v := range s.matches {
 		size += v.size()
 	}
 
-	result := make([]*stringMatch, 0, size)
+	result := make([]*Match, 0, size)
 	c := make(map[string]int)
 
 	for _, list := range s.matches {
@@ -265,79 +264,4 @@ type nodeMatch struct {
 
 func (m nodeMatch) String() string {
 	return fmt.Sprintf("nodeMatch{%s: %s}", m.span, m.node.GetKey())
-}
-
-type stringMatch struct {
-	subString   string
-	span        span.Interface
-	expressions Set
-	groups      []span.Interface
-	namedGroups map[string]span.Interface
-}
-
-func (m *stringMatch) Span() span.Interface {
-	return m.span
-}
-
-func (m *stringMatch) Key() string {
-	s := m.span.String()
-	s += "-"
-	s += m.groupsToString()
-	s += "-"
-	s += m.namedGroupsToString()
-	return s
-}
-
-func (m *stringMatch) String() string {
-	return fmt.Sprintf(
-		"stringMatch{%s, '%s', (%s) [%s] {%s}",
-		m.span.String(),
-		m.subString,
-		strings.Join(m.expressions.Slice(), ", "),
-		m.groupsToString(),
-		m.namedGroupsToString(),
-	)
-}
-
-func (m *stringMatch) groupsToString() string {
-	s := make([]string, len(m.groups))
-	for i, x := range m.groups {
-		s[i] = x.String()
-	}
-
-	sort.SliceStable(s, func(i, j int) bool { return s[i] < s[j] })
-	return strings.Join(s, ", ")
-}
-
-// TODO : в тестах проверять, что groups входят в span строки
-
-func (m *stringMatch) namedGroupsToString() string {
-	pairs := make([]string, 0, len(m.namedGroups))
-	for k, v := range m.namedGroups {
-		pairs = append(pairs, k+": "+v.String())
-	}
-	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i] < pairs[j] })
-	return strings.Join(pairs, ", ")
-}
-
-func (m *stringMatch) Expressions() []string {
-	return m.expressions.Slice()
-}
-
-func (m *stringMatch) NamedGroups() map[string]span.Interface {
-	return m.namedGroups
-}
-
-func (m *stringMatch) Groups() []span.Interface {
-	return m.groups
-}
-
-func (m *stringMatch) Clone() *stringMatch {
-	return &stringMatch{
-		subString:   m.subString,
-		span:        m.span,
-		expressions: newSet().merge(m.expressions),
-		groups:      m.groups,
-		namedGroups: m.namedGroups,
-	}
 }
