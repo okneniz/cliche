@@ -11,10 +11,10 @@ import (
 
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
 
-func TestTrie(t *testing.T) {
+func TestTree(t *testing.T) {
 	t.Parallel()
 
-	tr, err := NewTrie(
+	tr, err := New(
 		"x",
 		"t",
 		"te",
@@ -3145,7 +3145,7 @@ func TestMatch(t *testing.T) {
 				test := ex
 
 				t.Run(ex.name, func(t *testing.T) {
-					tr, err := NewTrie(test.regexps...)
+					tr, err := New(test.regexps...)
 					require.NoError(t, err)
 
 					// t.Log(tr.String())
@@ -3208,7 +3208,7 @@ func pointer[T any](x T) *T {
 }
 
 func Test_It(t *testing.T) { // TODO : move it to examples
-	tr, err := NewTrie(
+	tr, err := New(
 		"ba[^for]",
 	)
 	require.NoError(t, err)

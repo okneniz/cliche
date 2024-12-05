@@ -26,7 +26,7 @@ import (
 //
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-multi-character-escapes
 
-type Trie interface {
+type Tree interface {
 	Add(...string) error
 	Size() int
 	MarshalJSON() ([]byte, error)
@@ -34,14 +34,14 @@ type Trie interface {
 	Match(string) []*stringMatch
 }
 
-var _ Trie = new(trie)
+var _ Tree = new(tree)
 
-type trie struct {
+type tree struct {
 	nodes map[string]Node
 }
 
-func NewTrie(regexps ...string) (*trie, error) {
-	tr := new(trie)
+func New(regexps ...string) (*tree, error) {
+	tr := new(tree)
 	tr.nodes = make(map[string]Node)
 
 	for _, regexp := range regexps {
@@ -54,7 +54,7 @@ func NewTrie(regexps ...string) (*trie, error) {
 	return tr, nil
 }
 
-func (t *trie) Add(strs ...string) error {
+func (t *tree) Add(strs ...string) error {
 	for _, str := range strs {
 		buf := newBuffer(str)
 
@@ -69,11 +69,11 @@ func (t *trie) Add(strs ...string) error {
 	return nil
 }
 
-func (t *trie) Size() int {
+func (t *tree) Size() int {
 	size := 0
 
 	for _, x := range t.nodes {
-		x.Walk(func(n Node) {
+		x.Traverse(func(_ Node) {
 			size++
 		})
 	}
@@ -81,21 +81,20 @@ func (t *trie) Size() int {
 	return size
 }
 
-func (t *trie) MarshalJSON() ([]byte, error) {
+func (t *tree) MarshalJSON() ([]byte, error) {
 	scanner := bytes.NewBuffer(nil)
 
 	encoder := json.NewEncoder(scanner)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", " ")
-	err := encoder.Encode(t.nodes)
-	if err != nil {
+	if err := encoder.Encode(t.nodes); err != nil {
 		return nil, err
 	}
 
 	return scanner.Bytes(), nil
 }
 
-func (t *trie) String() string {
+func (t *tree) String() string {
 	data, err := t.MarshalJSON()
 	if err != nil {
 		return err.Error()
@@ -104,8 +103,8 @@ func (t *trie) String() string {
 	return string(data)
 }
 
-func (t *trie) addExpression(str string, newNode Node) {
-	newNode.Walk(func(x Node) {
+func (t *tree) addExpression(str string, newNode Node) {
+	newNode.Traverse(func(x Node) {
 		if len(x.GetNestedNodes()) == 0 {
 			x.AddExpression(str)
 		}
@@ -120,7 +119,7 @@ func (t *trie) addExpression(str string, newNode Node) {
 	}
 }
 
-func (t *trie) Match(text string) []*stringMatch {
+func (t *tree) Match(text string) []*stringMatch {
 	if len(text) == 0 {
 		return nil
 	}
@@ -131,7 +130,7 @@ func (t *trie) Match(text string) []*stringMatch {
 	return t.Scan(0, input.Size()-1, input, scanner)
 }
 
-func (t *trie) Scan(from, to int, input TextBuffer, output Output) []*stringMatch {
+func (t *tree) Scan(from, to int, input TextBuffer, output Output) []*stringMatch {
 	skip := func(_ Node, _, _ int, _ bool) {}
 
 	for _, n := range t.nodes {

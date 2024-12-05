@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTrieCompaction(t *testing.T) {
+func TestTreeCompaction(t *testing.T) {
 	t.Parallel()
 
 	examples := [][]string{
@@ -67,7 +67,7 @@ func TestTrieCompaction(t *testing.T) {
 		)
 
 		t.Run(name, func(t *testing.T) {
-			tr, err := NewTrie()
+			tr, err := New()
 			require.NoError(t, err)
 			require.Equal(t, tr.Size(), 0)
 

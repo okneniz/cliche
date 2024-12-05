@@ -12,15 +12,16 @@ type Node interface {
 	GetExpressions() dict
 	AddExpression(string)
 	GetNestedNodes() map[string]Node
-	IsEnd() bool
+	IsEnd() bool // TODO : rename to Leaf
 
 	Scan(Output, TextBuffer, int, int, Callback)
 	Merge(Node)
-	Walk(func(Node))
+	Traverse(func(Node)) // TODO : rename to Traverse
 }
 
 type Callback func(x Node, from int, to int, empty bool)
 
+// TODO : rename to Set
 type dict map[string]struct{}
 
 func newDict(items ...string) dict {
@@ -156,7 +157,7 @@ func newAlternation(variants []Node) *alternation {
 	variantKey := bytes.NewBuffer(nil)
 
 	for _, variant := range variants {
-		variant.Walk(func(x Node) {
+		variant.Traverse(func(x Node) {
 			variantKey.WriteString(x.GetKey())
 
 			if len(x.GetNestedNodes()) == 0 {
@@ -184,11 +185,11 @@ func (n *alternation) GetKey() string {
 	return strings.Join(variantKeys, ",")
 }
 
-func (n *alternation) Walk(f func(Node)) {
+func (n *alternation) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Value {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -246,16 +247,17 @@ func (n *group) GetKey() string {
 	return fmt.Sprintf("(%s)", n.Value.GetKey())
 }
 
-func (n *group) Walk(f func(Node)) {
+func (n *group) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
 func (n *group) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
 	output.Groups().From(n.uniqID, from)
+
 	n.Value.scanAlternation(
 		output,
 		input,
@@ -263,12 +265,12 @@ func (n *group) Scan(output Output, input TextBuffer, from, to int, onMatch Call
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
 			output.Groups().To(n.uniqID, vTo)
-			// a lot of line like belowe, maybe move it in output or trie?
-			output.Yield(n, from, vTo, n.IsEnd(), false) // is it possible to remove and use only onMatch?
+			output.Yield(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
 	)
+
 	output.Groups().Delete(n.uniqID)
 }
 
@@ -282,11 +284,11 @@ func (n *namedGroup) GetKey() string {
 	return fmt.Sprintf("(?<%s>%s)", n.Name, n.Value.GetKey())
 }
 
-func (n *namedGroup) Walk(f func(Node)) {
+func (n *namedGroup) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -316,11 +318,11 @@ func (n *notCapturedGroup) GetKey() string {
 	return fmt.Sprintf("(?:%s)", n.Value.GetKey())
 }
 
-func (n *notCapturedGroup) Walk(f func(Node)) {
+func (n *notCapturedGroup) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -347,11 +349,11 @@ func (n *char) GetKey() string {
 	return string(n.Value)
 }
 
-func (n *char) Walk(f func(Node)) {
+func (n *char) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -378,11 +380,11 @@ func (n *dot) GetKey() string {
 	return "."
 }
 
-func (n *dot) Walk(f func(Node)) {
+func (n *dot) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -408,11 +410,11 @@ func (n *digit) GetKey() string {
 	return "\\d"
 }
 
-func (n *digit) Walk(f func(Node)) {
+func (n *digit) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -440,11 +442,11 @@ func (n *nonDigit) GetKey() string {
 	return "\\D"
 }
 
-func (n *nonDigit) Walk(f func(Node)) {
+func (n *nonDigit) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -472,11 +474,11 @@ func (n *word) GetKey() string {
 	return "\\w"
 }
 
-func (n *word) Walk(f func(Node)) {
+func (n *word) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -504,11 +506,11 @@ func (n *nonWord) GetKey() string {
 	return "\\W"
 }
 
-func (n *nonWord) Walk(f func(Node)) {
+func (n *nonWord) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -536,11 +538,11 @@ func (n *space) GetKey() string {
 	return "\\s"
 }
 
-func (n *space) Walk(f func(Node)) {
+func (n *space) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -568,11 +570,11 @@ func (n *nonSpace) GetKey() string {
 	return "\\S"
 }
 
-func (n *nonSpace) Walk(f func(Node)) {
+func (n *nonSpace) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -600,11 +602,11 @@ func (n *startOfLine) GetKey() string {
 	return "^"
 }
 
-func (n *startOfLine) Walk(f func(Node)) {
+func (n *startOfLine) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -654,11 +656,11 @@ func (n *endOfLine) GetKey() string {
 	return "$"
 }
 
-func (n *endOfLine) Walk(f func(Node)) {
+func (n *endOfLine) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -695,11 +697,11 @@ func (n *startOfString) GetKey() string {
 	return "\\A"
 }
 
-func (n *startOfString) Walk(f func(Node)) {
+func (n *startOfString) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -721,11 +723,11 @@ func (n *endOfString) GetKey() string {
 	return "\\z"
 }
 
-func (n *endOfString) Walk(f func(Node)) {
+func (n *endOfString) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -783,11 +785,11 @@ func (n *quantifier) getQuantifierKey() string {
 	return b.String()
 }
 
-func (n *quantifier) Walk(f func(Node)) {
+func (n *quantifier) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -894,11 +896,11 @@ func (n *characterClass) GetKey() string {
 	return b.String()
 }
 
-func (n *characterClass) Walk(f func(Node)) {
+func (n *characterClass) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
@@ -956,11 +958,11 @@ func (n *negatedCharacterClass) GetKey() string {
 	return b.String()
 }
 
-func (n *negatedCharacterClass) Walk(f func(Node)) {
+func (n *negatedCharacterClass) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
-		x.Walk(f)
+		x.Traverse(f)
 	}
 }
 
