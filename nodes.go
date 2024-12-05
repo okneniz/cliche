@@ -9,34 +9,34 @@ import (
 
 type Node interface {
 	GetKey() string
-	GetExpressions() dict
+	GetExpressions() Set
 	AddExpression(string)
 	GetNestedNodes() map[string]Node
-	IsEnd() bool // TODO : rename to Leaf
+	IsEnd() bool
 
 	Scan(Output, TextBuffer, int, int, Callback)
 	Merge(Node)
-	Traverse(func(Node)) // TODO : rename to Traverse
+	Traverse(func(Node))
 }
 
 type Callback func(x Node, from int, to int, empty bool)
 
 // TODO : rename to Set
-type dict map[string]struct{}
+type Set map[string]struct{}
 
-func newDict(items ...string) dict {
-	d := make(dict)
+func newSet(items ...string) Set {
+	d := make(Set)
 	for _, x := range items {
 		d.add(x)
 	}
 	return d
 }
 
-func (d dict) add(str string) {
+func (d Set) add(str string) {
 	d[str] = struct{}{}
 }
 
-func (d dict) merge(other dict) dict {
+func (d Set) merge(other Set) Set {
 	for key, value := range other {
 		d[key] = value
 	}
@@ -44,7 +44,7 @@ func (d dict) merge(other dict) dict {
 	return d
 }
 
-func (d dict) Slice() []string {
+func (d Set) Slice() []string {
 	result := make([]string, len(d))
 	i := 0
 	for key := range d {
@@ -55,7 +55,7 @@ func (d dict) Slice() []string {
 }
 
 type nestedNode struct {
-	Expressions dict            `json:"expressions,omitempty"`
+	Expressions Set             `json:"expressions,omitempty"`
 	Nested      map[string]Node `json:"nested,omitempty"`
 }
 
@@ -63,13 +63,13 @@ func (n *nestedNode) GetNestedNodes() map[string]Node {
 	return n.Nested
 }
 
-func (n *nestedNode) GetExpressions() dict {
+func (n *nestedNode) GetExpressions() Set {
 	return n.Expressions
 }
 
 func (n *nestedNode) AddExpression(exp string) {
 	if n.Expressions == nil {
-		n.Expressions = make(dict)
+		n.Expressions = make(Set)
 	}
 
 	n.Expressions.add(exp)

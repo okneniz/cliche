@@ -93,7 +93,7 @@ type Test struct {
 type Expectation struct {
 	SubString   string
 	Span        span.Interface
-	Expressions dict
+	Expressions Set
 	Groups      []span.Interface
 	NamedGroups map[string]span.Interface
 }
@@ -122,7 +122,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "te",
 						span:      span.New(0, 1),
-						expressions: newDict(
+						expressions: newSet(
 							"te",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -134,7 +134,7 @@ func TestMatch(t *testing.T) {
 							0,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"test",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -146,7 +146,7 @@ func TestMatch(t *testing.T) {
 							2,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -158,7 +158,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"ing",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -170,7 +170,7 @@ func TestMatch(t *testing.T) {
 							8,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -182,7 +182,7 @@ func TestMatch(t *testing.T) {
 							8,
 							13,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"string",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -194,7 +194,7 @@ func TestMatch(t *testing.T) {
 							11,
 							13,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"ing",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -206,7 +206,7 @@ func TestMatch(t *testing.T) {
 							15,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"te",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -218,7 +218,7 @@ func TestMatch(t *testing.T) {
 							15,
 							18,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"test",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -230,7 +230,7 @@ func TestMatch(t *testing.T) {
 							17,
 							17,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -242,7 +242,7 @@ func TestMatch(t *testing.T) {
 							20,
 							20,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -254,7 +254,7 @@ func TestMatch(t *testing.T) {
 							21,
 							21,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -266,7 +266,7 @@ func TestMatch(t *testing.T) {
 							22,
 							22,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -278,7 +278,7 @@ func TestMatch(t *testing.T) {
 							23,
 							23,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -290,7 +290,7 @@ func TestMatch(t *testing.T) {
 							25,
 							28,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"word",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -302,7 +302,7 @@ func TestMatch(t *testing.T) {
 							30,
 							33,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"word",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -314,7 +314,7 @@ func TestMatch(t *testing.T) {
 							34,
 							34,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -333,7 +333,7 @@ func TestMatch(t *testing.T) {
 							0,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -345,7 +345,7 @@ func TestMatch(t *testing.T) {
 							3,
 							4,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -357,7 +357,7 @@ func TestMatch(t *testing.T) {
 							9,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -369,7 +369,7 @@ func TestMatch(t *testing.T) {
 							15,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -381,7 +381,7 @@ func TestMatch(t *testing.T) {
 							18,
 							19,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -400,7 +400,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t..",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -412,7 +412,7 @@ func TestMatch(t *testing.T) {
 							3,
 							5,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t..",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -424,7 +424,7 @@ func TestMatch(t *testing.T) {
 							9,
 							11,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t..",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -436,7 +436,7 @@ func TestMatch(t *testing.T) {
 							15,
 							17,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t..",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -448,7 +448,7 @@ func TestMatch(t *testing.T) {
 							18,
 							20,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"t..",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -467,7 +467,7 @@ func TestMatch(t *testing.T) {
 							4,
 							4,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\d",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -479,7 +479,7 @@ func TestMatch(t *testing.T) {
 							12,
 							12,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\d",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -491,7 +491,7 @@ func TestMatch(t *testing.T) {
 							13,
 							13,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\d",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -503,7 +503,7 @@ func TestMatch(t *testing.T) {
 							14,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\d",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -515,7 +515,7 @@ func TestMatch(t *testing.T) {
 							15,
 							15,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\d",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -534,7 +534,7 @@ func TestMatch(t *testing.T) {
 							0,
 							0,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -546,7 +546,7 @@ func TestMatch(t *testing.T) {
 							1,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -558,7 +558,7 @@ func TestMatch(t *testing.T) {
 							2,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -570,7 +570,7 @@ func TestMatch(t *testing.T) {
 							3,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -582,7 +582,7 @@ func TestMatch(t *testing.T) {
 							5,
 							5,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -594,7 +594,7 @@ func TestMatch(t *testing.T) {
 							6,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -606,7 +606,7 @@ func TestMatch(t *testing.T) {
 							7,
 							7,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -618,7 +618,7 @@ func TestMatch(t *testing.T) {
 							8,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -630,7 +630,7 @@ func TestMatch(t *testing.T) {
 							9,
 							9,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -642,7 +642,7 @@ func TestMatch(t *testing.T) {
 							10,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -654,7 +654,7 @@ func TestMatch(t *testing.T) {
 							11,
 							11,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\D",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -673,7 +673,7 @@ func TestMatch(t *testing.T) {
 							0,
 							0,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -685,7 +685,7 @@ func TestMatch(t *testing.T) {
 							1,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -697,7 +697,7 @@ func TestMatch(t *testing.T) {
 							2,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -709,7 +709,7 @@ func TestMatch(t *testing.T) {
 							4,
 							4,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -721,7 +721,7 @@ func TestMatch(t *testing.T) {
 							6,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -733,7 +733,7 @@ func TestMatch(t *testing.T) {
 							7,
 							7,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -745,7 +745,7 @@ func TestMatch(t *testing.T) {
 							8,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -757,7 +757,7 @@ func TestMatch(t *testing.T) {
 							9,
 							9,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -769,7 +769,7 @@ func TestMatch(t *testing.T) {
 							10,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -781,7 +781,7 @@ func TestMatch(t *testing.T) {
 							12,
 							12,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -793,7 +793,7 @@ func TestMatch(t *testing.T) {
 							13,
 							13,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -805,7 +805,7 @@ func TestMatch(t *testing.T) {
 							14,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -817,7 +817,7 @@ func TestMatch(t *testing.T) {
 							15,
 							15,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\w",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -836,7 +836,7 @@ func TestMatch(t *testing.T) {
 							3,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\W",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -848,7 +848,7 @@ func TestMatch(t *testing.T) {
 							5,
 							5,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\W",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -860,7 +860,7 @@ func TestMatch(t *testing.T) {
 							11,
 							11,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\W",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -872,7 +872,7 @@ func TestMatch(t *testing.T) {
 							16,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\W",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -884,7 +884,7 @@ func TestMatch(t *testing.T) {
 							17,
 							17,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\W",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -896,7 +896,7 @@ func TestMatch(t *testing.T) {
 							18,
 							18,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\W",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -915,7 +915,7 @@ func TestMatch(t *testing.T) {
 							3,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -927,7 +927,7 @@ func TestMatch(t *testing.T) {
 							5,
 							5,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -939,7 +939,7 @@ func TestMatch(t *testing.T) {
 							11,
 							11,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\s",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -958,7 +958,7 @@ func TestMatch(t *testing.T) {
 							0,
 							0,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -970,7 +970,7 @@ func TestMatch(t *testing.T) {
 							1,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -982,7 +982,7 @@ func TestMatch(t *testing.T) {
 							2,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -994,7 +994,7 @@ func TestMatch(t *testing.T) {
 							4,
 							4,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1006,7 +1006,7 @@ func TestMatch(t *testing.T) {
 							6,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1018,7 +1018,7 @@ func TestMatch(t *testing.T) {
 							7,
 							7,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1030,7 +1030,7 @@ func TestMatch(t *testing.T) {
 							8,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1042,7 +1042,7 @@ func TestMatch(t *testing.T) {
 							9,
 							9,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1054,7 +1054,7 @@ func TestMatch(t *testing.T) {
 							10,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1066,7 +1066,7 @@ func TestMatch(t *testing.T) {
 							12,
 							12,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1078,7 +1078,7 @@ func TestMatch(t *testing.T) {
 							13,
 							13,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1090,7 +1090,7 @@ func TestMatch(t *testing.T) {
 							14,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1102,7 +1102,7 @@ func TestMatch(t *testing.T) {
 							15,
 							15,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1114,7 +1114,7 @@ func TestMatch(t *testing.T) {
 							16,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\S",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1144,7 +1144,7 @@ func TestMatch(t *testing.T) {
 							0,
 							0,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1156,7 +1156,7 @@ func TestMatch(t *testing.T) {
 							2,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\?",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1168,7 +1168,7 @@ func TestMatch(t *testing.T) {
 							4,
 							4,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\+",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1180,7 +1180,7 @@ func TestMatch(t *testing.T) {
 							6,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\*",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1192,7 +1192,7 @@ func TestMatch(t *testing.T) {
 							8,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\^",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1204,7 +1204,7 @@ func TestMatch(t *testing.T) {
 							10,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1216,7 +1216,7 @@ func TestMatch(t *testing.T) {
 							12,
 							12,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\[",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1228,7 +1228,7 @@ func TestMatch(t *testing.T) {
 							14,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1240,7 +1240,7 @@ func TestMatch(t *testing.T) {
 							16,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\{",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1252,7 +1252,7 @@ func TestMatch(t *testing.T) {
 							18,
 							18,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1279,7 +1279,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"fo(o|b)",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1293,7 +1293,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"f(o|b)o",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1307,7 +1307,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(f|b)(o|a)(o|r|z)",
 							"(f|b)(o|a)(o|\\w|\\D)",
 							"(f)(o)(o)",
@@ -1325,7 +1325,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(f|b)(o|a)(o|r|z)",
 							"(f|b)(o|a)(o|\\w|\\D)",
 						),
@@ -1342,7 +1342,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(f|b)(o|a)(o|r|z)",
 							"(f|b)(o|a)(o|\\w|\\D)",
 						),
@@ -1370,7 +1370,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"f(o(o))",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1385,7 +1385,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(b(a(r)))",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1401,7 +1401,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"((b)az)",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1431,7 +1431,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"fo(?<name>o|b)",
 						),
 						namedGroups: map[string]span.Interface{
@@ -1445,7 +1445,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"f(?<name>o|b)o",
 						),
 						namedGroups: map[string]span.Interface{
@@ -1459,7 +1459,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 							"(?<first>f)(?<second>o)(?<third>o)",
@@ -1477,7 +1477,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 						),
@@ -1494,7 +1494,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
 							"(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
 						),
@@ -1522,7 +1522,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"f(?<first>o(?<second>o))",
 						),
 						namedGroups: map[string]span.Interface{
@@ -1537,7 +1537,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?<first>b(?<second>a(?<third>r)))",
 						),
 						namedGroups: map[string]span.Interface{
@@ -1553,7 +1553,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?<first>(?<second>b)az)",
 						),
 						namedGroups: map[string]span.Interface{
@@ -1583,7 +1583,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"fo(?:o|b)",
 							"f(?:o|b)o",
 							"(?:f|b)(?:o|a)(?:o|r|z)",
@@ -1599,7 +1599,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?:f|b)(?:o|a)(?:o|r|z)",
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
 						),
@@ -1612,7 +1612,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?:f|b)(?:o|a)(?:o|r|z)",
 							"(?:f|b)(?:o|a)(?:o|\\w|\\D)",
 						),
@@ -1636,7 +1636,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"f(?:o(?:o))",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1648,7 +1648,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?:b(?:a(?:r)))",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1660,7 +1660,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?:(?:b)az)",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1684,7 +1684,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "",
 						span:      span.Empty(0),
-						expressions: newDict(
+						expressions: newSet(
 							"c?",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1693,7 +1693,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "",
 						span:      span.Empty(1),
-						expressions: newDict(
+						expressions: newSet(
 							"c?",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1705,7 +1705,7 @@ func TestMatch(t *testing.T) {
 							2,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"c?",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1715,7 +1715,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "pic",
 						span:      span.New(0, 2),
-						expressions: newDict(
+						expressions: newSet(
 							"pics?",
 							"pi.?c",
 							"....?",
@@ -1744,7 +1744,7 @@ func TestMatch(t *testing.T) {
 							0,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x*",
 							"x*x",
 							"x{0,}",
@@ -1756,7 +1756,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "",
 						span:      span.Empty(2),
-						expressions: newDict(
+						expressions: newSet(
 							"x*",
 							"x{0,}",
 						),
@@ -1769,7 +1769,7 @@ func TestMatch(t *testing.T) {
 							3,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x*",
 							"x*x",
 							"x{0,}",
@@ -1784,7 +1784,7 @@ func TestMatch(t *testing.T) {
 							0,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x.*",
 							"x.{0,}",
 						),
@@ -1794,7 +1794,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "",
 						span:      span.Empty(4),
-						expressions: newDict(
+						expressions: newSet(
 							"x*",
 							"x{0,}",
 						),
@@ -1804,7 +1804,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "",
 						span:      span.Empty(5),
-						expressions: newDict(
+						expressions: newSet(
 							"x*",
 							"x{0,}",
 						),
@@ -1817,7 +1817,7 @@ func TestMatch(t *testing.T) {
 							6,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x*",
 							"x*x",
 							"x.*",
@@ -1848,7 +1848,7 @@ func TestMatch(t *testing.T) {
 							0,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x+",
 							"x{1,}",
 							"x+x",
@@ -1863,7 +1863,7 @@ func TestMatch(t *testing.T) {
 							3,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x+",
 							"x{1,}",
 						),
@@ -1876,7 +1876,7 @@ func TestMatch(t *testing.T) {
 							6,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x+",
 							"x{1,}",
 						),
@@ -1889,7 +1889,7 @@ func TestMatch(t *testing.T) {
 							0,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x.+",
 							"x.{1,}",
 						),
@@ -1911,7 +1911,7 @@ func TestMatch(t *testing.T) {
 							0,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x{2,}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1923,7 +1923,7 @@ func TestMatch(t *testing.T) {
 							3,
 							5,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x{2,}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1944,7 +1944,7 @@ func TestMatch(t *testing.T) {
 							0,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x{2,4}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1956,7 +1956,7 @@ func TestMatch(t *testing.T) {
 							3,
 							5,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x{2,4}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1968,7 +1968,7 @@ func TestMatch(t *testing.T) {
 							9,
 							12,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x{2,4}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -1980,7 +1980,7 @@ func TestMatch(t *testing.T) {
 							13,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"x{2,4}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2005,7 +2005,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"^...",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2017,7 +2017,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"^...",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2029,7 +2029,7 @@ func TestMatch(t *testing.T) {
 							0,
 							0,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"^.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2041,7 +2041,7 @@ func TestMatch(t *testing.T) {
 							8,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"^.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2065,7 +2065,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\A...",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2077,7 +2077,7 @@ func TestMatch(t *testing.T) {
 							0,
 							0,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"\\A.",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2086,7 +2086,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "",
 						span:      span.Empty(0),
-						expressions: newDict(
+						expressions: newSet(
 							"\\A",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2112,7 +2112,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"...$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2124,7 +2124,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"...$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2136,7 +2136,7 @@ func TestMatch(t *testing.T) {
 							6,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							".$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2145,7 +2145,7 @@ func TestMatch(t *testing.T) {
 					{
 						subString: "",
 						span:      span.Empty(7),
-						expressions: newDict(
+						expressions: newSet(
 							"$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2157,7 +2157,7 @@ func TestMatch(t *testing.T) {
 							10,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							".$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2171,7 +2171,7 @@ func TestMatch(t *testing.T) {
 					// 		to:    11,
 					// 		empty: true,
 					// ),
-					// 	expressions: newDict(
+					// 	expressions: newSet(
 					// 		"$",
 					// 	),
 					// 	namedGroups: map[string]span.Interface{},
@@ -2194,7 +2194,7 @@ func TestMatch(t *testing.T) {
 							10,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							".\\z",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2206,7 +2206,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"...\\z",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2215,7 +2215,7 @@ func TestMatch(t *testing.T) {
 					// {
 					// 	subString: "",
 					// 	span:      span.Empty(11),
-					// 	expressions: newDict(
+					// 	expressions: newSet(
 					// 		"\\z",
 					// 	),
 					// 	namedGroups: map[string]span.Interface{},
@@ -2242,7 +2242,7 @@ func TestMatch(t *testing.T) {
 							4,
 							4,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[0-9]",
 							"[0-9]+",
 						),
@@ -2255,7 +2255,7 @@ func TestMatch(t *testing.T) {
 							14,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[0-9]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2267,7 +2267,7 @@ func TestMatch(t *testing.T) {
 							15,
 							15,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[0-9]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2279,7 +2279,7 @@ func TestMatch(t *testing.T) {
 							16,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[0-9]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2291,7 +2291,7 @@ func TestMatch(t *testing.T) {
 							14,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[0-9]+",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2303,7 +2303,7 @@ func TestMatch(t *testing.T) {
 							6,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"ba[rz]",
 							"[faborz]+",
 						),
@@ -2316,7 +2316,7 @@ func TestMatch(t *testing.T) {
 							10,
 							12,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"ba[rz]",
 							"[faborz]+",
 							"[bar][bar][baz]",
@@ -2330,7 +2330,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[faborz]+",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2354,7 +2354,7 @@ func TestMatch(t *testing.T) {
 							3,
 							3,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^a-z]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2366,7 +2366,7 @@ func TestMatch(t *testing.T) {
 							4,
 							4,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^a-z]",
 							"[^\\s]+",
 						),
@@ -2379,7 +2379,7 @@ func TestMatch(t *testing.T) {
 							5,
 							5,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^a-z]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2391,7 +2391,7 @@ func TestMatch(t *testing.T) {
 							9,
 							9,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^a-z]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2403,7 +2403,7 @@ func TestMatch(t *testing.T) {
 							13,
 							13,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^a-z]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2415,7 +2415,7 @@ func TestMatch(t *testing.T) {
 							14,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^a-z]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2427,7 +2427,7 @@ func TestMatch(t *testing.T) {
 							15,
 							15,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^a-z]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2439,7 +2439,7 @@ func TestMatch(t *testing.T) {
 							16,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^a-z]",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2451,7 +2451,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^\\s]+",
 							"[^\\s][^\\s][^\\s]",
 						),
@@ -2464,7 +2464,7 @@ func TestMatch(t *testing.T) {
 							6,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^\\s]+",
 							"[^\\s][^\\s][^\\s]",
 						),
@@ -2477,7 +2477,7 @@ func TestMatch(t *testing.T) {
 							10,
 							12,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^\\s]+",
 							"ba[^for]",
 							"[^\\s][^\\s][^\\s]",
@@ -2491,7 +2491,7 @@ func TestMatch(t *testing.T) {
 							14,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[^\\s]+",
 							"[^\\s][^\\s][^\\s]",
 						),
@@ -2515,7 +2515,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2529,7 +2529,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2543,7 +2543,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01][0-9][0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2566,7 +2566,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2580,7 +2580,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2594,7 +2594,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2608,7 +2608,7 @@ func TestMatch(t *testing.T) {
 							12,
 							13,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2622,7 +2622,7 @@ func TestMatch(t *testing.T) {
 							14,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2636,7 +2636,7 @@ func TestMatch(t *testing.T) {
 							16,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2650,7 +2650,7 @@ func TestMatch(t *testing.T) {
 							18,
 							19,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2664,7 +2664,7 @@ func TestMatch(t *testing.T) {
 							21,
 							23,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2687,7 +2687,7 @@ func TestMatch(t *testing.T) {
 							0,
 							2,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2701,7 +2701,7 @@ func TestMatch(t *testing.T) {
 							4,
 							6,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2715,7 +2715,7 @@ func TestMatch(t *testing.T) {
 							8,
 							10,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2729,7 +2729,7 @@ func TestMatch(t *testing.T) {
 							12,
 							13,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2743,7 +2743,7 @@ func TestMatch(t *testing.T) {
 							14,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2757,7 +2757,7 @@ func TestMatch(t *testing.T) {
 							16,
 							16,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2771,7 +2771,7 @@ func TestMatch(t *testing.T) {
 							18,
 							19,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2785,7 +2785,7 @@ func TestMatch(t *testing.T) {
 							21,
 							23,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(0?[0-9]?[0-9]|1[01][0-9]|12[0-7])",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2809,7 +2809,7 @@ func TestMatch(t *testing.T) {
 							0,
 							4,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
@@ -2822,7 +2822,7 @@ func TestMatch(t *testing.T) {
 							6,
 							8,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
@@ -2835,7 +2835,7 @@ func TestMatch(t *testing.T) {
 							10,
 							14,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
@@ -2848,7 +2848,7 @@ func TestMatch(t *testing.T) {
 							16,
 							19,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
@@ -2861,7 +2861,7 @@ func TestMatch(t *testing.T) {
 							21,
 							28,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							`[-+]?[0-9]+\.?[0-9]+`,
 							`[-+]?[0-9]+.?[0-9]+`,
 						),
@@ -2886,7 +2886,7 @@ func TestMatch(t *testing.T) {
 							10,
 							21,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
 							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
 						),
@@ -2899,7 +2899,7 @@ func TestMatch(t *testing.T) {
 							30,
 							39,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}",
 							"(?:[a-z0-9._%+-]+)@(?:[a-z0-9.-]+\\.[a-z]{2,})",
 						),
@@ -2912,7 +2912,7 @@ func TestMatch(t *testing.T) {
 							10,
 							21,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2927,7 +2927,7 @@ func TestMatch(t *testing.T) {
 							30,
 							39,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"([a-z0-9._%+-]+)@([a-z0-9.-]+\\.[a-z]{2,})",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -2942,7 +2942,7 @@ func TestMatch(t *testing.T) {
 							10,
 							21,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
 						),
 						namedGroups: map[string]span.Interface{
@@ -2963,7 +2963,7 @@ func TestMatch(t *testing.T) {
 							30,
 							39,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})",
 						),
 						namedGroups: map[string]span.Interface{
@@ -2994,7 +2994,7 @@ func TestMatch(t *testing.T) {
 							0,
 							15,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"4[0-9]{12}(?:[0-9]{3})?",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3006,7 +3006,7 @@ func TestMatch(t *testing.T) {
 							34,
 							49,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"4[0-9]{12}(?:[0-9]{3})?",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3018,7 +3018,7 @@ func TestMatch(t *testing.T) {
 							51,
 							63,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"4[0-9]{12}(?:[0-9]{3})?",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3030,7 +3030,7 @@ func TestMatch(t *testing.T) {
 							17,
 							32,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3042,7 +3042,7 @@ func TestMatch(t *testing.T) {
 							65,
 							80,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"(?:5[1-5][0-9]{2}|222[1-9]|22[3-9][0-9]|2[3-6][0-9]{2}|27[01][0-9]|2720)[0-9]{12}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3066,7 +3066,7 @@ func TestMatch(t *testing.T) {
 							0,
 							73,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"^.*$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3078,7 +3078,7 @@ func TestMatch(t *testing.T) {
 							0,
 							1,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"^.{2}",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3090,7 +3090,7 @@ func TestMatch(t *testing.T) {
 							72,
 							73,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							".{2}$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3102,7 +3102,7 @@ func TestMatch(t *testing.T) {
 							0,
 							73,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							"^(.*)$",
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3126,7 +3126,7 @@ func TestMatch(t *testing.T) {
 							15,
 							38,
 						),
-						expressions: newDict(
+						expressions: newSet(
 							`<p>(.*)</p>`,
 						),
 						namedGroups: map[string]span.Interface{},
@@ -3222,7 +3222,7 @@ func Test_It(t *testing.T) { // TODO : move it to examples
 				0,
 				2,
 			),
-			expressions: newDict(
+			expressions: newSet(
 				"ba[^for]",
 			),
 			namedGroups: map[string]span.Interface{},

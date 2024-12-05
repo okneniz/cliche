@@ -121,7 +121,7 @@ func (s *scanner) lastMatch() (*stringMatch, bool) {
 	}
 
 	m := &stringMatch{
-		expressions: newDict().merge(n.node.GetExpressions()),
+		expressions: newSet().merge(n.node.GetExpressions()),
 		groups:      s.groups.ToSlice(),
 		namedGroups: s.namedGroups.ToMap(),
 		span:        n.span,
@@ -270,7 +270,7 @@ func (m nodeMatch) String() string {
 type stringMatch struct {
 	subString   string
 	span        span.Interface
-	expressions dict
+	expressions Set
 	groups      []span.Interface
 	namedGroups map[string]span.Interface
 }
@@ -336,7 +336,7 @@ func (m *stringMatch) Clone() *stringMatch {
 	return &stringMatch{
 		subString:   m.subString,
 		span:        m.span,
-		expressions: newDict().merge(m.expressions),
+		expressions: newSet().merge(m.expressions),
 		groups:      m.groups,
 		namedGroups: m.namedGroups,
 	}
