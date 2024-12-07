@@ -29,6 +29,28 @@ func (m *Match) Key() string {
 	return s
 }
 
+func (m *Match) Expressions() []string {
+	return m.expressions.Slice()
+}
+
+func (m *Match) NamedGroups() map[string]span.Interface {
+	return m.namedGroups
+}
+
+func (m *Match) Groups() []span.Interface {
+	return m.groups
+}
+
+func (m *Match) Clone() *Match {
+	return &Match{
+		subString:   m.subString,
+		span:        m.span,
+		expressions: newSet().merge(m.expressions),
+		groups:      m.groups,
+		namedGroups: m.namedGroups,
+	}
+}
+
 func (m *Match) String() string {
 	return fmt.Sprintf(
 		"Match{%s, '%s', (%s) [%s] {%s}",
@@ -58,26 +80,4 @@ func (m *Match) namedGroupsToString() string {
 	}
 	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i] < pairs[j] })
 	return strings.Join(pairs, ", ")
-}
-
-func (m *Match) Expressions() []string {
-	return m.expressions.Slice()
-}
-
-func (m *Match) NamedGroups() map[string]span.Interface {
-	return m.namedGroups
-}
-
-func (m *Match) Groups() []span.Interface {
-	return m.groups
-}
-
-func (m *Match) Clone() *Match {
-	return &Match{
-		subString:   m.subString,
-		span:        m.span,
-		expressions: newSet().merge(m.expressions),
-		groups:      m.groups,
-		namedGroups: m.namedGroups,
-	}
 }

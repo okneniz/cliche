@@ -14,14 +14,14 @@ type Node interface {
 	GetNestedNodes() map[string]Node
 	IsEnd() bool
 
-	Scan(Output, TextBuffer, int, int, Callback)
+	// rename to Visit
+	Scan(Scanner, TextBuffer, int, int, Callback)
 	Merge(Node)
 	Traverse(func(Node))
 }
 
 type Callback func(x Node, from int, to int, empty bool)
 
-// TODO : rename to Set
 type Set map[string]struct{}
 
 func newSet(items ...string) Set {
@@ -96,7 +96,7 @@ func (n *nestedNode) Merge(other Node) {
 }
 
 func (n *nestedNode) Match(
-	output Output,
+	output Scanner,
 	input TextBuffer,
 	from, to int,
 	onMatch Callback,
@@ -194,7 +194,7 @@ func (n *alternation) Traverse(f func(Node)) {
 }
 
 // TODO : check it without groups too
-func (n *alternation) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *alternation) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	n.scanVariants(
 		output,
 		input,
@@ -209,7 +209,7 @@ func (n *alternation) Scan(output Output, input TextBuffer, from, to int, onMatc
 }
 
 func (n *alternation) scanAlternation(
-	output Output,
+	output Scanner,
 	input TextBuffer,
 	from, to int,
 	onMatch Callback,
@@ -227,7 +227,7 @@ func (n *alternation) scanAlternation(
 	)
 }
 
-func (n *alternation) scanVariants(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *alternation) scanVariants(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	position := output.Position()
 
 	for _, variant := range n.Value {
@@ -255,7 +255,7 @@ func (n *group) Traverse(f func(Node)) {
 	}
 }
 
-func (n *group) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *group) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	output.Groups().From(n.uniqID, from)
 
 	n.Value.scanAlternation(
@@ -292,8 +292,8 @@ func (n *namedGroup) Traverse(f func(Node)) {
 	}
 }
 
-func (n *namedGroup) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
-	output.NamedGroups().From(n.Name, from)
+func (n *namedGroup) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
+	output.NamedGroups().From(n.Name, from) // TODO : почему просто не добвть в NamedGroups().To() конечный span?
 	n.Value.scanAlternation(
 		output,
 		input,
@@ -326,7 +326,7 @@ func (n *notCapturedGroup) Traverse(f func(Node)) {
 	}
 }
 
-func (n *notCapturedGroup) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *notCapturedGroup) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	n.Value.scanAlternation(
 		output,
 		input,
@@ -357,7 +357,7 @@ func (n *char) Traverse(f func(Node)) {
 	}
 }
 
-func (n *char) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *char) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -388,7 +388,7 @@ func (n *dot) Traverse(f func(Node)) {
 	}
 }
 
-func (n *dot) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *dot) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -418,7 +418,7 @@ func (n *digit) Traverse(f func(Node)) {
 	}
 }
 
-func (n *digit) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *digit) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -450,7 +450,7 @@ func (n *nonDigit) Traverse(f func(Node)) {
 	}
 }
 
-func (n *nonDigit) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonDigit) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -482,7 +482,7 @@ func (n *word) Traverse(f func(Node)) {
 	}
 }
 
-func (n *word) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *word) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -514,7 +514,7 @@ func (n *nonWord) Traverse(f func(Node)) {
 	}
 }
 
-func (n *nonWord) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonWord) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -546,7 +546,7 @@ func (n *space) Traverse(f func(Node)) {
 	}
 }
 
-func (n *space) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *space) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -578,7 +578,7 @@ func (n *nonSpace) Traverse(f func(Node)) {
 	}
 }
 
-func (n *nonSpace) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonSpace) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -610,7 +610,7 @@ func (n *startOfLine) Traverse(f func(Node)) {
 	}
 }
 
-func (n *startOfLine) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *startOfLine) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -664,7 +664,7 @@ func (n *endOfLine) Traverse(f func(Node)) {
 	}
 }
 
-func (n *endOfLine) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *endOfLine) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	// TODO : precache new line positions in buffer?
 
 	if n.isEndOfLine(input, from) {
@@ -705,7 +705,7 @@ func (n *startOfString) Traverse(f func(Node)) {
 	}
 }
 
-func (n *startOfString) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *startOfString) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from == 0 {
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), true)
@@ -731,7 +731,7 @@ func (n *endOfString) Traverse(f func(Node)) {
 	}
 }
 
-func (n *endOfString) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *endOfString) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from == input.Size() {
 		pos := output.Position()
 		output.Yield(n, from, from, n.IsEnd(), true)
@@ -793,7 +793,7 @@ func (n *quantifier) Traverse(f func(Node)) {
 	}
 }
 
-func (n *quantifier) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *quantifier) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	start := output.Position()
 
 	n.recursiveScan(1, output, input, from, to, func(_ Node, _, mTo int, empty bool) {
@@ -808,7 +808,7 @@ func (n *quantifier) Scan(output Output, input TextBuffer, from, to int, onMatch
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.From == 0 {
-		if m, exists := output.LastMatchSpan(); exists {
+		if m, exists := output.LastMatch(); exists {
 			// TODO : remove condition and this line?
 			output.Yield(n, m.To(), m.To(), n.IsEnd(), false)
 		} else {
@@ -823,7 +823,7 @@ func (n *quantifier) Scan(output Output, input TextBuffer, from, to int, onMatch
 
 func (n *quantifier) recursiveScan(
 	count int,
-	output Output,
+	output Scanner,
 	input TextBuffer,
 	from, to int,
 	onMatch Callback,
@@ -904,7 +904,7 @@ func (n *characterClass) Traverse(f func(Node)) {
 	}
 }
 
-func (n *characterClass) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *characterClass) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -966,7 +966,7 @@ func (n *negatedCharacterClass) Traverse(f func(Node)) {
 	}
 }
 
-func (n *negatedCharacterClass) Scan(output Output, input TextBuffer, from, to int, onMatch Callback) {
+func (n *negatedCharacterClass) Scan(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}

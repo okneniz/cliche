@@ -82,16 +82,16 @@ func (t *tree) Size() int {
 }
 
 func (t *tree) MarshalJSON() ([]byte, error) {
-	scanner := bytes.NewBuffer(nil)
+	data := bytes.NewBuffer(nil)
 
-	encoder := json.NewEncoder(scanner)
+	encoder := json.NewEncoder(data)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", " ")
 	if err := encoder.Encode(t.nodes); err != nil {
 		return nil, err
 	}
 
-	return scanner.Bytes(), nil
+	return data.Bytes(), nil
 }
 
 func (t *tree) String() string {
@@ -125,12 +125,14 @@ func (t *tree) Match(text string) []*Match {
 	}
 
 	input := newBuffer(text)
-	scanner := newFullScanner(input)
+	output := newOutput()
+	t.Scan(0, input.Size()-1, input, output)
 
-	return t.Scan(0, input.Size()-1, input, scanner)
+	return output.Slice()
 }
 
-func (t *tree) Scan(from, to int, input TextBuffer, output Output) []*Match {
+func (t *tree) Scan(from, to int, input TextBuffer, output Output) {
+	scanner := newFullScanner(input, output)
 	skip := func(_ Node, _, _ int, _ bool) {}
 
 	for _, n := range t.nodes {
@@ -138,7 +140,7 @@ func (t *tree) Scan(from, to int, input TextBuffer, output Output) []*Match {
 
 		for nextFrom <= to {
 			lastFrom := nextFrom
-			n.Scan(output, input, nextFrom, to, skip)
+			n.Scan(scanner, input, nextFrom, to, skip)
 
 			if pos, ok := output.LastPosOf(n); ok && pos >= nextFrom {
 				nextFrom = pos
@@ -148,9 +150,7 @@ func (t *tree) Scan(from, to int, input TextBuffer, output Output) []*Match {
 				nextFrom++
 			}
 
-			output.Rewind(0)
+			scanner.Rewind(0)
 		}
 	}
-
-	return output.Matches()
 }

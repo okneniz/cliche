@@ -14,8 +14,8 @@ var (
 )
 
 func New(from int, to int) Interface {
-	if from > to {
-		panic(fmt.Sprintf("invalid SPAN %d %d", from, to))
+	if from > to || from < 0 || to < 0 {
+		panic(fmt.Sprintf("invalid bounds %d %d", from, to))
 	}
 	return pair{
 		from: from,
