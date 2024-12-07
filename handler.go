@@ -16,7 +16,6 @@ type Output interface {
 }
 
 type Scanner interface {
-	// TODO : rename to Match
 	Yield(n Node, from, to int, isLeaf, isEmpty bool)
 	Position() int
 	Rewind(pos int)

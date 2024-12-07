@@ -140,7 +140,7 @@ func (t *tree) Scan(from, to int, input TextBuffer, output Output) {
 
 		for nextFrom <= to {
 			lastFrom := nextFrom
-			n.Scan(scanner, input, nextFrom, to, skip)
+			n.Visit(scanner, input, nextFrom, to, skip)
 
 			if pos, ok := output.LastPosOf(n); ok && pos >= nextFrom {
 				nextFrom = pos
