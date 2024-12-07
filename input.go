@@ -14,14 +14,14 @@ type simpleBuffer struct {
 	// positions []int (stack of last positions)
 }
 
-type TextBuffer interface {
+type Input interface {
 	ReadAt(int) rune
 	Size() int
 	Substring(int, int) (string, error)
 	String() string
 }
 
-var _ TextBuffer = &simpleBuffer{}
+var _ Input = &simpleBuffer{}
 var _ c.Buffer[rune, int] = &simpleBuffer{}
 
 // newBuffer - make buffer which can read text on input

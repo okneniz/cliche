@@ -131,7 +131,7 @@ func (t *tree) Match(text string) []*Match {
 	return output.Slice()
 }
 
-func (t *tree) Scan(from, to int, input TextBuffer, output Output) {
+func (t *tree) Scan(from, to int, input Input, output Output) {
 	scanner := newFullScanner(input, output)
 	skip := func(_ Node, _, _ int, _ bool) {}
 

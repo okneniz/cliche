@@ -45,7 +45,7 @@ Main features:
 
  * `\b` as backspace is effective in character class only
 
-### Predefeined meta characters
+### Predefined meta characters
 
 | support | characters | match |
 |--|--|--|
@@ -289,7 +289,7 @@ Possesive - greedy and does not backtrack once match.
                       \A\/\*(?~\*\/)\*\/\z doesn't match "/**/ */".
                       This is different from \A\/\*.*?\*\/\z which uses a
                       reluctant quantifier (.*?).
-
+:
                       Unlike (?:(?!abc).)*c, (?~abc)c matches "abc", because
                       (?~abc) matches "ab".
 

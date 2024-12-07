@@ -35,14 +35,14 @@ type Captures interface {
 // even if a “better” match could be found later.
 
 type scanner struct {
-	input      TextBuffer
+	input      Input
 	output     Output
 	expression *truncatedList[nodeMatch]
 }
 
 var _ Scanner = new(scanner)
 
-func newFullScanner(input TextBuffer, output Output) *scanner {
+func newFullScanner(input Input, output Output) *scanner {
 	s := new(scanner)
 	s.input = input
 	s.output = output

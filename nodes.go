@@ -14,7 +14,7 @@ type Node interface {
 	GetNestedNodes() map[string]Node
 	IsEnd() bool
 
-	Visit(Scanner, TextBuffer, int, int, Callback)
+	Visit(Scanner, Input, int, int, Callback)
 	Merge(Node)
 	Traverse(func(Node))
 }
@@ -64,7 +64,7 @@ func (n *nestedNode) Merge(other Node) {
 
 func (n *nestedNode) Match(
 	scanner Scanner,
-	input TextBuffer,
+	input Input,
 	from, to int,
 	onMatch Callback,
 ) {
@@ -168,7 +168,7 @@ func (n *alternation) Traverse(f func(Node)) {
 }
 
 // TODO : check it without groups too
-func (n *alternation) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *alternation) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	n.scanVariants(
 		scanner,
 		input,
@@ -184,7 +184,7 @@ func (n *alternation) Visit(scanner Scanner, input TextBuffer, from, to int, onM
 
 func (n *alternation) scanAlternation(
 	scanner Scanner,
-	input TextBuffer,
+	input Input,
 	from, to int,
 	onMatch Callback,
 ) {
@@ -201,7 +201,7 @@ func (n *alternation) scanAlternation(
 	)
 }
 
-func (n *alternation) scanVariants(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *alternation) scanVariants(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	position := scanner.Position()
 
 	for _, variant := range n.Value {
@@ -229,7 +229,7 @@ func (n *group) Traverse(f func(Node)) {
 	}
 }
 
-func (n *group) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	scanner.Groups().From(n.uniqID, from)
 
 	n.Value.scanAlternation(
@@ -266,7 +266,7 @@ func (n *namedGroup) Traverse(f func(Node)) {
 	}
 }
 
-func (n *namedGroup) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	scanner.NamedGroups().From(n.Name, from)
 	n.Value.scanAlternation(
 		scanner,
@@ -300,7 +300,7 @@ func (n *notCapturedGroup) Traverse(f func(Node)) {
 	}
 }
 
-func (n *notCapturedGroup) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	n.Value.scanAlternation(
 		scanner,
 		input,
@@ -331,7 +331,7 @@ func (n *char) Traverse(f func(Node)) {
 	}
 }
 
-func (n *char) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *char) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -362,7 +362,7 @@ func (n *dot) Traverse(f func(Node)) {
 	}
 }
 
-func (n *dot) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *dot) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -392,7 +392,7 @@ func (n *digit) Traverse(f func(Node)) {
 	}
 }
 
-func (n *digit) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *digit) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -424,7 +424,7 @@ func (n *nonDigit) Traverse(f func(Node)) {
 	}
 }
 
-func (n *nonDigit) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonDigit) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -456,7 +456,7 @@ func (n *word) Traverse(f func(Node)) {
 	}
 }
 
-func (n *word) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *word) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -488,7 +488,7 @@ func (n *nonWord) Traverse(f func(Node)) {
 	}
 }
 
-func (n *nonWord) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonWord) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -520,7 +520,7 @@ func (n *space) Traverse(f func(Node)) {
 	}
 }
 
-func (n *space) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *space) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -552,7 +552,7 @@ func (n *nonSpace) Traverse(f func(Node)) {
 	}
 }
 
-func (n *nonSpace) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *nonSpace) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -584,7 +584,7 @@ func (n *startOfLine) Traverse(f func(Node)) {
 	}
 }
 
-func (n *startOfLine) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *startOfLine) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -600,7 +600,7 @@ func (n *startOfLine) Visit(scanner Scanner, input TextBuffer, from, to int, onM
 	}
 }
 
-func (n *startOfLine) isEndOfLine(input TextBuffer, idx int) bool {
+func (n *startOfLine) isEndOfLine(input Input, idx int) bool {
 	if idx < 0 {
 		return false
 	}
@@ -637,7 +637,7 @@ func (n *endOfLine) Traverse(f func(Node)) {
 	}
 }
 
-func (n *endOfLine) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *endOfLine) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	// TODO : precache new line positions in buffer?
 
 	if n.isEndOfLine(input, from) {
@@ -650,7 +650,7 @@ func (n *endOfLine) Visit(scanner Scanner, input TextBuffer, from, to int, onMat
 }
 
 // TODO : check \n\r too
-func (n *endOfLine) isEndOfLine(input TextBuffer, idx int) bool {
+func (n *endOfLine) isEndOfLine(input Input, idx int) bool {
 	if idx > input.Size() {
 		return false
 	}
@@ -678,7 +678,7 @@ func (n *startOfString) Traverse(f func(Node)) {
 	}
 }
 
-func (n *startOfString) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *startOfString) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from == 0 {
 		pos := scanner.Position()
 		scanner.Match(n, from, from, n.IsEnd(), true)
@@ -704,7 +704,7 @@ func (n *endOfString) Traverse(f func(Node)) {
 	}
 }
 
-func (n *endOfString) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *endOfString) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from == input.Size() {
 		pos := scanner.Position()
 		scanner.Match(n, from, from, n.IsEnd(), true)
@@ -766,7 +766,7 @@ func (n *quantifier) Traverse(f func(Node)) {
 	}
 }
 
-func (n *quantifier) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	start := scanner.Position()
 
 	n.recursiveVisit(1, scanner, input, from, to, func(_ Node, _, mTo int, empty bool) {
@@ -791,7 +791,7 @@ func (n *quantifier) Visit(scanner Scanner, input TextBuffer, from, to int, onMa
 func (n *quantifier) recursiveVisit(
 	count int,
 	scanner Scanner,
-	input TextBuffer,
+	input Input,
 	from, to int,
 	onMatch Callback,
 ) {
@@ -871,7 +871,7 @@ func (n *characterClass) Traverse(f func(Node)) {
 	}
 }
 
-func (n *characterClass) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *characterClass) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -932,7 +932,7 @@ func (n *negatedCharacterClass) Traverse(f func(Node)) {
 	}
 }
 
-func (n *negatedCharacterClass) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
+func (n *negatedCharacterClass) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
