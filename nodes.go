@@ -807,13 +807,7 @@ func (n *quantifier) Visit(output Scanner, input TextBuffer, from, to int, onMat
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.From == 0 {
-		if m, exists := output.LastMatch(); exists {
-			// TODO : remove condition and this line?
-			output.Match(n, m.To(), m.To(), n.IsEnd(), false)
-		} else {
-			output.Match(n, from, from, n.IsEnd(), true)
-		}
-
+		output.Match(n, from, from, n.IsEnd(), true)
 		n.nestedNode.Match(output, input, from, to, onMatch)
 	}
 

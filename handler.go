@@ -19,8 +19,6 @@ type Scanner interface {
 	Match(n Node, from, to int, isLeaf, isEmpty bool)
 	Position() int
 	Rewind(pos int)
-	LastMatch() (span.Interface, bool)
-
 	Groups() Captures
 	NamedGroups() Captures
 }
@@ -73,10 +71,6 @@ func (s *scanner) Rewind(pos int) {
 	}
 
 	s.expression.truncate(pos)
-}
-
-func (s *scanner) LastMatch() (span.Interface, bool) {
-	return s.lastSpan()
 }
 
 func (s *scanner) Groups() Captures {
