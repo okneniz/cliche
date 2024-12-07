@@ -8,7 +8,9 @@ import (
 )
 
 // https://www.regular-expressions.info/engine.html
-// This is a very important point to understand: a regex engine always returns the leftmost match, even if a “better” match could be found later.
+// This is a very important point to understand:
+// a regex engine always returns the leftmost match,
+// even if a “better” match could be found later.
 
 type output struct {
 	// current captured groups

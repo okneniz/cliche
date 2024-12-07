@@ -31,4 +31,3 @@ func (d Set) Slice() []string {
 	}
 	return result
 }
-
