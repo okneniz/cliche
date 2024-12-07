@@ -35,10 +35,8 @@ type Captures interface {
 // even if a “better” match could be found later.
 
 type scanner struct {
-	input  TextBuffer
-	output Output
-
-	// current matched expression
+	input      TextBuffer
+	output     Output
 	expression *truncatedList[nodeMatch]
 }
 
@@ -121,28 +119,17 @@ func (s *scanner) currentMatchSpan() (span.Interface, bool) {
 		return nil, false
 	}
 
-	end, exists := s.lastSpan()
-	if !exists {
-		return nil, false
-	}
-
 	if begin.From() > s.input.Size() {
 		return span.Empty(s.input.Size()), true
 	}
 
-	// TODO : кажется begin хватит тут
-	beginSubstring, exists := s.firstNotEmptySpan()
-	if !exists {
-		return end, true
-	}
-
 	endSubstring, exists := s.lastNotEmptySpan()
 	if !exists {
-		return end, true
+		return begin, true
 	}
 
 	return span.New(
-		beginSubstring.From(),
+		begin.From(),
 		endSubstring.To(),
 	), true
 }
@@ -150,26 +137,6 @@ func (s *scanner) currentMatchSpan() (span.Interface, bool) {
 func (s *scanner) firstSpan() (span.Interface, bool) {
 	if x, ok := s.expression.first(); ok {
 		return x.span, true
-	}
-
-	return nil, false
-}
-
-func (s *scanner) lastSpan() (span.Interface, bool) {
-	if x, ok := s.expression.last(); ok {
-		return x.span, true
-	}
-
-	return nil, false
-}
-
-func (s *scanner) firstNotEmptySpan() (span.Interface, bool) {
-	for i := 0; i < s.expression.len(); i++ {
-		m := s.expression.at(i)
-
-		if !m.span.Empty() {
-			return m.span, true
-		}
 	}
 
 	return nil, false
