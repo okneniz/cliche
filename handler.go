@@ -126,9 +126,8 @@ func (s *scanner) currentMatchSpan() (span.Interface, bool) {
 		return nil, false
 	}
 
-	if begin.From() >= s.input.Size() {
-		// TODO : size - 1 or size?
-		return span.Empty(s.input.Size() - 1), true
+	if begin.From() > s.input.Size() {
+		return span.Empty(s.input.Size()), true
 	}
 
 	// TODO : кажется begin хватит тут
