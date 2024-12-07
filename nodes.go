@@ -260,7 +260,7 @@ func (n *namedGroup) Traverse(f func(Node)) {
 }
 
 func (n *namedGroup) Visit(scanner Scanner, input TextBuffer, from, to int, onMatch Callback) {
-	scanner.NamedGroups().From(n.Name, from) // TODO : почему просто не добвть в NamedGroups().To() конечный span?
+	scanner.NamedGroups().From(n.Name, from)
 	n.Value.scanAlternation(
 		scanner,
 		input,
@@ -608,7 +608,6 @@ func (n *startOfLine) isEndOfLine(input TextBuffer, idx int) bool {
 			return true
 		}
 
-		// TODO : looks strange
 		return input.ReadAt(idx-1) == '\n'
 	default:
 		return false
@@ -872,7 +871,6 @@ func (n *characterClass) Visit(scanner Scanner, input TextBuffer, from, to int, 
 
 	x := input.ReadAt(from)
 
-	// TODO : always only one character?
 	if unicode.In(x, n.table) {
 		pos := scanner.Position()
 
@@ -934,7 +932,6 @@ func (n *negatedCharacterClass) Visit(scanner Scanner, input TextBuffer, from, t
 
 	x := input.ReadAt(from)
 
-	// TODO : always only one character?
 	if !unicode.In(x, n.table) {
 		pos := scanner.Position()
 

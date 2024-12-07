@@ -765,13 +765,13 @@ func parseEscapedMetaCharactersTable() tableParser {
 					return unicode.Digit, nil
 				},
 				'D': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
-					return notDigitTable, nil // TODO : check
+					return notDigitTable, nil
 				},
 				'w': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 					return unicode.Letter, nil
 				},
 				'W': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
-					return notWordTable, nil // TODO : check
+					return notWordTable, nil
 				},
 				's': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 					return unicode.Space, nil

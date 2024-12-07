@@ -172,7 +172,6 @@ func Test_truncatedList(t *testing.T) {
 	l.truncate(0)
 }
 
-// TODO : but why?
 type num int
 
 func (t num) String() string {
