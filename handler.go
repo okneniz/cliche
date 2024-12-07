@@ -16,7 +16,7 @@ type Output interface {
 }
 
 type Scanner interface {
-	Yield(n Node, from, to int, isLeaf, isEmpty bool)
+	Match(n Node, from, to int, isLeaf, isEmpty bool)
 	Position() int
 	Rewind(pos int)
 	LastMatch() (span.Interface, bool)
@@ -87,7 +87,7 @@ func (s *scanner) NamedGroups() Captures {
 	return s.output.NamedGroups()
 }
 
-func (s *scanner) Yield(n Node, from, to int, leaf, empty bool) {
+func (s *scanner) Match(n Node, from, to int, leaf, empty bool) {
 	x := nodeMatch{node: n}
 
 	if empty {

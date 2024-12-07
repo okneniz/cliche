@@ -200,7 +200,7 @@ func (n *alternation) Visit(output Scanner, input TextBuffer, from, to int, onMa
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			output.Yield(n, from, vTo, n.IsEnd(), false)
+			output.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
@@ -264,7 +264,7 @@ func (n *group) Visit(output Scanner, input TextBuffer, from, to int, onMatch Ca
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
 			output.Groups().To(n.uniqID, vTo)
-			output.Yield(n, from, vTo, n.IsEnd(), false)
+			output.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
@@ -300,7 +300,7 @@ func (n *namedGroup) Visit(output Scanner, input TextBuffer, from, to int, onMat
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
 			output.NamedGroups().To(n.Name, vTo)
-			output.Yield(n, from, vTo, n.IsEnd(), false)
+			output.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
@@ -332,7 +332,7 @@ func (n *notCapturedGroup) Visit(output Scanner, input TextBuffer, from, to int,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			output.Yield(n, from, vTo, n.IsEnd(), false)
+			output.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.Match(output, input, vTo+1, to, onMatch)
 		},
@@ -363,7 +363,7 @@ func (n *char) Visit(output Scanner, input TextBuffer, from, to int, onMatch Cal
 
 	if input.ReadAt(from) == n.Value {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
@@ -394,7 +394,7 @@ func (n *dot) Visit(output Scanner, input TextBuffer, from, to int, onMatch Call
 
 	if input.ReadAt(from) != '\n' {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
@@ -426,7 +426,7 @@ func (n *digit) Visit(output Scanner, input TextBuffer, from, to int, onMatch Ca
 
 	if unicode.IsDigit(x) {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
@@ -458,7 +458,7 @@ func (n *nonDigit) Visit(output Scanner, input TextBuffer, from, to int, onMatch
 
 	if !unicode.IsDigit(x) {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
@@ -490,7 +490,7 @@ func (n *word) Visit(output Scanner, input TextBuffer, from, to int, onMatch Cal
 
 	if x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x) {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
@@ -522,7 +522,7 @@ func (n *nonWord) Visit(output Scanner, input TextBuffer, from, to int, onMatch 
 
 	if !(x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x)) {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
@@ -554,7 +554,7 @@ func (n *space) Visit(output Scanner, input TextBuffer, from, to int, onMatch Ca
 
 	if unicode.IsSpace(x) {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
@@ -586,7 +586,7 @@ func (n *nonSpace) Visit(output Scanner, input TextBuffer, from, to int, onMatch
 
 	if !unicode.IsSpace(x) {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 		output.Rewind(pos)
@@ -618,7 +618,7 @@ func (n *startOfLine) Visit(output Scanner, input TextBuffer, from, to int, onMa
 
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), true)
+		output.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
 		n.nestedNode.Match(output, input, from, to, onMatch)
 		output.Rewind(pos)
@@ -668,7 +668,7 @@ func (n *endOfLine) Visit(output Scanner, input TextBuffer, from, to int, onMatc
 
 	if n.isEndOfLine(input, from) {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), true)
+		output.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
 		n.nestedNode.Match(output, input, from, to, onMatch)
 		output.Rewind(pos)
@@ -707,7 +707,7 @@ func (n *startOfString) Traverse(f func(Node)) {
 func (n *startOfString) Visit(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from == 0 {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), true)
+		output.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
 		n.nestedNode.Match(output, input, from, to, onMatch)
 		output.Rewind(pos)
@@ -733,7 +733,7 @@ func (n *endOfString) Traverse(f func(Node)) {
 func (n *endOfString) Visit(output Scanner, input TextBuffer, from, to int, onMatch Callback) {
 	if from == input.Size() {
 		pos := output.Position()
-		output.Yield(n, from, from, n.IsEnd(), true)
+		output.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
 		n.nestedNode.Match(output, input, from, to, onMatch)
 		output.Rewind(pos)
@@ -797,7 +797,7 @@ func (n *quantifier) Visit(output Scanner, input TextBuffer, from, to int, onMat
 
 	n.recursiveVisit(1, output, input, from, to, func(_ Node, _, mTo int, empty bool) {
 		pos := output.Position()
-		output.Yield(n, from, mTo, n.IsEnd(), false)
+		output.Match(n, from, mTo, n.IsEnd(), false)
 		onMatch(n, from, mTo, empty)
 		n.nestedNode.Match(output, input, mTo+1, to, onMatch)
 		output.Rewind(pos)
@@ -809,9 +809,9 @@ func (n *quantifier) Visit(output Scanner, input TextBuffer, from, to int, onMat
 	if n.From == 0 {
 		if m, exists := output.LastMatch(); exists {
 			// TODO : remove condition and this line?
-			output.Yield(n, m.To(), m.To(), n.IsEnd(), false)
+			output.Match(n, m.To(), m.To(), n.IsEnd(), false)
 		} else {
-			output.Yield(n, from, from, n.IsEnd(), true)
+			output.Match(n, from, from, n.IsEnd(), true)
 		}
 
 		n.nestedNode.Match(output, input, from, to, onMatch)
@@ -914,7 +914,7 @@ func (n *characterClass) Visit(output Scanner, input TextBuffer, from, to int, o
 	if unicode.In(x, n.table) {
 		pos := output.Position()
 
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 
@@ -976,7 +976,7 @@ func (n *negatedCharacterClass) Visit(output Scanner, input TextBuffer, from, to
 	if !unicode.In(x, n.table) {
 		pos := output.Position()
 
-		output.Yield(n, from, from, n.IsEnd(), false)
+		output.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
 		n.nestedNode.Match(output, input, from+1, to, onMatch)
 
