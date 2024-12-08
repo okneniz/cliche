@@ -6,15 +6,6 @@ import (
 	"github.com/okneniz/cliche/span"
 )
 
-type Output interface {
-	Yield(n Node, s span.Interface, subString string)
-	Groups() Captures
-	NamedGroups() Captures
-	Slice() []*Match
-	String() string
-	LastPosOf(n Node) (int, bool)
-}
-
 type Scanner interface {
 	Match(n Node, from, to int, isLeaf, isEmpty bool)
 	Position() int
@@ -27,12 +18,6 @@ type Scanner interface {
 	StartNamedGroup(name string, pos int)
 	EndNamedGroup(name string, pos int)
 	DeleteNamedGroup(name string)
-}
-
-type Captures interface {
-	From(name string, pos int)
-	To(name string, pos int)
-	Delete(name string)
 }
 
 // https://www.regular-expressions.info/engine.html

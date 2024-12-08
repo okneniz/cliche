@@ -12,6 +12,15 @@ import (
 // a regex engine always returns the leftmost match,
 // even if a “better” match could be found later.
 
+type Output interface {
+	Yield(n Node, s span.Interface, subString string)
+	Groups() Captures
+	NamedGroups() Captures
+	Slice() []*Match
+	String() string
+	LastPosOf(n Node) (int, bool)
+}
+
 type output struct {
 	// current captured groups
 	groups *captures

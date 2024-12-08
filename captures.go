@@ -6,11 +6,19 @@ import (
 	"github.com/okneniz/cliche/span"
 )
 
+type Captures interface {
+	From(name string, pos int)
+	To(name string, pos int)
+	Delete(name string)
+}
+
 type captures struct {
 	from  map[string]int
 	to    map[string]int
 	order []string
 }
+
+var _ Captures = new(captures)
 
 func newCaptures() *captures {
 	return &captures{
