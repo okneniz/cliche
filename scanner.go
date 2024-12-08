@@ -19,8 +19,14 @@ type Scanner interface {
 	Match(n Node, from, to int, isLeaf, isEmpty bool)
 	Position() int
 	Rewind(pos int)
-	Groups() Captures
-	NamedGroups() Captures
+
+	StartGroup(name string, pos int)
+	EndGroup(name string, pos int)
+	DeleteGroup(name string)
+
+	StartNamedGroup(name string, pos int)
+	EndNamedGroup(name string, pos int)
+	DeleteNamedGroup(name string)
 }
 
 type Captures interface {
@@ -71,12 +77,28 @@ func (s *scanner) Rewind(pos int) {
 	s.expression.truncate(pos)
 }
 
-func (s *scanner) Groups() Captures {
-	return s.output.Groups()
+func (s *scanner) StartGroup(name string, pos int) {
+	s.output.Groups().From(name, pos)
 }
 
-func (s *scanner) NamedGroups() Captures {
-	return s.output.NamedGroups()
+func (s *scanner) EndGroup(name string, pos int) {
+	s.output.Groups().To(name, pos)
+}
+
+func (s *scanner) DeleteGroup(name string) {
+	s.output.Groups().Delete(name)
+}
+
+func (s *scanner) StartNamedGroup(name string, pos int) {
+	s.output.NamedGroups().From(name, pos)
+}
+
+func (s *scanner) EndNamedGroup(name string, pos int) {
+	s.output.NamedGroups().To(name, pos)
+}
+
+func (s *scanner) DeleteNamedGroup(name string) {
+	s.output.NamedGroups().Delete(name)
 }
 
 func (s *scanner) Match(n Node, from, to int, leaf, empty bool) {

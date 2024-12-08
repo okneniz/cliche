@@ -230,7 +230,7 @@ func (n *group) Traverse(f func(Node)) {
 }
 
 func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	scanner.Groups().From(n.uniqID, from)
+	scanner.StartGroup(n.uniqID, from)
 
 	n.Value.scanAlternation(
 		scanner,
@@ -238,14 +238,14 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			scanner.Groups().To(n.uniqID, vTo)
+			scanner.EndGroup(n.uniqID, vTo)
 			scanner.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.Match(scanner, input, vTo+1, to, onMatch)
 		},
 	)
 
-	scanner.Groups().Delete(n.uniqID)
+	scanner.DeleteGroup(n.uniqID)
 }
 
 type namedGroup struct {
@@ -267,20 +267,22 @@ func (n *namedGroup) Traverse(f func(Node)) {
 }
 
 func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	scanner.NamedGroups().From(n.Name, from)
+	scanner.StartNamedGroup(n.Name, from)
+
 	n.Value.scanAlternation(
 		scanner,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			scanner.NamedGroups().To(n.Name, vTo)
+			scanner.EndNamedGroup(n.Name, vTo)
 			scanner.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.Match(scanner, input, vTo+1, to, onMatch)
 		},
 	)
-	scanner.NamedGroups().Delete(n.Name)
+
+	scanner.DeleteNamedGroup(n.Name)
 }
 
 type notCapturedGroup struct {
