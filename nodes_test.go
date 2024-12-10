@@ -464,3 +464,7 @@ func TestQuantifier_GetKey(t *testing.T) {
 		})
 	}
 }
+
+func pointer[T any](x T) *T {
+	return &x
+}
