@@ -263,7 +263,7 @@ func toTestMatches(xs ...*Match) []*Expectation {
 }
 
 func TestTree_Match(t *testing.T) {
-	// t.Parallel()
+	t.Parallel()
 
 	files, err := loadAllTestFiles("/Users/andi/dev/golang/regular/testdata/base/")
 	if err != nil {
