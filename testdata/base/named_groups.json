@@ -1,0 +1,425 @@
+{
+  "Name": "named groups",
+  "Tests": [
+    {
+      "Name": "strings matching and capturing",
+      "Expressions": [
+        "fo(?<name>o|b)",
+        "f(?<name>o|b)o",
+        "(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+        "(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
+        "(?<first>f)(?<second>o)(?<third>o)"
+      ],
+      "Input": "foo bar baz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "fo(?<name>o|b)"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "name",
+              "Span": {
+                "From": 2,
+                "To": 2,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "f(?<name>o|b)o"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "name",
+              "Span": {
+                "From": 1,
+                "To": 1,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+            "(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
+            "(?<first>f)(?<second>o)(?<third>o)"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "first",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "second",
+              "Span": {
+                "From": 1,
+                "To": 1,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "third",
+              "Span": {
+                "From": 2,
+                "To": 2,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+            "(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "first",
+              "Span": {
+                "From": 4,
+                "To": 4,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "second",
+              "Span": {
+                "From": 5,
+                "To": 5,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "third",
+              "Span": {
+                "From": 6,
+                "To": 6,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
+            "(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "first",
+              "Span": {
+                "From": 8,
+                "To": 8,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "second",
+              "Span": {
+                "From": 9,
+                "To": 9,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "third",
+              "Span": {
+                "From": 10,
+                "To": 10,
+                "Empty": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "chars matching and capturing with nested groups",
+      "Expressions": [
+        "f(?<first>o(?<second>o))",
+        "(?<first>b(?<second>a(?<third>r)))",
+        "(?<first>(?<second>b)az)"
+      ],
+      "Input": "foo bar baz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "f(?<first>o(?<second>o))"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "first",
+              "Span": {
+                "From": 1,
+                "To": 2,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "second",
+              "Span": {
+                "From": 2,
+                "To": 2,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<first>b(?<second>a(?<third>r)))"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "second",
+              "Span": {
+                "From": 5,
+                "To": 6,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "third",
+              "Span": {
+                "From": 6,
+                "To": 6,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "first",
+              "Span": {
+                "From": 4,
+                "To": 6,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<first>(?<second>b)az)"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "second",
+              "Span": {
+                "From": 8,
+                "To": 8,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "first",
+              "Span": {
+                "From": 8,
+                "To": 10,
+                "Empty": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

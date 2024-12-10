@@ -1,0 +1,1092 @@
+{
+  "Name": "simple",
+  "Tests": [
+    {
+      "Name": "match chars as is",
+      "Expressions": [
+        "te",
+        "toast",
+        "toaster",
+        "word",
+        "strong",
+        "wizard",
+        "test",
+        "string",
+        "s",
+        "ing"
+      ],
+      "Input": "testing string test ssss word words",
+      "Want": [
+        {
+          "SubString": "te",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "te"
+          ]
+        },
+        {
+          "SubString": "test",
+          "Span": {
+            "From": 0,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "test"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "ing",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "ing"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 8,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "string",
+          "Span": {
+            "From": 8,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "string"
+          ]
+        },
+        {
+          "SubString": "ing",
+          "Span": {
+            "From": 11,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "ing"
+          ]
+        },
+        {
+          "SubString": "te",
+          "Span": {
+            "From": 15,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "te"
+          ]
+        },
+        {
+          "SubString": "test",
+          "Span": {
+            "From": 15,
+            "To": 18,
+            "Empty": false
+          },
+          "Expressions": [
+            "test"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 17,
+            "To": 17,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 20,
+            "To": 20,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 21,
+            "To": 21,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 22,
+            "To": 22,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 23,
+            "To": 23,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "word",
+          "Span": {
+            "From": 25,
+            "To": 28,
+            "Empty": false
+          },
+          "Expressions": [
+            "word"
+          ]
+        },
+        {
+          "SubString": "word",
+          "Span": {
+            "From": 30,
+            "To": 33,
+            "Empty": false
+          },
+          "Expressions": [
+            "word"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 34,
+            "To": 34,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '.'",
+      "Expressions": [
+        "t."
+      ],
+      "Input": "testing string test ssss word words",
+      "Want": [
+        {
+          "SubString": "te",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        },
+        {
+          "SubString": "ti",
+          "Span": {
+            "From": 3,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        },
+        {
+          "SubString": "tr",
+          "Span": {
+            "From": 9,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        },
+        {
+          "SubString": "te",
+          "Span": {
+            "From": 15,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        },
+        {
+          "SubString": "t ",
+          "Span": {
+            "From": 18,
+            "To": 19,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match multiple '.'",
+      "Expressions": [
+        "t.."
+      ],
+      "Input": "testing string test ssss word words",
+      "Want": [
+        {
+          "SubString": "tes",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        },
+        {
+          "SubString": "tin",
+          "Span": {
+            "From": 3,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        },
+        {
+          "SubString": "tri",
+          "Span": {
+            "From": 9,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        },
+        {
+          "SubString": "tes",
+          "Span": {
+            "From": 15,
+            "To": 17,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        },
+        {
+          "SubString": "t s",
+          "Span": {
+            "From": 18,
+            "To": 20,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '\\d'",
+      "Expressions": [
+        "\\d"
+      ],
+      "Input": "asd 1 jsdfk 4234",
+      "Want": [
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d"
+          ]
+        },
+        {
+          "SubString": "4",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 13,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d"
+          ]
+        },
+        {
+          "SubString": "3",
+          "Span": {
+            "From": 14,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d"
+          ]
+        },
+        {
+          "SubString": "4",
+          "Span": {
+            "From": 15,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '\\D'",
+      "Expressions": [
+        "\\D"
+      ],
+      "Input": "asd 1 jsdfk 4234",
+      "Want": [
+        {
+          "SubString": "a",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": "d",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": "j",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 7,
+            "To": 7,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": "d",
+          "Span": {
+            "From": 8,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": "k",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\D"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '\\w'",
+      "Expressions": [
+        "\\w"
+      ],
+      "Input": "asd 1 jsdfk 4234",
+      "Want": [
+        {
+          "SubString": "a",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "d",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "j",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 7,
+            "To": 7,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "d",
+          "Span": {
+            "From": 8,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "k",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "4",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 13,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "3",
+          "Span": {
+            "From": 14,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        },
+        {
+          "SubString": "4",
+          "Span": {
+            "From": 15,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\w"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '\\W'",
+      "Expressions": [
+        "\\W"
+      ],
+      "Input": "asd 1 jsdfk 4234!\n\r",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\W"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\W"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\W"
+          ]
+        },
+        {
+          "SubString": "!",
+          "Span": {
+            "From": 16,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\W"
+          ]
+        },
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 17,
+            "To": 17,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\W"
+          ]
+        },
+        {
+          "SubString": "\r",
+          "Span": {
+            "From": 18,
+            "To": 18,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\W"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '\\s'",
+      "Expressions": [
+        "\\s"
+      ],
+      "Input": "asd 1 jsdfk 4234",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\s"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\s"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\s"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '\\S'",
+      "Expressions": [
+        "\\S"
+      ],
+      "Input": "asd 1 jsdfk 4234!",
+      "Want": [
+        {
+          "SubString": "a",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "d",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "j",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 7,
+            "To": 7,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "d",
+          "Span": {
+            "From": 8,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "k",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "4",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 13,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "3",
+          "Span": {
+            "From": 14,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "4",
+          "Span": {
+            "From": 15,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        },
+        {
+          "SubString": "!",
+          "Span": {
+            "From": 16,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\S"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "escaped characters",
+      "Expressions": [
+        "\\.",
+        "\\?",
+        "\\+",
+        "\\*",
+        "\\^",
+        "\\$",
+        "\\[",
+        "\\]",
+        "\\{",
+        "\\}"
+      ],
+      "Input": ". ? + * ^ $ [ ] { }",
+      "Want": [
+        {
+          "SubString": ".",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\."
+          ]
+        },
+        {
+          "SubString": "?",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\?"
+          ]
+        },
+        {
+          "SubString": "+",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\+"
+          ]
+        },
+        {
+          "SubString": "*",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\*"
+          ]
+        },
+        {
+          "SubString": "^",
+          "Span": {
+            "From": 8,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\^"
+          ]
+        },
+        {
+          "SubString": "$",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\$"
+          ]
+        },
+        {
+          "SubString": "[",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\["
+          ]
+        },
+        {
+          "SubString": "]",
+          "Span": {
+            "From": 14,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\]"
+          ]
+        },
+        {
+          "SubString": "{",
+          "Span": {
+            "From": 16,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\{"
+          ]
+        },
+        {
+          "SubString": "}",
+          "Span": {
+            "From": 18,
+            "To": 18,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\}"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+{
+  "Name": "unions",
+  "Tests": [
+    {
+      "Name": "chars matching and capturing",
+      "Expressions": [
+        "fo(o|b)",
+        "f(o|b)o",
+        "(f|b)(o|a)(o|r|z)",
+        "(f|b)(o|a)(o|\\w|\\D)",
+        "(f)(o)(o)"
+      ],
+      "Input": "foo bar baz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "fo(o|b)"
+          ],
+          "Groups": [
+            {
+              "From": 2,
+              "To": 2,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "f(o|b)o"
+          ],
+          "Groups": [
+            {
+              "From": 1,
+              "To": 1,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(f|b)(o|a)(o|r|z)",
+            "(f|b)(o|a)(o|\\w|\\D)",
+            "(f)(o)(o)"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 0,
+              "Empty": false
+            },
+            {
+              "From": 1,
+              "To": 1,
+              "Empty": false
+            },
+            {
+              "From": 2,
+              "To": 2,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "(f|b)(o|a)(o|r|z)",
+            "(f|b)(o|a)(o|\\w|\\D)"
+          ],
+          "Groups": [
+            {
+              "From": 4,
+              "To": 4,
+              "Empty": false
+            },
+            {
+              "From": 5,
+              "To": 5,
+              "Empty": false
+            },
+            {
+              "From": 6,
+              "To": 6,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "(f|b)(o|a)(o|r|z)",
+            "(f|b)(o|a)(o|\\w|\\D)"
+          ],
+          "Groups": [
+            {
+              "From": 8,
+              "To": 8,
+              "Empty": false
+            },
+            {
+              "From": 9,
+              "To": 9,
+              "Empty": false
+            },
+            {
+              "From": 10,
+              "To": 10,
+              "Empty": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "chars matching and capturing with nested groups",
+      "Expressions": [
+        "f(o(o))",
+        "(b(a(r)))",
+        "((b)az)"
+      ],
+      "Input": "foo bar baz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "f(o(o))"
+          ],
+          "Groups": [
+            {
+              "From": 1,
+              "To": 2,
+              "Empty": false
+            },
+            {
+              "From": 2,
+              "To": 2,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "(b(a(r)))"
+          ],
+          "Groups": [
+            {
+              "From": 4,
+              "To": 6,
+              "Empty": false
+            },
+            {
+              "From": 5,
+              "To": 6,
+              "Empty": false
+            },
+            {
+              "From": 6,
+              "To": 6,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "((b)az)"
+          ],
+          "Groups": [
+            {
+              "From": 8,
+              "To": 10,
+              "Empty": false
+            },
+            {
+              "From": 8,
+              "To": 8,
+              "Empty": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

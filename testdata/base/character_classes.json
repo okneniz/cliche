@@ -1,0 +1,260 @@
+{
+  "Name": "character classes",
+  "Tests": [
+    {
+      "Name": "positive",
+      "Expressions": [
+        "[0-9]",
+        "[0-9]+",
+        "ba[rz]",
+        "[faborz]+",
+        "[bar][bar][baz]"
+      ],
+      "Input": "foo 1 bar\nbaz 123",
+      "Want": [
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "[0-9]",
+            "[0-9]+"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 14,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "[0-9]"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 15,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "[0-9]"
+          ]
+        },
+        {
+          "SubString": "3",
+          "Span": {
+            "From": 16,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "[0-9]"
+          ]
+        },
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 14,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "[0-9]+"
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 6,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "ba[rz]",
+            "[faborz]+"
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 10,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "ba[rz]",
+            "[faborz]+",
+            "[bar][bar][baz]"
+          ]
+        },
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[faborz]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "negated",
+      "Expressions": [
+        "[^a-z]",
+        "[^\\s]+",
+        "ba[^for]",
+        "[^\\s][^\\s][^\\s]"
+      ],
+      "Input": "foo 1 bar baz 123",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^a-z]"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^a-z]",
+            "[^\\s]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^a-z]"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^a-z]"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 13,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^a-z]"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 14,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^a-z]"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 15,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^a-z]"
+          ]
+        },
+        {
+          "SubString": "3",
+          "Span": {
+            "From": 16,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^a-z]"
+          ]
+        },
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^\\s]+",
+            "[^\\s][^\\s][^\\s]"
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 6,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^\\s]+",
+            "[^\\s][^\\s][^\\s]"
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 10,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^\\s]+",
+            "ba[^for]",
+            "[^\\s][^\\s][^\\s]"
+          ]
+        },
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 14,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "[^\\s]+",
+            "[^\\s][^\\s][^\\s]"
+          ]
+        }
+      ]
+    }
+  ]
+}

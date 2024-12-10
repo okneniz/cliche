@@ -1,7 +1,14 @@
 package cliche
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"sort"
+	"strings"
 	"testing"
 
 	"github.com/okneniz/cliche/span"
@@ -87,15 +94,229 @@ type Test struct {
 	Name        string
 	Expressions []string
 	Input       string
-	Want        []*Match
+	Want        []*Expectation
+}
+
+type NamedGroup struct {
+	Name string
+	Span Span
+}
+
+func (g NamedGroup) String() string {
+	return fmt.Sprintf("[%s, %s]", g.Name, g.Span)
 }
 
 type Expectation struct {
 	SubString   string
-	Span        span.Interface
-	Expressions Set
-	Groups      []span.Interface
-	NamedGroups map[string]span.Interface
+	Span        Span
+	Expressions []string
+	Groups      []Span       `json:",omitempty"`
+	NamedGroups []NamedGroup `json:",omitempty"`
+}
+
+func (ex *Expectation) String() string {
+	s := ex.Span.String()
+	s += "-"
+	s += ex.groupsToString()
+	s += "-"
+	s += ex.namedGroupsToString()
+	return s
+}
+
+func (m *Expectation) groupsToString() string {
+	s := make([]string, len(m.Groups))
+	for i, x := range m.Groups {
+		s[i] = x.String()
+	}
+
+	sort.SliceStable(s, func(i, j int) bool { return s[i] < s[j] })
+	return strings.Join(s, ", ")
+}
+
+func (m *Expectation) namedGroupsToString() string {
+	pairs := make([]string, 0, len(m.NamedGroups))
+	for _, v := range m.NamedGroups {
+		pairs = append(pairs, v.Name+": "+v.String())
+	}
+	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i] < pairs[j] })
+	return strings.Join(pairs, ", ")
+}
+
+func (ex *Expectation) Normalize() {
+	sort.SliceStable(ex.Expressions, func(i, j int) bool {
+		return ex.Expressions[i] < ex.Expressions[j]
+	})
+
+	sort.SliceStable(ex.Groups, func(i, j int) bool {
+		return ex.Groups[i].String() < ex.Groups[j].String()
+	})
+
+	sort.SliceStable(ex.NamedGroups, func(i, j int) bool {
+		return ex.NamedGroups[i].String() < ex.NamedGroups[j].String()
+	})
+}
+
+type Span struct {
+	From  int
+	To    int
+	Empty bool
+}
+
+func (s Span) String() string {
+	return fmt.Sprintf("[%d, %d, %v]", s.From, s.To, s.Empty)
+}
+
+func loadTestFile(path string) (*TestFile, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	testFile := new(TestFile)
+	err = json.Unmarshal(data, testFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return testFile, nil
+}
+
+func loadAllTestFiles(dir string) ([]*TestFile, error) {
+	var files []*TestFile
+
+	err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			return nil
+		}
+
+		if filepath.Ext(path) == ".json" {
+			fs, err := loadTestFile(path)
+			if err != nil {
+				return err
+			}
+
+			files = append(files, fs)
+		}
+
+		return nil
+	})
+
+	return files, err
+}
+
+func toTestMatches(xs ...*Match) []*Expectation {
+	exs := make([]*Expectation, 0, len(xs))
+
+	for _, x := range xs {
+		ex := &Expectation{
+			SubString: x.subString,
+			Span: Span{
+				From:  x.span.From(),
+				To:    x.span.To(),
+				Empty: x.span.Empty(),
+			},
+			Expressions: x.expressions.Slice(),
+		}
+
+		if len(x.groups) > 0 {
+			groups := make([]Span, 0, len(x.groups))
+
+			for _, g := range x.groups {
+				groups = append(groups, Span{
+					From:  g.From(),
+					To:    g.To(),
+					Empty: g.Empty(),
+				})
+			}
+
+			ex.Groups = groups
+		}
+
+		if len(x.namedGroups) > 0 {
+			named := make([]NamedGroup, len(x.namedGroups))
+
+			for k, g := range x.namedGroups {
+				named = append(named, NamedGroup{
+					Name: k,
+					Span: Span{
+						From:  g.From(),
+						To:    g.To(),
+						Empty: g.Empty(),
+					},
+				})
+			}
+
+			ex.NamedGroups = named
+		}
+
+		exs = append(exs, ex)
+	}
+
+	return exs
+}
+
+func TestTree_Match(t *testing.T) {
+	// t.Parallel()
+
+	files, err := loadAllTestFiles("/Users/andi/dev/golang/regular/testdata/base/")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, file := range files {
+		testFile := file
+
+		t.Run(testFile.Name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, ts := range testFile.Tests {
+				test := ts
+
+				t.Run(test.Name, func(t *testing.T) {
+					t.Parallel()
+
+					tr, err := New(test.Expressions...)
+					require.NoError(t, err)
+
+					matches := tr.Match(test.Input)
+					require.NoError(t, err)
+
+					t.Logf("tree: %s", tr)
+					t.Logf("input: '%s'", test.Input)
+
+					actual := toTestMatches(matches...)
+					for _, w := range actual {
+						w.Normalize()
+					}
+					sort.Slice(actual, func(i, j int) bool {
+						return actual[i].String() < actual[j].String()
+					})
+					actualStr, err := json.Marshal(actual)
+					require.NoError(t, err)
+
+					for _, w := range test.Want {
+						w.Normalize()
+					}
+					sort.Slice(test.Want, func(i, j int) bool {
+						return test.Want[i].String() < test.Want[j].String()
+					})
+					expectedStr, err := json.Marshal(test.Want)
+					require.NoError(t, err)
+
+					require.Equal(t, string(expectedStr), string(actualStr))
+				})
+			}
+		})
+	}
 }
 
 func TestMatch(t *testing.T) {
@@ -3137,6 +3358,97 @@ func TestMatch(t *testing.T) {
 				},
 			},
 		},
+	}
+
+	for groupName, subGroups := range examples {
+		fileName := strings.ReplaceAll(groupName, " ", "_")
+		fileName = strings.ToLower(fileName)
+		fileName += ".json"
+
+		dir := "./testdata/base"
+		path := dir + "/" + fileName
+
+		err := os.MkdirAll(dir, 0755)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		file, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		testFile := &TestFile{
+			Name:  groupName,
+			Tests: make([]Test, 0),
+		}
+
+		for _, ex := range subGroups {
+			ts := Test{
+				Name:        ex.name,
+				Expressions: ex.regexps,
+				Input:       ex.input,
+				Want:        make([]*Expectation, 0, len(ex.output)),
+			}
+
+			for _, x := range ex.output {
+				expectation := Expectation{
+					SubString:   x.subString,
+					Expressions: x.expressions.Slice(),
+					Span: Span{
+						From:  x.span.From(),
+						To:    x.span.To(),
+						Empty: x.span.Empty(),
+					},
+				}
+
+				if len(x.groups) > 0 {
+					groups := make([]Span, 0, len(x.groups))
+
+					for _, g := range x.groups {
+						groups = append(groups, Span{
+							From:  g.From(),
+							To:    g.To(),
+							Empty: g.Empty(),
+						})
+					}
+
+					expectation.Groups = groups
+				}
+
+				if len(x.namedGroups) > 0 {
+					named := make([]NamedGroup, len(x.namedGroups))
+
+					for k, g := range x.namedGroups {
+						named = append(named, NamedGroup{
+							Name: k,
+							Span: Span{
+								From:  g.From(),
+								To:    g.To(),
+								Empty: g.Empty(),
+							},
+						})
+					}
+
+					expectation.NamedGroups = named
+				}
+
+				ts.Want = append(ts.Want, &expectation)
+			}
+
+			testFile.Tests = append(testFile.Tests, ts)
+		}
+
+		encoder := json.NewEncoder(file)
+		encoder.SetEscapeHTML(false)
+		encoder.SetIndent("", "  ")
+
+		err = encoder.Encode(testFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		file.Close()
 	}
 
 	for groupName, subGroups := range examples {
