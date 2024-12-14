@@ -270,7 +270,7 @@
           "Expressions": [
             "[[:blank:]]+"
           ]
-        }        
+        }
       ]
     },
     {
@@ -312,7 +312,7 @@
           "Expressions": [
             "[[:^blank:]]+"
           ]
-        }               
+        }
       ]
     },
     {
@@ -343,7 +343,7 @@
           "Expressions": [
             "[[:digit:]]+"
           ]
-        }        
+        }
       ]
     },
     {
@@ -374,7 +374,7 @@
           "Expressions": [
             "[[:^digit:]]+"
           ]
-        }        
+        }
       ]
     },
     {
@@ -405,7 +405,7 @@
           "Expressions": [
             "[[:lower:]]+"
           ]
-        },        
+        },
         {
           "SubString": "ar",
           "Span": {
@@ -416,7 +416,7 @@
           "Expressions": [
             "[[:lower:]]+"
           ]
-        }      
+        }
       ]
     },
     {
@@ -478,7 +478,7 @@
           "Expressions": [
             "[[:upper:]]+"
           ]
-        },   
+        },
         {
           "SubString": "B",
           "Span": {
@@ -489,7 +489,7 @@
           "Expressions": [
             "[[:upper:]]+"
           ]
-        }      
+        }
       ]
     },
     {
@@ -533,7 +533,7 @@
           ]
         }
       ]
-    },    
+    },
     {
       "Name": "space",
       "Expressions": [
@@ -648,7 +648,7 @@
           "Expressions": [
             "[[:^space:]]+"
           ]
-        }        
+        }
       ]
     },
     {
@@ -858,7 +858,7 @@
           "Expressions": [
             "[[:graph:]]+"
           ]
-        }        
+        }
       ]
     },
     {
@@ -911,7 +911,7 @@
           "Expressions": [
             "[[:^graph:]]+"
           ]
-        }        
+        }
       ]
     },
     {
@@ -953,7 +953,7 @@
           "Expressions": [
             "[[:punct:]]+"
           ]
-        }        
+        }
       ]
     },
     {
@@ -995,8 +995,158 @@
           "Expressions": [
             "[[:^punct:]]+"
           ]
-        }        
+        }
       ]
-    }    
+    },
+    {
+      "Name": "hex digit",
+      "Expressions": [
+        "[[:xdigit:]]+"
+      ],
+      "Input": "foo 40 f5 A3 Z9 bar",
+      "Want": [
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": "A3",
+          "Span": {
+            "From": 10,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": "9",
+          "Span": {
+            "From": 14,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": "ba",
+          "Span": {
+            "From": 16,
+            "To": 17,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": "40",
+          "Span": {
+            "From": 4,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": "f5",
+          "Span": {
+            "From": 7,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:xdigit:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not hex digit",
+      "Expressions": [
+        "[[:^xdigit:]]+"
+      ],
+      "Input": "foo 40 f5 A3 Z9 bar",
+      "Want": [
+        {
+          "SubString": "oo ",
+          "Span": {
+            "From": 1,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": " Z",
+          "Span": {
+            "From": 12,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 15,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": "r",
+          "Span": {
+            "From": 18,
+            "To": 18,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^xdigit:]]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^xdigit:]]+"
+          ]
+        }
+      ]
+    }
   ]
 }

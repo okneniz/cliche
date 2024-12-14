@@ -190,7 +190,7 @@ Possesive - greedy and does not backtrack once match.
 |✅| `[:punct:]` | `Connector_Punctuation \| Dash_Punctuation \| Close_Punctuation \| Final_Punctuation \| Initial_Punctuation \| Other_Punctuation \| Open_Punctuation \| 0024 \| 002B \| 003C \| 003D \| 003E \| 005E \| 0060 \| 007C \| 007E` \|
 |✅| `[:space:]` | `Space_Separator \| Line_Separator \| Paragraph_Separator \| 0009 \| 000A \| 000B \| 000C \| 000D \| 0085` |
 |✅| `[:upper:]` | `Uppercase_Letter` |
-|❌| `[:xdigit:]` | `0030 - 0039 \| 0041 - 0046 \| 0061 - 0066 \| (0-9, a-f, A-F)` |
+|✅| `[:xdigit:]` | `0030 - 0039 \| 0041 - 0046 \| 0061 - 0066 \| (0-9, a-f, A-F)` |
 |❌| `[:word:]` | `Letter \| Mark \| Decimal_Number \| Connector_Punctuation` |
 
 

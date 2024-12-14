@@ -812,6 +812,12 @@ func parseBrackets() parser {
 	notPunct := parseBracket(":^punct:", func(x rune) bool {
 		return !unicode.IsPunct(x)
 	})
+	xdigit := parseBracket(":xdigit:", func(x rune) bool {
+		return isHex(x)
+	})
+	notXdigit := parseBracket(":^xdigit:", func(x rune) bool {
+		return !isHex(x)
+	})
 
 	return squares(squares(
 		choice(
@@ -839,6 +845,8 @@ func parseBrackets() parser {
 			notGraph,
 			punct,
 			notPunct,
+			xdigit,
+			notXdigit,
 		),
 	))
 
@@ -846,7 +854,6 @@ func parseBrackets() parser {
 	// return squares(
 	// 	ps.MapStrings(
 	// 		map[string]parser{
-	// 			":xdigit:", func(x rune) bool { return false },
 	// 			":word:", func(x rune) bool { return false },
 	// 		},
 	// 	),
