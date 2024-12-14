@@ -56,8 +56,8 @@ Main features:
 |✅| `\S` | any non-whitespace character |
 |✅| `\d` | any decimal digit character |
 |✅| `\D` | any non-decimal digit character |
-|❌| `\h` | any hexadecimal-digit char `[0-9a-fA-F]` |
-|❌| `\H` | any non-hexadecimal-digit char |
+|✅| `\h` | any hexadecimal-digit char `[0-9a-fA-F]` |
+|✅| `\H` | any non-hexadecimal-digit char |
 
 
 ### Captured group

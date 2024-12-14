@@ -603,6 +603,21 @@ func parseEscapedMetaCharacters() parser {
 
 					return &x, nil
 				},
+
+				'h': func(buf c.Buffer[rune, int]) (Node, error) {
+					return &simpleNode{
+						key:        "\\h",
+						predicate:  isHex,
+						nestedNode: newNestedNode(),
+					}, nil
+				},
+				'H': func(buf c.Buffer[rune, int]) (Node, error) {
+					return &simpleNode{
+						key:        "\\H",
+						predicate:  not(isHex),
+						nestedNode: newNestedNode(),
+					}, nil
+				},
 			},
 			c.Any[rune, int](),
 		),
@@ -941,6 +956,22 @@ func parseEscapedMetaCharactersTable() tableParser {
 	}
 	notSpaceTable := rangetable.New(runes...)
 
+	runes = make([]rune, 0)
+	for x := rune(1); x <= unicode.MaxRune; x++ {
+		if isHex(x) {
+			runes = append(runes, x)
+		}
+	}
+	hexTable := rangetable.New(runes...)
+
+	runes = make([]rune, 0)
+	for x := rune(1); x <= unicode.MaxRune; x++ {
+		if !isHex(x) {
+			runes = append(runes, x)
+		}
+	}
+	notHexTable := rangetable.New(runes...)
+
 	return c.Skip(
 		c.Eq[rune, int]('\\'),
 		c.MapAs(
@@ -952,7 +983,7 @@ func parseEscapedMetaCharactersTable() tableParser {
 					return notDigitTable, nil
 				},
 				'w': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
-					return unicode.Letter, nil
+					return unicode.Letter, nil // TODO : FIX! it'w not word
 				},
 				'W': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 					return notWordTable, nil
@@ -962,6 +993,12 @@ func parseEscapedMetaCharactersTable() tableParser {
 				},
 				'S': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 					return notSpaceTable, nil
+				},
+				'h': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+					return hexTable, nil
+				},
+				'H': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+					return notHexTable, nil
 				},
 			},
 			c.Any[rune, int](),

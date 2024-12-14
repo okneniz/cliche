@@ -626,7 +626,7 @@ func (n *characterClass) GetKey() string {
 		b.WriteString(",")
 	}
 
-	b.WriteString("),R32(")
+	b.WriteString("),R32(") // TODO : add only if len(R32) > 0
 
 	for _, r := range n.table.R32 {
 		b.WriteString(fmt.Sprintf("%d", r.Lo))
@@ -687,7 +687,7 @@ func (n *negatedCharacterClass) GetKey() string {
 		b.WriteString(",")
 	}
 
-	b.WriteString("),R32(")
+	b.WriteString("),R32(") // TODO : add only if len(R32) > 0
 
 	for _, r := range n.table.R32 {
 		b.WriteString(fmt.Sprintf("%d", r.Lo))
