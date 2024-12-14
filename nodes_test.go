@@ -355,6 +355,13 @@ func TestQuantifier_GetKey(t *testing.T) {
 			more:       false,
 		},
 		{
+			expression: "x{1}",
+			key:        "x{1}",
+			from:       1,
+			to:         nil,
+			more:       false,
+		},
+		{
 			expression: "x{2,}",
 			key:        "x{2,}",
 			from:       2,
@@ -362,9 +369,16 @@ func TestQuantifier_GetKey(t *testing.T) {
 			more:       true,
 		},
 		{
-			expression: "x{2}",
-			key:        "x{2}",
-			from:       2,
+			expression: "x{,2}",
+			key:        "x{0,2}",
+			from:       0,
+			to:         pointer(2),
+			more:       false,
+		},
+		{
+			expression: "x{0}",
+			key:        "x{0}",
+			from:       0,
 			to:         nil,
 			more:       false,
 		},
@@ -373,19 +387,11 @@ func TestQuantifier_GetKey(t *testing.T) {
 			notQuantifier: true,
 		},
 		{
-			expression:    "x{,2}",
-			notQuantifier: true,
-		},
-		{
 			expression:    "x{2,2,}",
 			notQuantifier: true,
 		},
 		{
-			expression:    "x{0}",
-			notQuantifier: true,
-		},
-		{
-			expression:    "x{0,0}",
+			expression:    "x{,2,}",
 			notQuantifier: true,
 		},
 	}
@@ -413,8 +419,8 @@ func TestQuantifier_GetKey(t *testing.T) {
 				if q.GetKey() != test.key {
 					t.Fatalf(
 						"expected key %v, actual key %v",
-						q.GetKey(),
 						test.key,
+						q.GetKey(),
 					)
 				}
 

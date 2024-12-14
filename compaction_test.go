@@ -47,6 +47,7 @@ func TestTreeCompaction(t *testing.T) {
 		{
 			"x?",
 			"x{0,1}",
+			"x{,1}",
 		},
 		{
 			"x*",

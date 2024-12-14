@@ -750,7 +750,7 @@ func (n *quantifier) getQuantifierKey() string {
 
 	if n.More {
 		b.WriteRune(',')
-	} else if n.To != nil {
+	} else if n.To != nil && n.From != *n.To {
 		b.WriteRune(',')
 		b.WriteString(fmt.Sprintf("%d", *n.To))
 	}

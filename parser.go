@@ -333,88 +333,131 @@ func parseOptionalQuantifier(expression parser) parser {
 	comma := c.Try(c.Eq[rune, int](','))
 	rightBrace := c.Eq[rune, int]('}')
 
+	parse := c.Choice(
+		c.Try(func(buf c.Buffer[rune, int]) (*quantifier, error) { // {1,1}
+			from, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = comma(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			to, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			if from > to {
+				return nil, c.NothingMatched
+			}
+
+			_, err = rightBrace(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			if from == to {
+				return &quantifier{
+					From: from,
+					To:   nil,
+					More: false,
+				}, nil
+			}
+
+			return &quantifier{
+				From: from,
+				To:   &to,
+				More: false,
+			}, nil
+		}),
+		c.Try(func(buf c.Buffer[rune, int]) (*quantifier, error) { // {,1}
+			_, err := comma(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			to, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = rightBrace(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return &quantifier{
+				From: 0,
+				To:   &to,
+				More: false,
+			}, nil
+		}),
+		c.Try(func(buf c.Buffer[rune, int]) (*quantifier, error) { // {1,}
+			from, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = comma(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = rightBrace(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return &quantifier{
+				From: from,
+				To:   nil,
+				More: true,
+			}, nil
+		}),
+		func(buf c.Buffer[rune, int]) (*quantifier, error) { // {1}
+			from, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = rightBrace(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return &quantifier{
+				From: from,
+				More: false,
+			}, nil
+		},
+	)
+
 	parseQuantifier := c.Try(
 		c.MapAs(
-			map[rune]c.Combinator[rune, int, quantifier]{
-				'?': func(buf c.Buffer[rune, int]) (quantifier, error) {
-					q := quantifier{}
-
-					q.From = 0
-					to := 1
-					q.To = &to
-					q.More = false
-
-					return q, nil
+			map[rune]c.Combinator[rune, int, *quantifier]{
+				'?': func(buf c.Buffer[rune, int]) (*quantifier, error) {
+					return &quantifier{
+						From: 0,
+						To:   pointer(1),
+						More: false,
+					}, nil
 				},
-				'+': func(buf c.Buffer[rune, int]) (quantifier, error) {
-					q := quantifier{}
-
-					q.From = 1
-					q.More = true
-
-					return q, nil
+				'+': func(buf c.Buffer[rune, int]) (*quantifier, error) {
+					return &quantifier{
+						From: 1,
+						More: true,
+					}, nil
 				},
-				'*': func(buf c.Buffer[rune, int]) (quantifier, error) {
-					q := quantifier{}
-
-					q.From = 0
-					q.More = true
-
-					return q, nil
+				'*': func(buf c.Buffer[rune, int]) (*quantifier, error) {
+					return &quantifier{
+						From: 0,
+						More: true,
+					}, nil
 				},
-				'{': func(buf c.Buffer[rune, int]) (quantifier, error) {
-					q := quantifier{}
-
-					from, err := digit(buf)
-					if err != nil {
-						return q, err
-					}
-					q.From = from
-
-					_, err = comma(buf)
-					if err != nil {
-						if from == 0 {
-							// TODO : or better special parsing error?
-							return q, c.NothingMatched
-						}
-
-						_, err = rightBrace(buf)
-						if err != nil {
-							return q, err
-						}
-
-						return q, nil
-					}
-					q.More = true
-
-					to, err := digit(buf)
-					if err != nil {
-						_, err = rightBrace(buf)
-						if err != nil {
-							return q, err
-						}
-
-						return q, err
-					}
-					q.To = &to
-					q.More = false
-
-					if (from == 0 && to == 0) || (from > to) {
-						// TODO : or better special parsing error?
-						return q, c.NothingMatched
-					}
-
-					if from == to {
-						q.To = nil
-					}
-
-					_, err = rightBrace(buf)
-					if err != nil {
-						return q, err
-					}
-
-					return q, nil
-				},
+				'{': parse,
 			},
 			any,
 		),
@@ -434,7 +477,7 @@ func parseOptionalQuantifier(expression parser) parser {
 		q.Value = x
 		q.nestedNode = newNestedNode()
 
-		return &q, nil
+		return q, nil
 	}
 }
 
