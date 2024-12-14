@@ -1,0 +1,1002 @@
+{
+  "Name": "brackets",
+  "Tests": [
+    {
+      "Name": "alnum",
+      "Expressions": [
+        "[[:alnum:]]+"
+      ],
+      "Input": "foo bar\nbaz 123 ",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:alnum:]]+"
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:alnum:]]+"
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:alnum:]]+"
+          ]
+        },
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 12,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:alnum:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not alnum",
+      "Expressions": [
+        "[[:^alnum:]]+"
+      ],
+      "Input": "foo bar\nbaz 123 ",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^alnum:]]+"
+          ]
+        },
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 7,
+            "To": 7,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^alnum:]]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^alnum:]]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 15,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^alnum:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "alpha",
+      "Expressions": [
+        "[[:alpha:]]+"
+      ],
+      "Input": "foo bar\nbaz 123 ",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:alpha:]]+"
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:alpha:]]+"
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:alpha:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not alpha",
+      "Expressions": [
+        "[[:^alpha:]]+"
+      ],
+      "Input": "foo bar\nbaz 123 ",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^alpha:]]+"
+          ]
+        },
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 7,
+            "To": 7,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^alpha:]]+"
+          ]
+        },
+        {
+          "SubString": " 123 ",
+          "Span": {
+            "From": 11,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^alpha:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "ascii",
+      "Expressions": [
+        "[[:ascii:]]+"
+      ],
+      "Input": "foo ébar\n1",
+      "Want": [
+        {
+          "SubString": "foo ",
+          "Span": {
+            "From": 0,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:ascii:]]+"
+          ]
+        },
+        {
+          "SubString": "bar\n1",
+          "Span": {
+            "From": 5,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:ascii:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not ascii",
+      "Expressions": [
+        "[[:^ascii:]]+"
+      ],
+      "Input": "foo ébar\n1",
+      "Want": [
+        {
+          "SubString": "é",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^ascii:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "blank",
+      "Expressions": [
+        "[[:blank:]]+"
+      ],
+      "Input": "foo ébar\n1\t2",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:blank:]]+"
+          ]
+        },
+        {
+          "SubString": "\t",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:blank:]]+"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "not blank",
+      "Expressions": [
+        "[[:^blank:]]+"
+      ],
+      "Input": "foo ébar\n1\t2",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^blank:]]+"
+          ]
+        },
+        {
+          "SubString": "ébar\n1",
+          "Span": {
+            "From": 4,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^blank:]]+"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^blank:]]+"
+          ]
+        }               
+      ]
+    },
+    {
+      "Name": "digit",
+      "Expressions": [
+        "[[:digit:]]+"
+      ],
+      "Input": "foo ébar\n1\t2",
+      "Want": [
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:digit:]]+"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:digit:]]+"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "not digit",
+      "Expressions": [
+        "[[:^digit:]]+"
+      ],
+      "Input": "foo ébar\n1\t2",
+      "Want": [
+        {
+          "SubString": "foo ébar\n",
+          "Span": {
+            "From": 0,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^digit:]]+"
+          ]
+        },
+        {
+          "SubString": "\t",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^digit:]]+"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "lower",
+      "Expressions": [
+        "[[:lower:]]+"
+      ],
+      "Input": "foo é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:lower:]]+"
+          ]
+        },
+        {
+          "SubString": "é",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:lower:]]+"
+          ]
+        },        
+        {
+          "SubString": "ar",
+          "Span": {
+            "From": 7,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:lower:]]+"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "not lower",
+      "Expressions": [
+        "[[:^lower:]]+"
+      ],
+      "Input": "foo é Bar\n123",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^lower:]]+"
+          ]
+        },
+        {
+          "SubString": " B",
+          "Span": {
+            "From": 5,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^lower:]]+"
+          ]
+        },
+        {
+          "SubString": "\n123",
+          "Span": {
+            "From": 9,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^lower:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "upper",
+      "Expressions": [
+        "[[:upper:]]+"
+      ],
+      "Input": "foO é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "O",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:upper:]]+"
+          ]
+        },   
+        {
+          "SubString": "B",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:upper:]]+"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "not upper",
+      "Expressions": [
+        "[[:^upper:]]+"
+      ],
+      "Input": "foO é Bar\n123",
+      "Want": [
+        {
+          "SubString": "fo",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^upper:]]+"
+          ]
+        },
+        {
+          "SubString": " é ",
+          "Span": {
+            "From": 3,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^upper:]]+"
+          ]
+        },
+        {
+          "SubString": "ar\n123",
+          "Span": {
+            "From": 7,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^upper:]]+"
+          ]
+        }
+      ]
+    },    
+    {
+      "Name": "space",
+      "Expressions": [
+        "[[:space:]]+"
+      ],
+      "Input": "foo é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:space:]]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:space:]]+"
+          ]
+        },
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:space:]]+"
+          ]
+        },
+        {
+          "SubString": "\t",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:space:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not space",
+      "Expressions": [
+        "[[:^space:]]+"
+      ],
+      "Input": "foo é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^space:]]+"
+          ]
+        },
+        {
+          "SubString": "é",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^space:]]+"
+          ]
+        },
+        {
+          "SubString": "Bar",
+          "Span": {
+            "From": 6,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^space:]]+"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^space:]]+"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^space:]]+"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "cntrl",
+      "Expressions": [
+        "[[:cntrl:]]+"
+      ],
+      "Input": "foO é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:cntrl:]]+"
+          ]
+        },
+        {
+          "SubString": "\t",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:cntrl:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not cntrl",
+      "Expressions": [
+        "[[:^cntrl:]]+"
+      ],
+      "Input": "foo é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "foo é Bar",
+          "Span": {
+            "From": 0,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^cntrl:]]+"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^cntrl:]]+"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^cntrl:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "print",
+      "Expressions": [
+        "[[:print:]]+"
+      ],
+      "Input": "foO é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "foO é Bar",
+          "Span": {
+            "From": 0,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:print:]]+"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:print:]]+"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:print:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not print",
+      "Expressions": [
+        "[[:^print:]]+"
+      ],
+      "Input": "foo é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^print:]]+"
+          ]
+        },
+        {
+          "SubString": "\t",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^print:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "graph",
+      "Expressions": [
+        "[[:graph:]]+"
+      ],
+      "Input": "foO é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "foO",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:graph:]]+"
+          ]
+        },
+        {
+          "SubString": "é",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:graph:]]+"
+          ]
+        },
+        {
+          "SubString": "Bar",
+          "Span": {
+            "From": 6,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:graph:]]+"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:graph:]]+"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:graph:]]+"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "not graph",
+      "Expressions": [
+        "[[:^graph:]]+"
+      ],
+      "Input": "foo é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^graph:]]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^graph:]]+"
+          ]
+        },
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^graph:]]+"
+          ]
+        },
+        {
+          "SubString": "\t",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^graph:]]+"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "punct",
+      "Expressions": [
+        "[[:punct:]]+"
+      ],
+      "Input": "Lorem ipsum, and dollar!\nMaybe.",
+      "Want": [
+        {
+          "SubString": ",",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:punct:]]+"
+          ]
+        },
+        {
+          "SubString": "!",
+          "Span": {
+            "From": 23,
+            "To": 23,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:punct:]]+"
+          ]
+        },
+        {
+          "SubString": ".",
+          "Span": {
+            "From": 30,
+            "To": 30,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:punct:]]+"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "not punct",
+      "Expressions": [
+        "[[:^punct:]]+"
+      ],
+      "Input": "Lorem ipsum, and dollar!\nMaybe.",
+      "Want": [
+        {
+          "SubString": "Lorem ipsum",
+          "Span": {
+            "From": 0,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^punct:]]+"
+          ]
+        },
+        {
+          "SubString": " and dollar",
+          "Span": {
+            "From": 12,
+            "To": 22,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^punct:]]+"
+          ]
+        },
+        {
+          "SubString": "\nMaybe",
+          "Span": {
+            "From": 24,
+            "To": 29,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^punct:]]+"
+          ]
+        }        
+      ]
+    }    
+  ]
+}

@@ -86,6 +86,7 @@ func parseRegexp() parser {
 	// parse node
 	parseNode := parseOptionalQuantifier(
 		choice(
+			parseBrackets(),
 			parseCharacterClasses('|'),
 			parseNotCapturedGroup(alternation),
 			parseNamedGroup(alternation),
@@ -653,6 +654,138 @@ func parseCharacterClass(table tableParser) parser {
 
 		return &x, nil
 	}
+}
+
+func parseBracket(name string, predicate func(rune) bool) parser {
+	parse := c.SequenceOf[rune, int]([]rune(name)...)
+
+	return func(buf c.Buffer[rune, int]) (Node, error) {
+		_, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		return &bracket{
+			key:        name,
+			nestedNode: newNestedNode(),
+			predicate:  predicate,
+		}, nil
+	}
+}
+
+func parseBrackets() parser {
+	alnum := parseBracket(":alnum:", func(x rune) bool {
+		return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x)
+	})
+	notAlnum := parseBracket(":^alnum:", func(x rune) bool {
+		return !(unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x))
+	})
+	alpha := parseBracket(":alpha:", func(x rune) bool {
+		return unicode.IsLetter(x) || unicode.IsMark(x)
+	})
+	notAlpha := parseBracket(":^alpha:", func(x rune) bool {
+		return !(unicode.IsLetter(x) || unicode.IsMark(x))
+	})
+	ascii := parseBracket(":ascii:", func(x rune) bool {
+		return x < unicode.MaxASCII
+	})
+	notAscii := parseBracket(":^ascii:", func(x rune) bool {
+		return x >= unicode.MaxASCII
+	})
+	blank := parseBracket(":blank:", func(x rune) bool {
+		return x == ' ' || x == '\t'
+	})
+	notBlank := parseBracket(":^blank:", func(x rune) bool {
+		return !(x == ' ' || x == '\t')
+	})
+	digit := parseBracket(":digit:", func(x rune) bool {
+		return unicode.IsDigit(x)
+	})
+	notDigit := parseBracket(":^digit:", func(x rune) bool {
+		return !unicode.IsDigit(x)
+	})
+	lower := parseBracket(":lower:", func(x rune) bool {
+		return unicode.IsLower(x)
+	})
+	notLower := parseBracket(":^lower:", func(x rune) bool {
+		return !unicode.IsLower(x)
+	})
+	upper := parseBracket(":upper:", func(x rune) bool {
+		return unicode.IsUpper(x)
+	})
+	notUpper := parseBracket(":^upper:", func(x rune) bool {
+		return !unicode.IsUpper(x)
+	})
+	space := parseBracket(":space:", func(x rune) bool {
+		return unicode.IsSpace(x)
+	})
+	notSpace := parseBracket(":^space:", func(x rune) bool {
+		return !unicode.IsSpace(x)
+	})
+	cntrl := parseBracket(":cntrl:", func(x rune) bool {
+		return unicode.IsControl(x)
+	})
+	notCntrl := parseBracket(":^cntrl:", func(x rune) bool {
+		return !unicode.IsControl(x)
+	})
+	print := parseBracket(":print:", func(x rune) bool {
+		return unicode.IsPrint(x)
+	})
+	notPrint := parseBracket(":^print:", func(x rune) bool {
+		return !unicode.IsPrint(x)
+	})
+	graph := parseBracket(":graph:", func(x rune) bool {
+		return unicode.IsGraphic(x) && !unicode.IsSpace(x)
+	})
+	notGraph := parseBracket(":^graph:", func(x rune) bool {
+		return !(unicode.IsGraphic(x) && !unicode.IsSpace(x))
+	})
+	punct := parseBracket(":punct:", func(x rune) bool {
+		return unicode.IsPunct(x)
+	})
+	notPunct := parseBracket(":^punct:", func(x rune) bool {
+		return !unicode.IsPunct(x)
+	})
+
+	return squares(squares(
+		choice(
+			alnum,
+			notAlnum,
+			alpha,
+			notAlpha,
+			ascii,
+			notAscii,
+			blank,
+			notBlank,
+			digit,
+			notDigit,
+			lower,
+			notLower,
+			upper,
+			notUpper,
+			space,
+			notSpace,
+			cntrl,
+			notCntrl,
+			print,
+			notPrint,
+			graph,
+			notGraph,
+			punct,
+			notPunct,
+		),
+	))
+
+	// return func(buf c.Buffer[rune, int]) (Node, error) {
+	// return squares(
+	// 	ps.MapStrings(
+	// 		map[string]parser{
+	// 			":xdigit:", func(x rune) bool { return false },
+	// 			":word:", func(x rune) bool { return false },
+	// 		},
+	// 	),
+	// )
+	// }
 }
 
 func parseNegatedCharacterClass(table tableParser) parser {

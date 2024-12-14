@@ -951,3 +951,39 @@ func (n *negatedCharacterClass) Visit(scanner Scanner, input Input, from, to int
 		scanner.Rewind(pos)
 	}
 }
+
+type bracket struct {
+	key       string
+	predicate func(rune) bool
+	*nestedNode
+}
+
+func (n *bracket) GetKey() string {
+	return n.key
+}
+
+func (n *bracket) Traverse(f func(Node)) {
+	f(n)
+
+	for _, x := range n.Nested {
+		x.Traverse(f)
+	}
+}
+
+func (n *bracket) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+	if from >= input.Size() {
+		return
+	}
+
+	x := input.ReadAt(from)
+
+	if n.predicate(x) {
+		pos := scanner.Position()
+
+		scanner.Match(n, from, from, n.IsEnd(), false)
+		onMatch(n, from, from, false)
+		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
+
+		scanner.Rewind(pos)
+	}
+}

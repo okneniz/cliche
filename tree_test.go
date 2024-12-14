@@ -115,10 +115,10 @@ func TestTree_Match(t *testing.T) {
 					sort.Slice(actual, func(i, j int) bool {
 						return actual[i].String() < actual[j].String()
 					})
-					actualStr, err := json.Marshal(actual)
+					actualStr, err := json.MarshalIndent(actual, "", "  ")
 					require.NoError(t, err)
 
-					expectedStr, err := json.Marshal(test.Want)
+					expectedStr, err := json.MarshalIndent(test.Want, "", "  ")
 					require.NoError(t, err)
 
 					require.Equal(t, string(expectedStr), string(actualStr))
