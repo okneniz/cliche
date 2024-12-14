@@ -607,128 +607,6 @@ func (n *quantifier) inBounds(q int) bool {
 
 // https://www.regular-expressions.info/charclass.html
 
-type characterClass struct {
-	table *unicode.RangeTable
-	*nestedNode
-}
-
-func (n *characterClass) GetKey() string {
-	b := new(strings.Builder)
-
-	b.WriteString("Class[R16(")
-
-	for _, r := range n.table.R16 {
-		b.WriteString(fmt.Sprintf("%d", r.Lo))
-		b.WriteString("-")
-		b.WriteString(fmt.Sprintf("%d", r.Hi))
-		b.WriteString("-")
-		b.WriteString(fmt.Sprintf("%d", r.Stride))
-		b.WriteString(",")
-	}
-
-	b.WriteString("),R32(") // TODO : add only if len(R32) > 0
-
-	for _, r := range n.table.R32 {
-		b.WriteString(fmt.Sprintf("%d", r.Lo))
-		b.WriteString("-")
-		b.WriteString(fmt.Sprintf("%d", r.Hi))
-		b.WriteString("-")
-		b.WriteString(fmt.Sprintf("%d", r.Stride))
-		b.WriteString(",")
-	}
-
-	b.WriteString(")]")
-
-	return b.String()
-}
-
-func (n *characterClass) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *characterClass) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if unicode.In(x, n.table) {
-		pos := scanner.Position()
-
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-
-		scanner.Rewind(pos)
-	}
-}
-
-type negatedCharacterClass struct {
-	table *unicode.RangeTable
-	*nestedNode
-}
-
-func (n *negatedCharacterClass) GetKey() string {
-	b := new(strings.Builder)
-
-	b.WriteString("NegatedClass[R16(")
-
-	for _, r := range n.table.R16 {
-		b.WriteString(fmt.Sprintf("%d", r.Lo))
-		b.WriteString("-")
-		b.WriteString(fmt.Sprintf("%d", r.Hi))
-		b.WriteString("-")
-		b.WriteString(fmt.Sprintf("%d", r.Stride))
-		b.WriteString(",")
-	}
-
-	b.WriteString("),R32(") // TODO : add only if len(R32) > 0
-
-	for _, r := range n.table.R32 {
-		b.WriteString(fmt.Sprintf("%d", r.Lo))
-		b.WriteString("-")
-		b.WriteString(fmt.Sprintf("%d", r.Hi))
-		b.WriteString("-")
-		b.WriteString(fmt.Sprintf("%d", r.Stride))
-		b.WriteString(",")
-	}
-
-	b.WriteString(")]")
-
-	return b.String()
-}
-
-func (n *negatedCharacterClass) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *negatedCharacterClass) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if !unicode.In(x, n.table) {
-		pos := scanner.Position()
-
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-
-		scanner.Rewind(pos)
-	}
-}
-
 type simpleNode struct {
 	key       string
 	predicate func(rune) bool
@@ -761,4 +639,51 @@ func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 		scanner.Rewind(pos)
 	}
+}
+
+func rangeTableKey(table *unicode.RangeTable) string {
+	b := new(strings.Builder)
+
+	b.WriteString("[")
+
+	comma := false
+
+	if len(table.R16) > 0 {
+		b.WriteString("R16(")
+
+		for _, r := range table.R16 {
+			b.WriteString(fmt.Sprintf("%d", r.Lo))
+			b.WriteString("-")
+			b.WriteString(fmt.Sprintf("%d", r.Hi))
+			b.WriteString("-")
+			b.WriteString(fmt.Sprintf("%d", r.Stride))
+			b.WriteString("#")
+		}
+
+		b.WriteString(")")
+		comma = true
+	}
+
+	if len(table.R32) > 0 {
+		if comma {
+			b.WriteString(",")
+		}
+
+		b.WriteString("R32(")
+
+		for _, r := range table.R32 {
+			b.WriteString(fmt.Sprintf("%d", r.Lo))
+			b.WriteString("-")
+			b.WriteString(fmt.Sprintf("%d", r.Hi))
+			b.WriteString("-")
+			b.WriteString(fmt.Sprintf("%d", r.Stride))
+			b.WriteString("#")
+		}
+
+		b.WriteString(")")
+	}
+
+	b.WriteString("]")
+
+	return b.String()
 }

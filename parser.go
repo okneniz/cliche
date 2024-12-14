@@ -704,24 +704,6 @@ func parseNamedGroup(parse c.Combinator[rune, int, *alternation], except ...rune
 	)
 }
 
-func parseCharacterClass(table tableParser) parser {
-	parse := squares(c.Some(1, table))
-
-	return func(buf c.Buffer[rune, int]) (Node, error) {
-		tables, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := characterClass{
-			table:      rangetable.Merge(tables...),
-			nestedNode: newNestedNode(),
-		}
-
-		return &x, nil
-	}
-}
-
 func parseBracket(name string, predicate func(rune) bool) parser {
 	parse := c.SequenceOf[rune, int]([]rune(name)...)
 
@@ -861,61 +843,6 @@ func parseBrackets() parser {
 	// }
 }
 
-func parseNegatedCharacterClass(table tableParser) parser {
-	parse := squares(
-		c.Skip(
-			c.Eq[rune, int]('^'),
-			c.Some(1, table),
-		),
-	)
-
-	return func(buf c.Buffer[rune, int]) (Node, error) {
-		tables, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		x := negatedCharacterClass{
-			table:      rangetable.Merge(tables...),
-			nestedNode: newNestedNode(),
-		}
-
-		return &x, nil
-	}
-}
-
-func parseRangeTable(except ...rune) tableParser {
-	item := c.NoneOf[rune, int](except...)
-	sep := c.Eq[rune, int]('-')
-
-	return func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
-		from, err := item(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sep(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		to, err := item(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		// TODO : check range
-
-		runes := make([]rune, 0, to-from)
-
-		for r := from; r <= to; r++ {
-			runes = append(runes, r)
-		}
-
-		return rangetable.New(runes...), nil
-	}
-}
-
 func parseEscapedSpecSymbolsTable() tableParser {
 	symbols := "[]{}()"
 	cases := make(map[rune]tableParser)
@@ -1011,6 +938,93 @@ func parseEscapedMetaCharactersTable() tableParser {
 			c.Any[rune, int](),
 		),
 	)
+}
+
+func parseCharacterClass(table tableParser) parser {
+	parse := squares(c.Some(1, table))
+
+	return func(buf c.Buffer[rune, int]) (Node, error) {
+		tables, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		table := rangetable.Merge(tables...)
+
+		return &simpleNode{
+			key:        rangeTableKey(table),
+			nestedNode: newNestedNode(),
+			predicate: func(x rune) bool {
+				return unicode.In(x, table)
+			},
+		}, nil
+	}
+}
+
+// TODO : check this type of compaction in test
+func parseNegatedCharacterClass(table tableParser) parser {
+	parse := squares(
+		c.Skip(
+			c.Eq[rune, int]('^'),
+			c.Some(1, table),
+		),
+	)
+
+	return func(buf c.Buffer[rune, int]) (Node, error) {
+		tables, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		table := rangetable.Merge(tables...)
+
+		runes := make([]rune, 0)
+		for x := rune(1); x <= unicode.MaxRune; x++ {
+			if !unicode.In(x, table) {
+				runes = append(runes, x)
+			}
+		}
+		negatedTable := rangetable.New(runes...)
+
+		return &simpleNode{
+			key:        rangeTableKey(negatedTable),
+			nestedNode: newNestedNode(),
+			predicate: func(x rune) bool {
+				return unicode.In(x, negatedTable)
+			},
+		}, nil
+	}
+}
+
+func parseRangeTable(except ...rune) tableParser {
+	item := c.NoneOf[rune, int](except...)
+	sep := c.Eq[rune, int]('-')
+
+	return func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		from, err := item(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = sep(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		to, err := item(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		// TODO : check range
+
+		runes := make([]rune, 0, to-from)
+		for r := from; r <= to; r++ {
+			runes = append(runes, r)
+		}
+
+		return rangetable.New(runes...), nil
+	}
 }
 
 func parseCharacterTable(except ...rune) tableParser {
