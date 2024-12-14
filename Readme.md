@@ -122,7 +122,7 @@ A-3. Missing features compared with perl 5.18.0
 |✅| `*` | 0 or more times |
 |✅| `+` | 1 or more times |
 |✅| `{n,m}` | at least n but no more than m times |
-|❌| `{n,}` | at least n times |
+|✅| `{n,}` | at least n times |
 |❌| `{,n}` | at least 0 but no more than n times ({0,n}) |
 |✅| `{n}` | n times |
 
