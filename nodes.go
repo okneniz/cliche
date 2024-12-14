@@ -316,37 +316,6 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onM
 	)
 }
 
-type char struct {
-	Value rune `json:"value,omitempty"`
-	*nestedNode
-}
-
-func (n *char) GetKey() string {
-	return string(n.Value)
-}
-
-func (n *char) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *char) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	if input.ReadAt(from) == n.Value {
-		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-		scanner.Rewind(pos)
-	}
-}
-
 // add something to empty json value, and in another spec symbols
 type dot struct {
 	*nestedNode
@@ -370,198 +339,6 @@ func (n *dot) Visit(scanner Scanner, input Input, from, to int, onMatch Callback
 	}
 
 	if input.ReadAt(from) != '\n' {
-		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-		scanner.Rewind(pos)
-	}
-}
-
-type digit struct {
-	*nestedNode
-}
-
-func (n *digit) GetKey() string {
-	return "\\d"
-}
-
-func (n *digit) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *digit) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if unicode.IsDigit(x) {
-		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-		scanner.Rewind(pos)
-	}
-}
-
-type nonDigit struct {
-	*nestedNode
-}
-
-func (n *nonDigit) GetKey() string {
-	return "\\D"
-}
-
-func (n *nonDigit) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *nonDigit) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if !unicode.IsDigit(x) {
-		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-		scanner.Rewind(pos)
-	}
-}
-
-type word struct {
-	*nestedNode
-}
-
-func (n *word) GetKey() string {
-	return "\\w"
-}
-
-func (n *word) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *word) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x) {
-		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-		scanner.Rewind(pos)
-	}
-}
-
-type nonWord struct {
-	*nestedNode
-}
-
-func (n *nonWord) GetKey() string {
-	return "\\W"
-}
-
-func (n *nonWord) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *nonWord) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if !(x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x)) {
-		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-		scanner.Rewind(pos)
-	}
-}
-
-type space struct {
-	*nestedNode
-}
-
-func (n *space) GetKey() string {
-	return "\\s"
-}
-
-func (n *space) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *space) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if unicode.IsSpace(x) {
-		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
-		scanner.Rewind(pos)
-	}
-}
-
-type nonSpace struct {
-	*nestedNode
-}
-
-func (n *nonSpace) GetKey() string {
-	return "\\S"
-}
-
-func (n *nonSpace) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.Nested {
-		x.Traverse(f)
-	}
-}
-
-func (n *nonSpace) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
-	x := input.ReadAt(from)
-
-	if !unicode.IsSpace(x) {
 		pos := scanner.Position()
 		scanner.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
@@ -952,17 +729,17 @@ func (n *negatedCharacterClass) Visit(scanner Scanner, input Input, from, to int
 	}
 }
 
-type bracket struct {
+type simpleNode struct {
 	key       string
 	predicate func(rune) bool
 	*nestedNode
 }
 
-func (n *bracket) GetKey() string {
+func (n *simpleNode) GetKey() string {
 	return n.key
 }
 
-func (n *bracket) Traverse(f func(Node)) {
+func (n *simpleNode) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Nested {
@@ -970,14 +747,12 @@ func (n *bracket) Traverse(f func(Node)) {
 	}
 }
 
-func (n *bracket) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
 
-	x := input.ReadAt(from)
-
-	if n.predicate(x) {
+	if n.predicate(input.ReadAt(from)) {
 		pos := scanner.Position()
 
 		scanner.Match(n, from, from, n.IsEnd(), false)

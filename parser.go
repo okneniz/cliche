@@ -285,15 +285,16 @@ func parseEscapedSpecSymbols() parser {
 	cases := make(map[rune]parser)
 
 	for _, v := range symbols {
-		r := v
+		x := v
 
-		cases[r] = func(buf c.Buffer[rune, int]) (Node, error) {
-			x := char{
-				Value:      r,
+		cases[x] = func(buf c.Buffer[rune, int]) (Node, error) {
+			return &simpleNode{
+				key: string(x),
+				predicate: func(r rune) bool {
+					return r == x
+				},
 				nestedNode: newNestedNode(),
-			}
-
-			return &x, nil
+			}, nil
 		}
 	}
 
@@ -485,17 +486,18 @@ func parseCharacter(except ...rune) parser {
 	parse := c.NoneOf[rune, int](except...)
 
 	return func(buf c.Buffer[rune, int]) (Node, error) {
-		c, err := parse(buf)
+		x, err := parse(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		x := char{
-			Value:      c,
+		return &simpleNode{
+			key: string(x),
+			predicate: func(r rune) bool {
+				return r == x
+			},
 			nestedNode: newNestedNode(),
-		}
-
-		return &x, nil
+		}, nil
 	}
 }
 
@@ -535,51 +537,57 @@ func parseMetaCharacters() parser {
 }
 
 func parseEscapedMetaCharacters() parser {
+	not := func(p func(rune) bool) func(rune) bool {
+		return func(x rune) bool {
+			return !p(x)
+		}
+	}
+
 	return c.Skip(
 		c.Eq[rune, int]('\\'),
 		c.MapAs(
 			map[rune]c.Combinator[rune, int, Node]{
 				'd': func(buf c.Buffer[rune, int]) (Node, error) {
-					x := digit{
+					return &simpleNode{
+						key:        "\\d",
+						predicate:  unicode.IsDigit,
 						nestedNode: newNestedNode(),
-					}
-
-					return &x, nil
+					}, nil
 				},
 				'D': func(buf c.Buffer[rune, int]) (Node, error) {
-					x := nonDigit{
+					return &simpleNode{
+						key:        "\\D",
+						predicate:  not(unicode.IsDigit),
 						nestedNode: newNestedNode(),
-					}
-
-					return &x, nil
+					}, nil
 				},
 				'w': func(buf c.Buffer[rune, int]) (Node, error) {
-					x := word{
+					return &simpleNode{
+						key:        "\\w",
+						predicate:  isWord,
 						nestedNode: newNestedNode(),
-					}
-
-					return &x, nil
+					}, nil
 				},
 				'W': func(buf c.Buffer[rune, int]) (Node, error) {
-					x := nonWord{
+					return &simpleNode{
+						key:        "\\w",
+						predicate:  not(isWord),
 						nestedNode: newNestedNode(),
-					}
-
-					return &x, nil
+					}, nil
 				},
 				's': func(buf c.Buffer[rune, int]) (Node, error) {
-					x := space{
+					return &simpleNode{
+						key:        "\\s",
+						predicate:  unicode.IsSpace,
 						nestedNode: newNestedNode(),
-					}
-
-					return &x, nil
+					}, nil
 				},
 				'S': func(buf c.Buffer[rune, int]) (Node, error) {
-					x := nonSpace{
+					return &simpleNode{
+						key:        "\\s",
+						predicate:  not(unicode.IsSpace),
 						nestedNode: newNestedNode(),
-					}
-
-					return &x, nil
+					}, nil
 				},
 				'A': func(buf c.Buffer[rune, int]) (Node, error) {
 					x := startOfString{
@@ -708,8 +716,8 @@ func parseBracket(name string, predicate func(rune) bool) parser {
 			return nil, err
 		}
 
-		return &bracket{
-			key:        name,
+		return &simpleNode{
+			key:        name, // TODO : sometimes use another key to compact tree
 			nestedNode: newNestedNode(),
 			predicate:  predicate,
 		}, nil
