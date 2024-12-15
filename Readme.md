@@ -162,17 +162,13 @@ Possesive - greedy and does not backtrack once match.
 
 ### Character classes
 
-```
-  ^...    negative class (lowest precedence)
-  x-y     range from x to y
-  [...]   set (character class in character class)
-  ..&&..  intersection (low precedence, only higher than ^)
+| support | syntax | match |
+|--|--|--|
+|✅| `^...` | negative class (lowest precedence) |
+|✅| `x-y` | range from x to y |
+|❌| `[...]` | set (character class in character class) |
+|❌| `..&&..` | intersection (low precedence, only higher than ^) ex. [a-w&&[^c-g]z] ==> ([a-w] AND ([^c-g] OR z)) ==> [abh-w] |
 
-    ex. [a-w&&[^c-g]z] ==> ([a-w] AND ([^c-g] OR z)) ==> [abh-w]
-
-  * If you want to use '[', '-', or ']' as a normal character
-    in character class, you should escape them with '\'.
-```
 
 ### Bracket ([:xxxxx:], negate [:^xxxxx:])
 
