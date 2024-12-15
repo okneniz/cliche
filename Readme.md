@@ -69,58 +69,6 @@ Main features:
 |❌|`\p{^property-name}`| match character without [property](https://pkg.go.dev/unicode#pkg-variables) |
 
 
-### Captured group
-
-```
-  Behavior of an unnamed group (...) changes with the following conditions.
-  (But named group is not changed.)
-
-  case 1. /.../     (named group is not used, no option)
-
-     (...) is treated as a capturing group.
-
-  case 2. /.../g    (named group is not used, 'g' option)
-
-     (...) is treated as a non-capturing group (?:...).
-
-  case 3. /..(?<name>..)../   (named group is used, no option)
-
-     (...) is treated as a non-capturing group.
-     numbered-backref/call is not allowed.
-
-  case 4. /..(?<name>..)../G  (named group is used, 'G' option)
-
-     (...) is treated as a capturing group.
-     numbered-backref/call is allowed.
-
-  where
-    g: ONIG_OPTION_DONT_CAPTURE_GROUP
-    G: ONIG_OPTION_CAPTURE_GROUP
-
-  ('g' and 'G' options are argued in ruby-dev ML)
-
-A-2. Original extensions
-
-   + hexadecimal digit char type  \h, \H
-   + named group                  (?<name>...), (?'name'...)
-   + named backref                \k<name>
-   + subexp call                  \g<name>, \g<group-num>
-
-A-3. Missing features compared with perl 5.18.0
-
-   + \N{name}, \N{U+xxxx}, \N
-   + \l,\u,\L,\U, \C
-   + \v, \V, \h, \H
-   + (?{code})
-   + (??{code})
-   + (?|...)
-   + (?[])
-   + (*VERB:ARG)
-
-   * \Q...\E
-     This is effective on ONIG_SYNTAX_PERL and ONIG_SYNTAX_JAVA.
-```
-
 ### Quantifiers
 
 #### Greedy
@@ -199,9 +147,24 @@ Possesive - greedy and does not backtrack once match.
 |✅| `[:word:]` | `Letter \| Mark \| Decimal_Number \| Connector_Punctuation` |
 
 
-### Extended groups
+### Captured group
+
+| support | characters | match |
+|--|--|--|
+|✅| `(?:subexp)` | non-capturing group |
+|✅| `(subexp)` | capturing group |
+|✅| `(?<name>subexp)` | define named group |
 
 ```
+    (?<name>subexp), (?'name'subexp)
+                     define named group
+                     (Each character of the name must be a word character.)
+
+                     Not only a name but a number is assigned like a capturing
+                     group.
+
+                     Assigning the same name to two or more subexps is allowed.
+
   (?#...)            comment
 
   (?imxdau-imx)      option on/off
@@ -227,8 +190,6 @@ Possesive - greedy and does not backtrack once match.
   (?imxdau-imx:subexp)
                      option on/off for subexp
 
-  (?:subexp)         non-capturing group
-  (subexp)           capturing group
 
   (?=subexp)         look-ahead
   (?!subexp)         negative look-ahead
@@ -248,15 +209,6 @@ Possesive - greedy and does not backtrack once match.
 
   (?>subexp)         atomic group
                      no backtracks in subexp.
-
-  (?<name>subexp), (?'name'subexp)
-                     define named group
-                     (Each character of the name must be a word character.)
-
-                     Not only a name but a number is assigned like a capturing
-                     group.
-
-                     Assigning the same name to two or more subexps is allowed.
 
   (?(cond)yes-subexp), (?(cond)yes-subexp|no-subexp)
                     conditional expression
@@ -309,6 +261,37 @@ Possesive - greedy and does not backtrack once match.
                         https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-presen.pdf
 ```
 
+```
+  Behavior of an unnamed group (...) changes with the following conditions.
+  (But named group is not changed.)
+
+  case 1. /.../     (named group is not used, no option)
+
+     (...) is treated as a capturing group.
+
+  case 2. /.../g    (named group is not used, 'g' option)
+
+     (...) is treated as a non-capturing group (?:...).
+
+  case 3. /..(?<name>..)../   (named group is used, no option)
+
+     (...) is treated as a non-capturing group.
+     numbered-backref/call is not allowed.
+
+  case 4. /..(?<name>..)../G  (named group is used, 'G' option)
+
+     (...) is treated as a capturing group.
+     numbered-backref/call is allowed.
+
+  ('g' and 'G' options are argued in ruby-dev ML)
+
+A-2. Original extensions
+
+   + named group                  (?<name>...), (?'name'...)
+   + named backref                \k<name>
+   + subexp call                  \g<name>, \g<group-num>
+```
+
 ### Backreferences
 
 ```
@@ -343,28 +326,6 @@ Possesive - greedy and does not backtrack once match.
 
     \k<name+level> \k'name+level'
     \k<name-level> \k'name-level'
-
-    Refer a group on the recursion level relative to the referring position.
-
-    ex 1.
-
-      /\A(?<a>|.|(?:(?<b>.)\g<a>\k<b>))\z/.match("reee")
-      /\A(?<a>|.|(?:(?<b>.)\g<a>\k<b+0>))\z/.match("reer")
-
-      \k<b+0> refers to the (?<b>.) on the same recursion level with it.
-
-    ex 2.
-
-      r = Regexp.compile(<<'__REGEXP__'.strip, Regexp::EXTENDED)
-      (?<element> \g<stag> \g<content>* \g<etag> ){0}
-      (?<stag> < \g<name> \s* > ){0}
-      (?<name> [a-zA-Z_:]+ ){0}
-      (?<content> [^<&]+ (\g<element> | [^<&]+)* ){0}
-      (?<etag> </ \k<name+1> >){0}
-      \g<element>
-      __REGEXP__
-
-      p r.match("<foo>f<bar>bbb</bar>f</foo>").captures
 ```
 
 ### Subexp calls ("Tanaka Akira special")
