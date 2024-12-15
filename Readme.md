@@ -135,7 +135,7 @@ A-3. Missing features compared with perl 5.18.0
 |❌| `+?` | 1 or more times |
 |❌| `{n,m}?` | at least n but not more than m times |
 |❌| `{n,}?` | at least n times |
-|❌| ` {,n}?` | at least 0 but not more than n times (== {0,n}?) |
+|❌| `{,n}?` | at least 0 but not more than n times (== {0,n}?) |
 
 #### Possessive 
 

@@ -603,7 +603,6 @@ func parseEscapedMetaCharacters() parser {
 
 					return &x, nil
 				},
-
 				'h': func(buf c.Buffer[rune, int]) (Node, error) {
 					return &simpleNode{
 						key:        "\\h",
@@ -876,7 +875,15 @@ func parseEscapedMetaCharactersTable() tableParser {
 
 	runes = make([]rune, 0)
 	for x := rune(1); x <= unicode.MaxRune; x++ {
-		if !unicode.IsLetter(x) {
+		if isWord(x) {
+			runes = append(runes, x)
+		}
+	}
+	wordTable := rangetable.New(runes...)
+
+	runes = make([]rune, 0)
+	for x := rune(1); x <= unicode.MaxRune; x++ {
+		if !isWord(x) {
 			runes = append(runes, x)
 		}
 	}
@@ -917,7 +924,7 @@ func parseEscapedMetaCharactersTable() tableParser {
 					return notDigitTable, nil
 				},
 				'w': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
-					return unicode.Letter, nil // TODO : FIX! it'w not word
+					return wordTable, nil
 				},
 				'W': func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 					return notWordTable, nil
