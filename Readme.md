@@ -191,7 +191,7 @@ Possesive - greedy and does not backtrack once match.
 |✅| `[:space:]` | `Space_Separator \| Line_Separator \| Paragraph_Separator \| 0009 \| 000A \| 000B \| 000C \| 000D \| 0085` |
 |✅| `[:upper:]` | `Uppercase_Letter` |
 |✅| `[:xdigit:]` | `0030 - 0039 \| 0041 - 0046 \| 0061 - 0066 \| (0-9, a-f, A-F)` |
-|❌| `[:word:]` | `Letter \| Mark \| Decimal_Number \| Connector_Punctuation` |
+|✅| `[:word:]` | `Letter \| Mark \| Decimal_Number \| Connector_Punctuation` |
 
 
 ### Extended groups

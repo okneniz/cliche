@@ -1147,6 +1147,123 @@
           ]
         }
       ]
+    },
+    {
+      "Name": "word",
+      "Expressions": [
+        "[[:word:]]+"
+      ],
+      "Input": "foo é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:word:]]+"
+          ]
+        },
+        {
+          "SubString": "é",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:word:]]+"
+          ]
+        },
+        {
+          "SubString": "Bar",
+          "Span": {
+            "From": 6,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:word:]]+"
+          ]
+        },
+        {
+          "SubString": "1",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:word:]]+"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:word:]]+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not word",
+      "Expressions": [
+        "[[:^word:]]+"
+      ],
+      "Input": "foo é Bar\n1\t2",
+      "Want": [
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^word:]]+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^word:]]+"
+          ]
+        },
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^word:]]+"
+          ]
+        },
+        {
+          "SubString": "\t",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "[[:^word:]]+"
+          ]
+        }
+      ]
     }
   ]
 }

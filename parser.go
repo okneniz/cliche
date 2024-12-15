@@ -712,6 +712,7 @@ func parseBracket(name string, predicate func(rune) bool) parser {
 			return nil, err
 		}
 
+		// TODO : use tables to better compaction
 		return &simpleNode{
 			key:        name, // TODO : sometimes use another key to compact tree
 			nestedNode: newNestedNode(),
@@ -799,6 +800,12 @@ func parseBrackets() parser {
 	notXdigit := parseBracket(":^xdigit:", func(x rune) bool {
 		return !isHex(x)
 	})
+	word := parseBracket(":word:", func(x rune) bool {
+		return isWord(x)
+	})
+	notWord := parseBracket(":^word:", func(x rune) bool {
+		return !isWord(x)
+	})
 
 	return squares(squares(
 		choice(
@@ -828,18 +835,10 @@ func parseBrackets() parser {
 			notPunct,
 			xdigit,
 			notXdigit,
+			word,
+			notWord,
 		),
 	))
-
-	// return func(buf c.Buffer[rune, int]) (Node, error) {
-	// return squares(
-	// 	ps.MapStrings(
-	// 		map[string]parser{
-	// 			":word:", func(x rune) bool { return false },
-	// 		},
-	// 	),
-	// )
-	// }
 }
 
 func parseEscapedSpecSymbolsTable() tableParser {
