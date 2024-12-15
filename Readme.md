@@ -60,6 +60,15 @@ Main features:
 |✅| `\H` | any non-hexadecimal-digit char |
 
 
+### Character Property
+
+| support | characters | match |
+|--|--|--|
+|✅|`\p{property-name}`| match character with [property](https://pkg.go.dev/unicode#pkg-variables) |
+|✅|`\P{property-name}`| match character without [property](https://pkg.go.dev/unicode#pkg-variables)|
+|❌|`\p{^property-name}`| match character without [property](https://pkg.go.dev/unicode#pkg-variables) |
+
+
 ### Captured group
 
 ```
@@ -391,31 +400,6 @@ Possesive - greedy and does not backtrack once match.
     Use (?&name), (?n), (?-n), (?+n), (?R) or (?0) instead of \g<>.
     Calls with a name that is assigned to more than one groups are allowed,
     and the left-most subexp is used.
-```
-
-### Character Property ???
-
-```
-    * \p{property-name}
-    * \p{^property-name}    (negative)
-    * \P{property-name}     (negative)
-
-    property-name:
-
-     + works on all encodings
-       Alnum, Alpha, Blank, Cntrl, Digit, Graph, Lower,
-       Print, Punct, Space, Upper, XDigit, Word, ASCII
-
-     + works on EUC_JP, Shift_JIS, CP932
-       Hiragana, Katakana, Han, Latin, Greek, Cyrillic
-
-     + works on UTF-8, UTF-16, UTF-32
-       see UnicodeProps.txt
-
-    \p{Punct} works slightly different on Unicode encodings and the other
-    encodings. It matches the nine characters "$+<=>^`|~" on non-Unicode
-    encodings (which is the same as [[:punct:]]), but not on Unicode encodings.
-    \p{XPosixPunct} matches the nine characters on Unicode encodings.
 ```
 
 ## Roadmap

@@ -207,8 +207,8 @@ func parseCharacterClasses(except ...rune) parser {
 	)
 }
 
-func choice(parsers ...parser) parser {
-	attempts := make([]parser, len(parsers))
+func choice[T any](parsers ...c.Combinator[rune, int, T]) c.Combinator[rune, int, T] {
+	attempts := make([]c.Combinator[rune, int, T], len(parsers))
 
 	for i, parse := range parsers {
 		attempts[i] = c.Try(parse)
@@ -232,6 +232,16 @@ func parens[T any](
 		c.Eq[rune, int]('('),
 		body,
 		c.Eq[rune, int](')'),
+	)
+}
+
+func braces[T any](
+	body c.Combinator[rune, int, T],
+) c.Combinator[rune, int, T] {
+	return between(
+		c.Eq[rune, int]('{'),
+		body,
+		c.Eq[rune, int]('}'),
 	)
 }
 
@@ -543,6 +553,8 @@ func parseEscapedMetaCharacters() parser {
 		}
 	}
 
+	propertyTable := c.Try(parsePropertyName())
+
 	return c.Skip(
 		c.Eq[rune, int]('\\'),
 		c.MapAs(
@@ -617,10 +629,77 @@ func parseEscapedMetaCharacters() parser {
 						nestedNode: newNestedNode(),
 					}, nil
 				},
+				'p': c.Try(func(buf c.Buffer[rune, int]) (Node, error) {
+					table, err := propertyTable(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					return &simpleNode{
+						key:        rangeTableKey(table),
+						nestedNode: newNestedNode(),
+						predicate: func(x rune) bool {
+							return unicode.In(x, table)
+						},
+					}, nil
+				}),
+				'P': c.Try(func(buf c.Buffer[rune, int]) (Node, error) {
+					table, err := propertyTable(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					negatiatedTable := negatiateTable(table)
+
+					return &simpleNode{
+						key:        rangeTableKey(negatiatedTable),
+						nestedNode: newNestedNode(),
+						predicate: func(x rune) bool {
+							return unicode.In(x, negatiatedTable)
+						},
+					}, nil
+				}),
 			},
 			c.Any[rune, int](),
 		),
 	)
+}
+
+func parsePropertyName() tableParser {
+	allProperties := make(map[string]*unicode.RangeTable)
+
+	for k, v := range unicode.Categories {
+		x := v
+		allProperties[k] = x
+	}
+
+	for k, v := range unicode.Properties {
+		x := v
+		allProperties[k] = x
+	}
+
+	for k, v := range unicode.Scripts {
+		x := v
+		allProperties[k] = x
+	}
+
+	cases := make([]tableParser, 0, len(allProperties)*3)
+
+	for name, t := range allProperties {
+		parse := c.SequenceOf[rune, int]([]rune("{" + name + "}")...)
+		table := t
+
+		cases = append(cases, func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+			_, err := parse(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return table, nil
+		})
+	}
+
+	return choice(cases...)
 }
 
 func parseGroup(parse c.Combinator[rune, int, *alternation]) parser {
@@ -863,16 +942,9 @@ func parseEscapedSpecSymbolsTable() tableParser {
 }
 
 func parseEscapedMetaCharactersTable() tableParser {
-	// TODO : move to consts
-	runes := make([]rune, 0)
-	for x := rune(1); x <= unicode.MaxRune; x++ {
-		if !unicode.IsDigit(x) {
-			runes = append(runes, x)
-		}
-	}
-	notDigitTable := rangetable.New(runes...)
+	notDigitTable := negatiateTable(unicode.Digit)
 
-	runes = make([]rune, 0)
+	runes := make([]rune, 0)
 	for x := rune(1); x <= unicode.MaxRune; x++ {
 		if isWord(x) {
 			runes = append(runes, x)
@@ -944,6 +1016,18 @@ func parseEscapedMetaCharactersTable() tableParser {
 			c.Any[rune, int](),
 		),
 	)
+}
+
+func negatiateTable(table *unicode.RangeTable) *unicode.RangeTable {
+	runes := make([]rune, 0)
+
+	for x := rune(1); x <= unicode.MaxRune; x++ {
+		if !unicode.In(x, table) {
+			runes = append(runes, x)
+		}
+	}
+
+	return rangetable.New(runes...)
 }
 
 func parseCharacterClass(table tableParser) parser {

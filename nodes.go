@@ -651,13 +651,16 @@ func rangeTableKey(table *unicode.RangeTable) string {
 	if len(table.R16) > 0 {
 		b.WriteString("R16(")
 
-		for _, r := range table.R16 {
+		for i, r := range table.R16 {
 			b.WriteString(fmt.Sprintf("%d", r.Lo))
 			b.WriteString("-")
 			b.WriteString(fmt.Sprintf("%d", r.Hi))
 			b.WriteString("-")
 			b.WriteString(fmt.Sprintf("%d", r.Stride))
-			b.WriteString("#")
+
+			if i != len(table.R16)-1 {
+				b.WriteString(",")
+			}
 		}
 
 		b.WriteString(")")
@@ -671,13 +674,16 @@ func rangeTableKey(table *unicode.RangeTable) string {
 
 		b.WriteString("R32(")
 
-		for _, r := range table.R32 {
+		for i, r := range table.R32 {
 			b.WriteString(fmt.Sprintf("%d", r.Lo))
 			b.WriteString("-")
 			b.WriteString(fmt.Sprintf("%d", r.Hi))
 			b.WriteString("-")
 			b.WriteString(fmt.Sprintf("%d", r.Stride))
-			b.WriteString("#")
+
+			if i != len(table.R32)-1 {
+				b.WriteString(",")
+			}
 		}
 
 		b.WriteString(")")
