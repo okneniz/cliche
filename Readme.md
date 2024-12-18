@@ -34,7 +34,7 @@ Main features:
 | support |characters| description | UTF-8 code |
 |--|--|--|--|
 |❌| `\nnn` | octal char | encoded byte value |
-|❌| `\xHH` | hexadecimal char | encoded byte value |
+|✅| `\xHH` | hexadecimal char | encoded byte value |
 |❌| `\x{7HHHHHHH}` | wide hexadecimal char | character code point value |
 |❌| `\uHHHH` | wide hexadecimal char| character code point value |
 |❌| `\cx` | control char | character code point value |

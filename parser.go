@@ -3,6 +3,8 @@ package cliche
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"unicode"
 
 	"golang.org/x/text/unicode/rangetable"
@@ -554,6 +556,7 @@ func parseEscapedMetaCharacters() parser {
 	}
 
 	propertyTable := c.Try(parsePropertyName())
+	parseHexChar := c.Try(parseHexNumber(2))
 
 	return c.Skip(
 		c.Eq[rune, int]('\\'),
@@ -659,10 +662,49 @@ func parseEscapedMetaCharacters() parser {
 						},
 					}, nil
 				}),
+				'x': c.Try(func(buf c.Buffer[rune, int]) (Node, error) {
+					num, err := parseHexChar(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					r := rune(num)
+
+					// TODO : check bounds
+
+					return &simpleNode{
+						key:        string(r),
+						nestedNode: newNestedNode(),
+						predicate: func(x rune) bool {
+							return x == r
+						},
+					}, nil
+				}),
 			},
 			c.Any[rune, int](),
 		),
 	)
+}
+
+func parseHexNumber(size int) c.Combinator[rune, int, int] {
+	allowed := "0123456789abcdefABCDEF"
+	parse := c.Count(size, c.OneOf[rune, int]([]rune(allowed)...))
+
+	return func(buf c.Buffer[rune, int]) (int, error) {
+		runes, err := parse(buf)
+		if err != nil {
+			return -1, err
+		}
+
+		str := strings.ToLower(string(runes))
+
+		num, err := strconv.ParseInt(str, 16, 64)
+		if err != nil {
+			return -1, err
+		}
+
+		return int(num), nil
+	}
 }
 
 func parsePropertyName() tableParser {

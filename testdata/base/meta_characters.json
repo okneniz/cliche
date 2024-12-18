@@ -628,6 +628,39 @@
       ]
     },
     {
+      "Name": "match '\\x'",
+      "Expressions": [
+        "\\x2B",
+        "\\x66"
+      ],
+      "Input": "foo + bar = baz",
+      "Want": [
+        {
+           "SubString": "+",
+           "Span": {
+             "From": 4,
+             "To": 4,
+             "Empty": false
+           },
+           "Expressions": [
+             "\\x2B"
+           ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\x66"
+          ]
+        }         
+      ]
+    },
+
+    {
       "Name": "match '\\h'",
       "Expressions": [
         "\\h"
@@ -853,7 +886,7 @@
           ]
         }
       ]
-    },    
+    },
     {
       "Name": "escaped characters",
       "Expressions": [
