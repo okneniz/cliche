@@ -557,6 +557,7 @@ func parseEscapedMetaCharacters() parser {
 
 	propertyTable := c.Try(parsePropertyName())
 	parseHexChar := c.Try(parseHexNumber(2))
+	parseOctalChar := c.Try(braces(parseOctal(3)))
 
 	return c.Skip(
 		c.Eq[rune, int]('\\'),
@@ -680,6 +681,24 @@ func parseEscapedMetaCharacters() parser {
 						},
 					}, nil
 				}),
+				'o': c.Try(func(buf c.Buffer[rune, int]) (Node, error) {
+					num, err := parseOctalChar(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					r := rune(num)
+
+					// TODO : check bounds
+
+					return &simpleNode{
+						key:        string(r),
+						nestedNode: newNestedNode(),
+						predicate: func(x rune) bool {
+							return x == r
+						},
+					}, nil
+				}),
 			},
 			c.Any[rune, int](),
 		),
@@ -699,6 +718,27 @@ func parseHexNumber(size int) c.Combinator[rune, int, int] {
 		str := strings.ToLower(string(runes))
 
 		num, err := strconv.ParseInt(str, 16, 64)
+		if err != nil {
+			return -1, err
+		}
+
+		return int(num), nil
+	}
+}
+
+func parseOctal(size int) c.Combinator[rune, int, int] {
+	allowed := "01234567"
+	parse := c.Count(size, c.OneOf[rune, int]([]rune(allowed)...))
+
+	return func(buf c.Buffer[rune, int]) (int, error) {
+		runes, err := parse(buf)
+		if err != nil {
+			return -1, err
+		}
+
+		str := strings.ToLower(string(runes))
+
+		num, err := strconv.ParseInt(str, 8, 64)
 		if err != nil {
 			return -1, err
 		}

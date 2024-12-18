@@ -41,7 +41,7 @@ Main features:
 |❌| `\C-x` | control char | character code point value |
 |❌| `\M-x` | meta char | character code point value |
 |❌| `\M-\C-x` | meta control char| character code point value |
-|❌| `\o{nnn}` | octal char | character code point value
+|✅| `\o{nnn}` | octal char | character code point value
 
  * `\b` as backspace is effective in character class only
 

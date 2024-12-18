@@ -659,7 +659,38 @@
         }         
       ]
     },
-
+    {
+      "Name": "match '\\o{nnn}'",
+      "Expressions": [
+        "\\o{053}",
+        "\\o{146}"
+      ],
+      "Input": "foo + bar = baz",
+      "Want": [
+        {
+           "SubString": "+",
+           "Span": {
+             "From": 4,
+             "To": 4,
+             "Empty": false
+           },
+           "Expressions": [
+             "\\o{053}"
+           ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\o{146}"
+          ]
+        }         
+      ]
+    },
     {
       "Name": "match '\\h'",
       "Expressions": [
