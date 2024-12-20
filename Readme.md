@@ -36,7 +36,7 @@ Main features:
 |❌| `\nnn` | octal char | encoded byte value |
 |✅| `\xHH` | hexadecimal char | encoded byte value |
 |❌| `\x{7HHHHHHH}` | wide hexadecimal char | character code point value |
-|❌| `\uHHHH` | wide hexadecimal char| character code point value |
+|✅| `\uHHHH` | wide hexadecimal char| character code point value |
 |❌| `\cx` | control char | character code point value |
 |❌| `\C-x` | control char | character code point value |
 |❌| `\M-x` | meta char | character code point value |
@@ -364,5 +364,9 @@ A-2. Original extensions
 ```
 
 ## Roadmap
+
+## Octal character defenitions can conflic with quantifiers
+
+- `\o{nnn}` - 
 
 https://github.com/rsms/go-immutable

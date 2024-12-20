@@ -7,9 +7,8 @@ import (
 	"strings"
 	"unicode"
 
-	"golang.org/x/text/unicode/rangetable"
-
 	c "github.com/okneniz/parsec/common"
+	"golang.org/x/text/unicode/rangetable"
 )
 
 type parser = c.Combinator[rune, int, Node]
@@ -19,30 +18,6 @@ var (
 	defaultParser          = parseRegexp()
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
-
-func SkipString(data string) c.Combinator[rune, int, struct{}] {
-	none := struct{}{}
-
-	return func(buf c.Buffer[rune, int]) (struct{}, error) {
-		l := len(data)
-		for _, x := range data {
-			r, err := buf.Read(true)
-			if err != nil {
-				return none, err
-			}
-			if x != r {
-				return none, c.NothingMatched
-			}
-			l -= 1
-		}
-
-		if l != 0 {
-			return none, c.NothingMatched
-		}
-
-		return none, nil
-	}
-}
 
 // TODO : return error for invalid escaped chars like '\x' (check on rubular)
 
@@ -207,89 +182,6 @@ func parseCharacterClasses(except ...rune) parser {
 		parseNegatedCharacterClass(parseTable),
 		parseCharacterClass(parseTable),
 	)
-}
-
-func choice[T any](parsers ...c.Combinator[rune, int, T]) c.Combinator[rune, int, T] {
-	attempts := make([]c.Combinator[rune, int, T], len(parsers))
-
-	for i, parse := range parsers {
-		attempts[i] = c.Try(parse)
-	}
-
-	return c.Choice(attempts...)
-}
-
-func between[T any, S any](
-	before c.Combinator[rune, int, S],
-	body c.Combinator[rune, int, T],
-	after c.Combinator[rune, int, S],
-) c.Combinator[rune, int, T] {
-	return c.Between(before, body, after)
-}
-
-func parens[T any](
-	body c.Combinator[rune, int, T],
-) c.Combinator[rune, int, T] {
-	return between(
-		c.Eq[rune, int]('('),
-		body,
-		c.Eq[rune, int](')'),
-	)
-}
-
-func braces[T any](
-	body c.Combinator[rune, int, T],
-) c.Combinator[rune, int, T] {
-	return between(
-		c.Eq[rune, int]('{'),
-		body,
-		c.Eq[rune, int]('}'),
-	)
-}
-
-func angles[T any](
-	body c.Combinator[rune, int, T],
-) c.Combinator[rune, int, T] {
-	return between(
-		c.Eq[rune, int]('<'),
-		body,
-		c.Eq[rune, int]('>'),
-	)
-}
-
-func squares[T any](
-	body c.Combinator[rune, int, T],
-) c.Combinator[rune, int, T] {
-	return between(
-		c.Eq[rune, int]('['),
-		body,
-		c.Eq[rune, int](']'),
-	)
-}
-
-func number() c.Combinator[rune, int, int] {
-	digit := c.Try[rune, int](c.Range[rune, int]('0', '9'))
-	zero := rune('0')
-
-	return func(buf c.Buffer[rune, int]) (int, error) {
-		token, err := digit(buf)
-		if err != nil {
-			return 0, err
-		}
-
-		result := int(token - zero)
-		for {
-			token, err = digit(buf)
-			if err != nil {
-				break
-			}
-
-			result = result * 10
-			result += int(token - zero)
-		}
-
-		return result, nil
-	}
 }
 
 func parseEscapedSpecSymbols() parser {
@@ -556,7 +448,8 @@ func parseEscapedMetaCharacters() parser {
 	}
 
 	propertyTable := c.Try(parsePropertyName())
-	parseHexChar := c.Try(parseHexNumber(2))
+	parseHexChar := c.Try(parseHexNumber(2, 2))
+	parseUnicodeChar := c.Try(parseHexNumber(1, 4))
 	parseOctalChar := c.Try(braces(parseOctal(3)))
 
 	return c.Skip(
@@ -699,15 +592,32 @@ func parseEscapedMetaCharacters() parser {
 						},
 					}, nil
 				}),
+				'u': c.Try(func(buf c.Buffer[rune, int]) (Node, error) {
+					num, err := parseUnicodeChar(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					r := rune(num)
+
+					// TODO : check bounds
+
+					return &simpleNode{
+						key:        string(r),
+						nestedNode: newNestedNode(),
+						predicate: func(x rune) bool {
+							return x == r
+						},
+					}, nil
+				}),
 			},
 			c.Any[rune, int](),
 		),
 	)
 }
 
-func parseHexNumber(size int) c.Combinator[rune, int, int] {
-	allowed := "0123456789abcdefABCDEF"
-	parse := c.Count(size, c.OneOf[rune, int]([]rune(allowed)...))
+func parseHexNumber(from, to int) c.Combinator[rune, int, int] {
+	parse := Quantifier(from, to, c.OneOf[rune, int]([]rune("0123456789abcdefABCDEF")...))
 
 	return func(buf c.Buffer[rune, int]) (int, error) {
 		runes, err := parse(buf)
@@ -1098,18 +1008,6 @@ func parseEscapedMetaCharactersTable() tableParser {
 			c.Any[rune, int](),
 		),
 	)
-}
-
-func negatiateTable(table *unicode.RangeTable) *unicode.RangeTable {
-	runes := make([]rune, 0)
-
-	for x := rune(1); x <= unicode.MaxRune; x++ {
-		if !unicode.In(x, table) {
-			runes = append(runes, x)
-		}
-	}
-
-	return rangetable.New(runes...)
 }
 
 func parseCharacterClass(table tableParser) parser {
