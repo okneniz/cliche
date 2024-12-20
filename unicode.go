@@ -30,6 +30,18 @@ func negatiateTable(table *unicode.RangeTable) *unicode.RangeTable {
 	return rangetable.New(runes...)
 }
 
+func predicateToTable(p func(rune) bool) *unicode.RangeTable {
+	runes := make([]rune, 0)
+
+	for x := rune(1); x <= unicode.MaxRune; x++ {
+		if p(x) {
+			runes = append(runes, x)
+		}
+	}
+
+	return rangetable.New(runes...)
+}
+
 func rangeTableKey(table *unicode.RangeTable) string {
 	b := new(strings.Builder)
 

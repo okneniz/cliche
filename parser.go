@@ -23,7 +23,7 @@ type Parser interface {
 type CustomParser struct {
 	parseExpression       c.Combinator[rune, int, Node]
 	parseNestedExpression c.Combinator[rune, int, Node]
-	alternationSep        c.Combinator[rune, int, rune] // TODO : better name?
+	alternationSep        c.Combinator[rune, int, rune]
 }
 
 func NewParser() *CustomParser {
@@ -72,9 +72,9 @@ func NewParser() *CustomParser {
 			p.parseNamedGroup(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
+			p.parseEscapedSpecSymbols(),
 			p.parseEscapedMetaCharacters(),
 			p.parseMetaCharacters(),
-			p.parseEscapedSpecSymbols(),
 			p.parseCharacter('|'),
 		),
 	)
@@ -87,9 +87,9 @@ func NewParser() *CustomParser {
 			p.parseNamedGroup(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
+			p.parseEscapedSpecSymbols(),
 			p.parseEscapedMetaCharacters(),
 			p.parseMetaCharacters(),
-			p.parseEscapedSpecSymbols(),
 			p.parseCharacter('|', ')'),
 		),
 	)
@@ -616,84 +616,6 @@ func (p *CustomParser) parseEscapedMetaCharacters() c.Combinator[rune, int, Node
 	)
 }
 
-func (p *CustomParser) parseHexNumber(from, to int) c.Combinator[rune, int, int] {
-	parse := Quantifier(from, to, c.OneOf[rune, int]([]rune("0123456789abcdefABCDEF")...))
-
-	return func(buf c.Buffer[rune, int]) (int, error) {
-		runes, err := parse(buf)
-		if err != nil {
-			return -1, err
-		}
-
-		str := strings.ToLower(string(runes))
-
-		num, err := strconv.ParseInt(str, 16, 64)
-		if err != nil {
-			return -1, err
-		}
-
-		return int(num), nil
-	}
-}
-
-func (p *CustomParser) parseOctal(size int) c.Combinator[rune, int, int] {
-	allowed := "01234567"
-	parse := c.Count(size, c.OneOf[rune, int]([]rune(allowed)...))
-
-	return func(buf c.Buffer[rune, int]) (int, error) {
-		runes, err := parse(buf)
-		if err != nil {
-			return -1, err
-		}
-
-		str := strings.ToLower(string(runes))
-
-		num, err := strconv.ParseInt(str, 8, 64)
-		if err != nil {
-			return -1, err
-		}
-
-		return int(num), nil
-	}
-}
-
-func (p *CustomParser) parsePropertyName() c.Combinator[rune, int, *unicode.RangeTable] {
-	allProperties := make(map[string]*unicode.RangeTable)
-
-	for k, v := range unicode.Categories {
-		x := v
-		allProperties[k] = x
-	}
-
-	for k, v := range unicode.Properties {
-		x := v
-		allProperties[k] = x
-	}
-
-	for k, v := range unicode.Scripts {
-		x := v
-		allProperties[k] = x
-	}
-
-	cases := make([]c.Combinator[rune, int, *unicode.RangeTable], 0, len(allProperties)*3)
-
-	for name, t := range allProperties {
-		parse := c.SequenceOf[rune, int]([]rune("{" + name + "}")...)
-		table := t
-
-		cases = append(cases, func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
-			_, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			return table, nil
-		})
-	}
-
-	return choice(cases...)
-}
-
 func (p *CustomParser) parseGroup(parse c.Combinator[rune, int, *alternation]) c.Combinator[rune, int, Node] {
 	return parens(
 		func(buf c.Buffer[rune, int]) (Node, error) {
@@ -783,11 +705,14 @@ func (p *CustomParser) parseBracket(name string, predicate func(rune) bool) c.Co
 			return nil, err
 		}
 
-		// TODO : use tables to better compaction
+		table := predicateToTable(predicate)
+
 		return &simpleNode{
-			key:        name, // TODO : sometimes use another key to compact tree
+			key:        rangeTableKey(table),
 			nestedNode: newNestedNode(),
-			predicate:  predicate,
+			predicate: func(r rune) bool {
+				return unicode.Is(table, r)
+			},
 		}, nil
 	}
 }
@@ -1070,7 +995,9 @@ func (p *CustomParser) parseNegatedCharacterClass(
 	}
 }
 
-func (p *CustomParser) parseRangeTable(except ...rune) c.Combinator[rune, int, *unicode.RangeTable] {
+func (p *CustomParser) parseRangeTable(
+	except ...rune,
+) c.Combinator[rune, int, *unicode.RangeTable] {
 	item := c.NoneOf[rune, int](except...)
 	sep := c.Eq[rune, int]('-')
 
@@ -1101,7 +1028,9 @@ func (p *CustomParser) parseRangeTable(except ...rune) c.Combinator[rune, int, *
 	}
 }
 
-func (p *CustomParser) parseCharacterTable(except ...rune) c.Combinator[rune, int, *unicode.RangeTable] {
+func (p *CustomParser) parseCharacterTable(
+	except ...rune,
+) c.Combinator[rune, int, *unicode.RangeTable] {
 	parse := c.NoneOf[rune, int](except...)
 
 	return func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
@@ -1110,8 +1039,86 @@ func (p *CustomParser) parseCharacterTable(except ...rune) c.Combinator[rune, in
 			return nil, err
 		}
 
-		table := rangetable.New(c)
-
-		return table, nil
+		return rangetable.New(c), nil
 	}
+}
+
+func (p *CustomParser) parseHexNumber(
+	from, to int,
+) c.Combinator[rune, int, int] {
+	parse := Quantifier(from, to, c.OneOf[rune, int]([]rune("0123456789abcdefABCDEF")...))
+
+	return func(buf c.Buffer[rune, int]) (int, error) {
+		runes, err := parse(buf)
+		if err != nil {
+			return -1, err
+		}
+
+		str := strings.ToLower(string(runes))
+
+		num, err := strconv.ParseInt(str, 16, 64)
+		if err != nil {
+			return -1, err
+		}
+
+		return int(num), nil
+	}
+}
+
+func (p *CustomParser) parseOctal(size int) c.Combinator[rune, int, int] {
+	allowed := "01234567"
+	parse := c.Count(size, c.OneOf[rune, int]([]rune(allowed)...))
+
+	return func(buf c.Buffer[rune, int]) (int, error) {
+		runes, err := parse(buf)
+		if err != nil {
+			return -1, err
+		}
+
+		str := strings.ToLower(string(runes))
+
+		num, err := strconv.ParseInt(str, 8, 64)
+		if err != nil {
+			return -1, err
+		}
+
+		return int(num), nil
+	}
+}
+
+func (p *CustomParser) parsePropertyName() c.Combinator[rune, int, *unicode.RangeTable] {
+	allProperties := make(map[string]*unicode.RangeTable)
+
+	for k, v := range unicode.Categories {
+		x := v
+		allProperties[k] = x
+	}
+
+	for k, v := range unicode.Properties {
+		x := v
+		allProperties[k] = x
+	}
+
+	for k, v := range unicode.Scripts {
+		x := v
+		allProperties[k] = x
+	}
+
+	cases := make([]c.Combinator[rune, int, *unicode.RangeTable], 0, len(allProperties)*3)
+
+	for name, t := range allProperties {
+		parse := c.SequenceOf[rune, int]([]rune("{" + name + "}")...)
+		table := t
+
+		cases = append(cases, func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+			_, err := parse(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return table, nil
+		})
+	}
+
+	return choice(cases...)
 }
