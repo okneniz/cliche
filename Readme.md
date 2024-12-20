@@ -369,4 +369,29 @@ A-2. Original extensions
 
 - `\o{nnn}` - 
 
+// TODO : return error for invalid escaped chars like '\x' (check on rubular)
+
+
 https://github.com/rsms/go-immutable
+
+// https://www.regular-expressions.info/repeat.html
+
+// bnf / ebnf
+//
+// https://www2.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html
+
+// do a lot of methods for different scanning
+// - for match without allocations
+// - for replacements
+// - for data extractions
+//
+// and scanner for all of them?
+//
+// try to copy official API
+//
+// https://pkg.go.dev/regexp#Regexp.FindString
+//
+// https://swtch.com/~rsc/regexp/regexp2.html#posix
+//
+// https://www.rfc-editor.org/rfc/rfc9485.html#name-multi-character-escapes
+

@@ -396,13 +396,13 @@ func TestQuantifier_GetKey(t *testing.T) {
 		},
 	}
 
-	parse := parseRegexp()
+	parser := NewParser()
 
 	for _, test := range examples {
 		t.Run(test.expression, func(t *testing.T) {
 			input := newBuffer(test.expression)
 
-			output, err := parse(input)
+			output, err := parser.Parse(input)
 			if err != nil {
 				t.Fatal(err)
 			}

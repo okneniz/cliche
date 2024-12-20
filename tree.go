@@ -5,27 +5,6 @@ import (
 	"encoding/json"
 )
 
-// https://www.regular-expressions.info/repeat.html
-
-// bnf / ebnf
-//
-// https://www2.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html
-
-// do a lot of methods for different scanning
-// - for match without allocations
-// - for replacements
-// - for data extractions
-//
-// and scanner for all of them?
-//
-// try to copy official API
-//
-// https://pkg.go.dev/regexp#Regexp.FindString
-//
-// https://swtch.com/~rsc/regexp/regexp2.html#posix
-//
-// https://www.rfc-editor.org/rfc/rfc9485.html#name-multi-character-escapes
-
 type Tree interface {
 	Add(...string) error
 	Size() int
@@ -37,28 +16,22 @@ type Tree interface {
 var _ Tree = new(tree)
 
 type tree struct {
-	nodes map[string]Node
+	nodes  map[string]Node
+	parser Parser
 }
 
-func New(regexps ...string) (*tree, error) {
+func New(parser Parser) *tree {
 	tr := new(tree)
 	tr.nodes = make(map[string]Node)
-
-	for _, regexp := range regexps {
-		err := tr.Add(regexp)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return tr, nil
+	tr.parser = parser
+	return tr
 }
 
 func (t *tree) Add(strs ...string) error {
 	for _, str := range strs {
 		buf := newBuffer(str)
 
-		node, err := defaultParser(buf)
+		node, err := t.parser.Parse(buf)
 		if err != nil {
 			return err
 		}
@@ -105,7 +78,7 @@ func (t *tree) String() string {
 
 func (t *tree) addExpression(str string, newNode Node) {
 	newNode.Traverse(func(x Node) {
-		if len(x.GetNestedNodes()) == 0 {
+		if len(x.GetNestedNodes()) == 0 { // TODO : strange hack)
 			x.AddExpression(str)
 		}
 	})

@@ -12,10 +12,11 @@ import (
 
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
 
-func TestTree_New(t *testing.T) {
+func TestTree_New(t *testing.T) { // TODO : remove ti?
 	t.Parallel()
 
-	tr, err := New(
+	tr := New(DefaultParser)
+	err := tr.Add(
 		"x",
 		"t",
 		"te",
@@ -99,7 +100,8 @@ func TestTree_Match(t *testing.T) {
 				t.Run(test.Name, func(t *testing.T) {
 					t.Parallel()
 
-					tr, err := New(test.Expressions...)
+					tr := New(DefaultParser)
+					err := tr.Add(test.Expressions...)
 					require.NoError(t, err)
 
 					matches := tr.Match(test.Input)

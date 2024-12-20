@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
-	"unicode"
 )
 
 type Node interface {
@@ -24,6 +23,12 @@ type Callback func(x Node, from int, to int, empty bool)
 type nestedNode struct {
 	Expressions Set             `json:"expressions,omitempty"`
 	Nested      map[string]Node `json:"nested,omitempty"`
+}
+
+func newNestedNode() *nestedNode {
+	n := new(nestedNode)
+	n.Nested = make(map[string]Node)
+	return n
 }
 
 func (n *nestedNode) GetNestedNodes() map[string]Node {
@@ -639,57 +644,4 @@ func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 		scanner.Rewind(pos)
 	}
-}
-
-func rangeTableKey(table *unicode.RangeTable) string {
-	b := new(strings.Builder)
-
-	b.WriteString("[")
-
-	comma := false
-
-	if len(table.R16) > 0 {
-		b.WriteString("R16(")
-
-		for i, r := range table.R16 {
-			b.WriteString(fmt.Sprintf("%d", r.Lo))
-			b.WriteString("-")
-			b.WriteString(fmt.Sprintf("%d", r.Hi))
-			b.WriteString("-")
-			b.WriteString(fmt.Sprintf("%d", r.Stride))
-
-			if i != len(table.R16)-1 {
-				b.WriteString(",")
-			}
-		}
-
-		b.WriteString(")")
-		comma = true
-	}
-
-	if len(table.R32) > 0 {
-		if comma {
-			b.WriteString(",")
-		}
-
-		b.WriteString("R32(")
-
-		for i, r := range table.R32 {
-			b.WriteString(fmt.Sprintf("%d", r.Lo))
-			b.WriteString("-")
-			b.WriteString(fmt.Sprintf("%d", r.Hi))
-			b.WriteString("-")
-			b.WriteString(fmt.Sprintf("%d", r.Stride))
-
-			if i != len(table.R32)-1 {
-				b.WriteString(",")
-			}
-		}
-
-		b.WriteString(")")
-	}
-
-	b.WriteString("]")
-
-	return b.String()
 }

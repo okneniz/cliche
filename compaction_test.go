@@ -68,11 +68,10 @@ func TestTreeCompaction(t *testing.T) {
 		)
 
 		t.Run(name, func(t *testing.T) {
-			tr, err := New()
-			require.NoError(t, err)
+			tr := New(DefaultParser)
 			require.Equal(t, tr.Size(), 0)
 
-			err = tr.Add(example...)
+			err := tr.Add(example...)
 			require.NoError(t, err)
 
 			t.Log(tr.String())
