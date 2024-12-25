@@ -30,8 +30,7 @@ func SkipString(data string) c.Combinator[rune, int, struct{}] {
 	}
 }
 
-// TODO : rename to tries?
-func choice[T any](parsers ...c.Combinator[rune, int, T]) c.Combinator[rune, int, T] {
+func tryAll[T any](parsers ...c.Combinator[rune, int, T]) c.Combinator[rune, int, T] {
 	attempts := make([]c.Combinator[rune, int, T], len(parsers))
 
 	for i, parse := range parsers {

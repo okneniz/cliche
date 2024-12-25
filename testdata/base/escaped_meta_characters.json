@@ -1,5 +1,5 @@
 {
-  "Name": "simple",
+  "Name": "escaped meta characters",
   "Tests": [
     {
       "Name": "match '\\d'",

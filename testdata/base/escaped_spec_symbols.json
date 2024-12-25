@@ -1,5 +1,5 @@
 {
-  "Name": "simple",
+  "Name": "escaped",
   "Tests": [
     {
       "Name": "escaped characters",

@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"unicode"
+
+	"golang.org/x/text/unicode/rangetable"
 )
 
 type Node interface {
@@ -14,7 +17,7 @@ type Node interface {
 	IsEnd() bool
 
 	Visit(Scanner, Input, int, int, Callback)
-	Merge(Node)
+	Merge(Node) // remove, implement Merge(Node, Node) method
 	Traverse(func(Node))
 }
 
@@ -281,7 +284,8 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onM
 	)
 }
 
-// add something to empty json value, and in another spec symbols
+// not simple node with table because diferent behaviour for different scan options
+// TODO : add something to empty json value, and in another spec symbols
 type dot struct {
 	*nestedNode
 }
@@ -576,6 +580,21 @@ type simpleNode struct {
 	key       string
 	predicate func(rune) bool
 	*nestedNode
+}
+
+func nodeForTable(table *unicode.RangeTable) *simpleNode {
+	return &simpleNode{
+		key: rangeTableKey(table),
+		predicate: func(r rune) bool {
+			return unicode.In(r, table)
+		},
+		nestedNode: newNestedNode(),
+	}
+}
+
+func nodeForChar(r rune) *simpleNode {
+	table := rangetable.New(r)
+	return nodeForTable(table)
 }
 
 func (n *simpleNode) GetKey() string {

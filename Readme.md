@@ -369,6 +369,10 @@ A-2. Original extensions
 
 - `\o{nnn}` - 
 
+## Compact
+
+- \w{3} -> \w\w\w
+
 // TODO : return error for invalid escaped chars like '\x' (check on rubular)
 
 
@@ -448,3 +452,8 @@ TODO : js linter for test data
 // A traditional NFA engine would match Set at the start of the string as the first match,
 // and Set at the start of the 3rd word in the string as the second match.
 
+
+// custom:
+// - brackets [[:cyrilic:]]
+// - meta chars \ѣ
+// - custom anything

@@ -1,0 +1,50 @@
+{
+  "Name": "debug",
+  "Tests": [
+    {
+      "Name": "string",
+      "Expressions": [
+        "\\A...",
+        "\\A.",
+        "\\A",
+        ".\\A"
+      ],
+      "Input": "foo bar\nbaz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\A..."
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\A."
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\A"
+          ]
+        }
+      ]
+    }
+  ]
+}

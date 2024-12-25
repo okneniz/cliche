@@ -396,7 +396,7 @@ func TestQuantifier_GetKey(t *testing.T) {
 		},
 	}
 
-	parser := NewParser()
+	parser := DefaultParser
 
 	for _, test := range examples {
 		t.Run(test.expression, func(t *testing.T) {
