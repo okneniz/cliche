@@ -7,28 +7,21 @@ import (
 	"github.com/okneniz/cliche/span"
 )
 
-// https://www.regular-expressions.info/engine.html
-// This is a very important point to understand:
-// a regex engine always returns the leftmost match,
-// even if a “better” match could be found later.
-
 type Output interface {
-	Yield(n Node, s span.Interface, subString string)
-	Groups() Captures
-	NamedGroups() Captures
+	Yield(
+		n Node,
+		subString string,
+		sp span.Interface,
+		groups []span.Interface,
+		namedGroups map[string]span.Interface,
+	)
+
+	LastPosOf(n Node) (int, bool)
 	Slice() []*Match
 	String() string
-	LastPosOf(n Node) (int, bool)
 }
 
 type output struct {
-	// current captured groups
-	groups *captures
-
-	// current captured named groups
-	namedGroups *captures
-
-	// output
 	matches map[Node]*matchesList
 }
 
@@ -36,18 +29,8 @@ var _ Output = new(output)
 
 func newOutput() *output {
 	s := new(output)
-	s.groups = newCaptures()
-	s.namedGroups = newCaptures()
 	s.matches = make(map[Node]*matchesList)
 	return s
-}
-
-func (s *output) Groups() Captures {
-	return s.groups
-}
-
-func (s *output) NamedGroups() Captures {
-	return s.namedGroups
 }
 
 func (s *output) String() string {
@@ -57,20 +40,26 @@ func (s *output) String() string {
 	}
 
 	return fmt.Sprintf(
-		"Output(\n\tmatches=%s,\n\tgroups=%s,\n\tnamedGroups=%s\n)",
-		"[\n"+strings.Join(ms, ",\n")+"]",
-		s.groups.String(),
-		s.namedGroups.String(),
+		"Output(matches=[%s])",
+		strings.Join(ms, ", "),
 	)
 }
 
-func (s *output) Yield(n Node, x span.Interface, subString string) {
+// TODO : remove subString from params
+func (s *output) Yield(
+	n Node,
+	subString string,
+	sp span.Interface,
+	groups []span.Interface,
+	namedGroups map[string]span.Interface,
+) {
 	m := &Match{
-		subString:   subString,
+		subString: subString,
+		span:      sp,
+		// TODO : how to avoid copies / allocations?
 		expressions: newSet().merge(n.GetExpressions()),
-		groups:      s.groups.ToSlice(),
-		namedGroups: s.namedGroups.ToMap(),
-		span:        x,
+		groups:      groups,
+		namedGroups: namedGroups,
 	}
 
 	list, exists := s.matches[n]
@@ -96,6 +85,7 @@ func (s *output) LastPosOf(n Node) (int, bool) {
 	return match.Span().To(), true
 }
 
+// TODO : []*Match or []Match
 func (s *output) Slice() []*Match {
 	size := 0
 	for _, v := range s.matches {
@@ -113,7 +103,8 @@ func (s *output) Slice() []*Match {
 				result[idx].expressions.merge(v.expressions)
 			} else {
 				c[key] = len(result)
-				result = append(result, v.Clone()) // TODO : how to remove copy / allocation?
+				// TODO : how to remove copy / allocations?
+				result = append(result, v.Clone())
 			}
 		}
 	}

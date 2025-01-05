@@ -143,31 +143,13 @@ func Test_truncatedList(t *testing.T) {
 	require.Equal(t, l.toSlice(), []num{10, 20, 30})
 	require.Equal(t, l.String(), "[10, 20, 30]")
 
-	require.PanicsWithValue(
-		t,
-		OutOfBounds{Min: 0, Max: 3, Value: -1},
-		func() { l.truncate(-1) },
-	)
-
-	require.PanicsWithValue(
-		t,
-		OutOfBounds{Min: 0, Max: 3, Value: 10},
-		func() { l.truncate(10) },
-	)
+	require.NotPanics(t, func() { l.truncate(-1) })
+	require.NotPanics(t, func() { l.truncate(10) })
 
 	l.truncate(0)
 
-	require.PanicsWithValue(
-		t,
-		OutOfBounds{Min: 0, Max: 0, Value: -1},
-		func() { l.truncate(-1) },
-	)
-
-	require.PanicsWithValue(
-		t,
-		OutOfBounds{Min: 0, Max: 0, Value: 10},
-		func() { l.truncate(10) },
-	)
+	require.NotPanics(t, func() { l.truncate(-1) })
+	require.NotPanics(t, func() { l.truncate(10) })
 
 	l.truncate(0)
 }

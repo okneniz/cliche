@@ -11,42 +11,51 @@ type Scanner interface {
 	Position() int
 	Rewind(pos int)
 
-	StartGroup(name string, pos int)
-	EndGroup(name string, pos int)
-	DeleteGroup(name string)
+	MatchGroup(from int, to int)
+	GroupsPosition() int
+	GetGroup(idx int) (span.Interface, bool)
+	RewindGroups(pos int)
 
-	StartNamedGroup(name string, pos int)
-	EndNamedGroup(name string, pos int)
-	DeleteNamedGroup(name string)
+	MatchNamedGroup(name string, from int, to int)
+	NamedGroupsPosition() int
+	GetNamedGroup(name string) (span.Interface, bool)
+	RewindNamedGroups(pos int)
 }
 
-// https://www.regular-expressions.info/engine.html
-// This is a very important point to understand:
-// a regex engine always returns the leftmost match,
-// even if a “better” match could be found later.
-
 type scanner struct {
-	input      Input
-	output     Output
-	expression *truncatedList[nodeMatch]
+	input       Input
+	output      Output
+	expression  *truncatedList[nodeMatch]
+	groups      Captures
+	namedGroups NamedCaptures
 }
 
 var _ Scanner = new(scanner)
 
-func newFullScanner(input Input, output Output) *scanner {
+func newFullScanner(
+	input Input,
+	output Output,
+	groups Captures,
+	namedGroups NamedCaptures,
+) *scanner {
 	s := new(scanner)
 	s.input = input
 	s.output = output
+	s.groups = groups
+	s.namedGroups = namedGroups
 
+	// TODO : get all attributes by args with interfaces
 	// TODO : capacity = height of tree
 	s.expression = newTruncatedList[nodeMatch](50)
+
 	return s
 }
 
 func (s *scanner) String() string {
 	return fmt.Sprintf(
-		"Scanner(\n\toutput=%s\n)",
+		"Scanner(\n\toutput=%s,\n\tgroups=%s\n)",
 		s.output.String(),
+		s.groups,
 	)
 }
 
@@ -55,35 +64,7 @@ func (s *scanner) Position() int {
 }
 
 func (s *scanner) Rewind(pos int) {
-	if s.expression.len() < pos {
-		return
-	}
-
 	s.expression.truncate(pos)
-}
-
-func (s *scanner) StartGroup(name string, pos int) {
-	s.output.Groups().From(name, pos)
-}
-
-func (s *scanner) EndGroup(name string, pos int) {
-	s.output.Groups().To(name, pos)
-}
-
-func (s *scanner) DeleteGroup(name string) {
-	s.output.Groups().Delete(name)
-}
-
-func (s *scanner) StartNamedGroup(name string, pos int) {
-	s.output.NamedGroups().From(name, pos)
-}
-
-func (s *scanner) EndNamedGroup(name string, pos int) {
-	s.output.NamedGroups().To(name, pos)
-}
-
-func (s *scanner) DeleteNamedGroup(name string) {
-	s.output.NamedGroups().Delete(name)
 }
 
 func (s *scanner) Match(n Node, from, to int, leaf, empty bool) {
@@ -117,7 +98,13 @@ func (s *scanner) Match(n Node, from, to int, leaf, empty bool) {
 		}
 	}
 
-	s.output.Yield(n, sp, subString)
+	s.output.Yield(
+		n,
+		subString,
+		sp,
+		s.groups.Slice(),
+		s.namedGroups.Map(),
+	)
 }
 
 func (s *scanner) currentMatchSpan() (span.Interface, bool) {
@@ -158,4 +145,37 @@ func (s *scanner) lastNotEmptySpan() (span.Interface, bool) {
 	}
 
 	return nil, false
+}
+
+func (s *scanner) MatchGroup(from int, to int) {
+	fmt.Println("MatchGroup", from, to)
+	s.groups.Append(span.New(from, to))
+}
+
+func (s *scanner) GroupsPosition() int {
+	return s.groups.Size()
+}
+
+func (s *scanner) GetGroup(idx int) (span.Interface, bool) {
+	return s.groups.At(idx)
+}
+
+func (s *scanner) RewindGroups(pos int) {
+	s.groups.Truncate(pos)
+}
+
+func (s *scanner) MatchNamedGroup(name string, from int, to int) {
+	s.namedGroups.Put(name, span.New(from, to))
+}
+
+func (s *scanner) NamedGroupsPosition() int {
+	return s.namedGroups.Size()
+}
+
+func (s *scanner) GetNamedGroup(name string) (span.Interface, bool) {
+	return s.namedGroups.Get(name)
+}
+
+func (s *scanner) RewindNamedGroups(pos int) {
+	s.namedGroups.Rewind(pos)
 }

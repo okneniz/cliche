@@ -53,7 +53,7 @@ func (m *Match) Clone() *Match {
 
 func (m *Match) String() string {
 	return fmt.Sprintf(
-		"Match{%s, '%s', (%s) [%s] {%s}",
+		"Match{%s, '%s', (%s) [%s] {%s}}",
 		m.span.String(),
 		m.subString,
 		strings.Join(m.expressions.Slice(), ", "),
@@ -72,7 +72,6 @@ func (m *Match) groupsToString() string {
 	return strings.Join(s, ", ")
 }
 
-// TODO : в тестах проверять, что groups входят в span строки
 func (m *Match) namedGroupsToString() string {
 	pairs := make([]string, 0, len(m.namedGroups))
 	for k, v := range m.namedGroups {

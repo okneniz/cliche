@@ -41,6 +41,7 @@ func newParserBranches[T any](
 	return t
 }
 
+// TODO : remove it
 func (b *branch[T]) String() string {
 	var str func(prefix string, br *branch[T], output *bytes.Buffer)
 

@@ -17,7 +17,7 @@ type Node interface {
 	IsEnd() bool
 
 	Visit(Scanner, Input, int, int, Callback)
-	Merge(Node) // remove, implement Merge(Node, Node) method
+	Merge(Node) // remove, implement Merge(Node, Node) method in parser or tree
 	Traverse(func(Node))
 }
 
@@ -70,17 +70,22 @@ func (n *nestedNode) Merge(other Node) {
 	}
 }
 
-func (n *nestedNode) Match(
+func (n *nestedNode) VisitNested(
 	scanner Scanner,
 	input Input,
 	from, to int,
 	onMatch Callback,
 ) {
-	pos := scanner.Position()
-
 	for _, nested := range n.Nested {
+		// pos := scanner.Position()
+		// groupsPos := scanner.GroupsPosition()
+		// namedGroupPos := scanner.NamedGroupsPosition()
+
 		nested.Visit(scanner, input, from, to, onMatch)
-		scanner.Rewind(pos)
+
+		// scanner.Rewind(pos)
+		// scanner.RewindGroups(groupsPos)
+		// scanner.RewindNamedGroups(namedGroupPos)
 	}
 }
 
@@ -137,26 +142,28 @@ func (n *alternation) Traverse(f func(Node)) {
 
 // TODO : check it without groups too
 func (n *alternation) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	n.scanVariants(
+	n.visitVariants(
 		scanner,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
+			pos := scanner.Position()
 			scanner.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.Match(scanner, input, vTo+1, to, onMatch)
+			n.nestedNode.VisitNested(scanner, input, vTo+1, to, onMatch)
+			scanner.Rewind(pos)
 		},
 	)
 }
 
-func (n *alternation) scanAlternation(
+func (n *alternation) visitAlternation(
 	scanner Scanner,
 	input Input,
 	from, to int,
 	onMatch Callback,
 ) {
-	n.scanVariants(
+	n.visitVariants(
 		scanner,
 		input,
 		from,
@@ -169,19 +176,14 @@ func (n *alternation) scanAlternation(
 	)
 }
 
-func (n *alternation) scanVariants(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	position := scanner.Position()
-
+func (n *alternation) visitVariants(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	for _, variant := range n.Value {
 		variant.Visit(scanner, input, from, to, onMatch)
-		scanner.Rewind(position)
 	}
 }
 
 type group struct {
-	// TODO : it's not really uniq id
-	uniqID string
-	Value  *alternation `json:"value,omitempty"`
+	Value *alternation `json:"value,omitempty"`
 	*nestedNode
 }
 
@@ -198,22 +200,29 @@ func (n *group) Traverse(f func(Node)) {
 }
 
 func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	scanner.StartGroup(n.uniqID, from)
-
-	n.Value.scanAlternation(
+	n.Value.visitAlternation(
 		scanner,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			scanner.EndGroup(n.uniqID, vTo)
+			pos := scanner.Position()
+			groupsPos := scanner.GroupsPosition()
+
+			// TODO : why to? what about empty captures
+			scanner.MatchGroup(from, vTo)
 			scanner.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.Match(scanner, input, vTo+1, to, onMatch)
+			n.nestedNode.VisitNested(scanner, input, vTo+1, to, onMatch)
+
+			fmt.Println("BEFORE", pos, groupsPos, scanner)
+
+			scanner.Rewind(pos)
+			scanner.RewindGroups(groupsPos)
+
+			fmt.Println("AFTER", scanner)
 		},
 	)
-
-	scanner.DeleteGroup(n.uniqID)
 }
 
 type namedGroup struct {
@@ -235,24 +244,28 @@ func (n *namedGroup) Traverse(f func(Node)) {
 }
 
 func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	scanner.StartNamedGroup(n.Name, from)
-
-	n.Value.scanAlternation(
+	n.Value.visitAlternation(
 		scanner,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
-			scanner.EndNamedGroup(n.Name, vTo)
+			pos := scanner.Position()
+			groupsPos := scanner.NamedGroupsPosition()
+
+			// TODO : why to? what about empty captures
+			scanner.MatchNamedGroup(n.Name, from, vTo)
 			scanner.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.Match(scanner, input, vTo+1, to, onMatch)
+			n.nestedNode.VisitNested(scanner, input, vTo+1, to, onMatch)
+
+			scanner.Rewind(pos)
+			scanner.RewindNamedGroups(groupsPos)
 		},
 	)
-
-	scanner.DeleteNamedGroup(n.Name)
 }
 
+// TODO : what about back references?
 type notCapturedGroup struct {
 	Value *alternation `json:"value,omitempty"`
 	*nestedNode
@@ -271,15 +284,19 @@ func (n *notCapturedGroup) Traverse(f func(Node)) {
 }
 
 func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	n.Value.scanAlternation(
+	n.Value.visitAlternation(
 		scanner,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
+			pos := scanner.Position()
+
 			scanner.Match(n, from, vTo, n.IsEnd(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.Match(scanner, input, vTo+1, to, onMatch)
+			n.nestedNode.VisitNested(scanner, input, vTo+1, to, onMatch)
+
+			scanner.Rewind(pos)
 		},
 	)
 }
@@ -309,9 +326,11 @@ func (n *dot) Visit(scanner Scanner, input Input, from, to int, onMatch Callback
 
 	if input.ReadAt(from) != '\n' {
 		pos := scanner.Position()
+
 		scanner.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, from+1, to, onMatch)
+
 		scanner.Rewind(pos)
 	}
 }
@@ -337,13 +356,13 @@ func (n *startOfLine) Visit(scanner Scanner, input Input, from, to int, onMatch 
 		return
 	}
 
-	// TODO : precache new line positions in buffer?
-
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := scanner.Position()
+
 		scanner.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.Match(scanner, input, from, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+
 		scanner.Rewind(pos)
 	}
 }
@@ -390,9 +409,11 @@ func (n *endOfLine) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 
 	if n.isEndOfLine(input, from) {
 		pos := scanner.Position()
+
 		scanner.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.Match(scanner, input, from, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+
 		scanner.Rewind(pos)
 	}
 }
@@ -431,7 +452,7 @@ func (n *startOfString) Visit(scanner Scanner, input Input, from, to int, onMatc
 		pos := scanner.Position()
 		scanner.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.Match(scanner, input, from, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
 		scanner.Rewind(pos)
 	}
 }
@@ -457,7 +478,7 @@ func (n *endOfString) Visit(scanner Scanner, input Input, from, to int, onMatch 
 		pos := scanner.Position()
 		scanner.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.Match(scanner, input, from, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
 		scanner.Rewind(pos)
 	}
 }
@@ -521,7 +542,7 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		pos := scanner.Position()
 		scanner.Match(n, from, mTo, n.IsEnd(), false)
 		onMatch(n, from, mTo, empty)
-		n.nestedNode.Match(scanner, input, mTo+1, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, mTo+1, to, onMatch)
 		scanner.Rewind(pos)
 	})
 
@@ -530,7 +551,7 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 	// for zero matches like .? or .* or .{0,X}
 	if n.From == 0 {
 		scanner.Match(n, from, from, n.IsEnd(), true)
-		n.nestedNode.Match(scanner, input, from, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
 	}
 
 	scanner.Rewind(start)
@@ -616,11 +637,85 @@ func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 	if n.predicate(input.ReadAt(from)) {
 		pos := scanner.Position()
+		groupsPos := scanner.GroupsPosition()
 
 		scanner.Match(n, from, from, n.IsEnd(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.Match(scanner, input, from+1, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, from+1, to, onMatch)
 
+		scanner.Rewind(pos)
+		scanner.RewindGroups(groupsPos)
+	}
+}
+
+// back references \1, \2 or \9
+
+type referenceNode struct {
+	key   string
+	index int
+	*nestedNode
+}
+
+func nodeForReference(index int) *referenceNode {
+	return &referenceNode{
+		key:        fmt.Sprintf("\\%d", index),
+		index:      index,
+		nestedNode: newNestedNode(),
+	}
+}
+
+func (n *referenceNode) GetKey() string {
+	return n.key
+}
+
+func (n *referenceNode) Traverse(f func(Node)) {
+	f(n)
+
+	for _, x := range n.Nested {
+		x.Traverse(f)
+	}
+}
+
+func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+	if from >= input.Size() {
+		return
+	}
+
+	matchSpan, exists := scanner.GetGroup(n.index)
+
+	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Backreference
+	//
+	// If the referenced capturing group is unmatched (for example, because it belongs to an unmatched alternative in a disjunction),
+	// or the group hasn't matched yet (for example, because it lies to the right of the backreference),
+	// the backreference always succeeds (as if it matches the empty string).
+
+	pos := scanner.Position()
+
+	if !exists || matchSpan.Empty() {
+		scanner.Match(n, from, from, n.IsEnd(), true)
+		onMatch(n, from, from, true)
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+
+		scanner.Rewind(pos)
+	} else {
+		current := from
+		matchedTo := to
+
+		// match the same string
+		for prev := matchSpan.From(); prev <= matchSpan.To(); prev++ {
+			expected := input.ReadAt(prev)
+			actual := input.ReadAt(current)
+
+			if expected != actual {
+				scanner.Rewind(pos)
+				return
+			}
+
+			matchedTo = prev
+			current++
+		}
+
+		n.nestedNode.VisitNested(scanner, input, matchedTo+1, to, onMatch)
 		scanner.Rewind(pos)
 	}
 }

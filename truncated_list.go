@@ -33,13 +33,7 @@ func (l *truncatedList[T]) len() int {
 
 func (l *truncatedList[T]) truncate(newSize int) {
 	if newSize < 0 || newSize > l.size {
-		err := OutOfBounds{
-			Min:   0,
-			Max:   l.size,
-			Value: newSize,
-		}
-
-		panic(err)
+		return
 	}
 
 	l.size = newSize

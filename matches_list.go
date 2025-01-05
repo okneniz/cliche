@@ -2,6 +2,7 @@ package cliche
 
 import (
 	"fmt"
+
 	"github.com/okneniz/cliche/span"
 )
 
@@ -14,10 +15,6 @@ func newMatchesList() *matchesList {
 	return b
 }
 
-// https://www.regular-expressions.info/engine.html
-// This is a very important point to understand:
-// a regex engine always returns the leftmost match,
-// even if a “better” match could be found later.
 func (b *matchesList) compare(m1, m2 span.Interface) int {
 	switch {
 	case m1.From() > m2.From():

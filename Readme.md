@@ -413,10 +413,17 @@ https://github.com/rsms/go-immutable
 
 TODO : js linter for test data
 
+// https://www.regular-expressions.info/engine.html
+// This is a very important point to understand:
+// a regex engine always returns the leftmost match,
+// even if a “better” match could be found later.
+
 // https://www.regular-expressions.info/posix.html
 //
 // - what is better behaviour, first match or longest match?
 // - it's important for compaction
+
+// https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
 
 // https://www.regular-expressions.info/alternation.html
 //
@@ -453,8 +460,29 @@ TODO : js linter for test data
 // A traditional NFA engine would match Set at the start of the string as the first match,
 // and Set at the start of the 3rd word in the string as the second match.
 
+// GROUPS name collision
+
+// RUBY - /(?<first>\D)(?<first>\D)(?<first>\D)(?<fourth>\D)/.match('foobar').named_captures => {"first"=>"o", "fourth"=>"b"}
+// JS - report about error
+
 
 // custom:
 // - brackets [[:cyrilic:]]
 // - meta chars \ѣ
 // - custom anything
+
+// TODO : remove all `Is***() bool` prefixes
+// TODO : в тестах проверять, что groups входят в span строки
+
+// TODO :
+//
+// is it possible to capture empty string?
+//
+// example:
+//
+// (^)foo($)
+
+// what abour nested empty captures
+
+// TODO: remove onMatch Callback params (required only for quantifier?)
+// pass quantifier as scanner?

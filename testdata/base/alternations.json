@@ -1,5 +1,5 @@
 {
-  "Name": "unions",
+  "Name": "alternations",
   "Tests": [
     {
       "Name": "chars matching and capturing",

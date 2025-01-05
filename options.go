@@ -82,7 +82,7 @@ var (
 		WithEscapedMetaChar("H", func(x rune) bool {
 			return !isHex(x)
 		}),
-		WithParser("\\p", func(buf c.Buffer[rune, int]) (Node, error) {
+		WithPrefix("\\p", func(buf c.Buffer[rune, int]) (Node, error) {
 			table, err := propertyTable(buf)
 			if err != nil {
 				return nil, err
@@ -90,7 +90,7 @@ var (
 
 			return nodeForTable(table), nil
 		}),
-		WithInClassParser("\\p", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		WithInClassPrefix("\\p", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 			table, err := propertyTable(buf)
 			if err != nil {
 				return nil, err
@@ -98,7 +98,7 @@ var (
 
 			return table, nil
 		}),
-		WithParser("\\P", func(buf c.Buffer[rune, int]) (Node, error) {
+		WithPrefix("\\P", func(buf c.Buffer[rune, int]) (Node, error) {
 			table, err := propertyTable(buf)
 			if err != nil {
 				return nil, err
@@ -106,7 +106,7 @@ var (
 
 			return nodeForTable(negatiateTable(table)), nil
 		}),
-		WithInClassParser("\\P", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		WithInClassPrefix("\\P", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 			table, err := propertyTable(buf)
 			if err != nil {
 				return nil, err
@@ -114,7 +114,7 @@ var (
 
 			return negatiateTable(table), nil
 		}),
-		WithParser("\\x", func(buf c.Buffer[rune, int]) (Node, error) {
+		WithPrefix("\\x", func(buf c.Buffer[rune, int]) (Node, error) {
 			num, err := parseHexChar(buf)
 			if err != nil {
 				return nil, err
@@ -125,7 +125,7 @@ var (
 
 			return nodeForTable(rangetable.New(r)), nil
 		}),
-		WithInClassParser("\\x", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		WithInClassPrefix("\\x", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 			num, err := parseHexChar(buf)
 			if err != nil {
 				return nil, err
@@ -136,7 +136,7 @@ var (
 
 			return rangetable.New(r), nil
 		}),
-		WithParser("\\o", func(buf c.Buffer[rune, int]) (Node, error) {
+		WithPrefix("\\o", func(buf c.Buffer[rune, int]) (Node, error) {
 			num, err := parseOctalChar(buf)
 			if err != nil {
 				return nil, err
@@ -147,7 +147,7 @@ var (
 
 			return nodeForTable(rangetable.New(r)), nil
 		}),
-		WithInClassParser("\\o", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		WithInClassPrefix("\\o", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 			num, err := parseOctalChar(buf)
 			if err != nil {
 				return nil, err
@@ -158,7 +158,7 @@ var (
 
 			return rangetable.New(r), nil
 		}),
-		WithParser("\\u", func(buf c.Buffer[rune, int]) (Node, error) {
+		WithPrefix("\\u", func(buf c.Buffer[rune, int]) (Node, error) {
 			num, err := parseUnicodeChar(buf)
 			if err != nil {
 				return nil, err
@@ -169,7 +169,7 @@ var (
 
 			return nodeForTable(rangetable.New(r)), nil
 		}),
-		WithInClassParser("\\u", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		WithInClassPrefix("\\u", func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 			num, err := parseUnicodeChar(buf)
 			if err != nil {
 				return nil, err
@@ -180,6 +180,7 @@ var (
 
 			return rangetable.New(r), nil
 		}),
+		WithParser(parseBackReference()),
 	}
 )
 
@@ -208,11 +209,11 @@ func WithBracket(
 	}
 
 	return func(parser *CustomParser) {
-		parser.cases["[[:"+name+":]]"] = parseNode
-		parser.cases["[[:^"+name+":]]"] = parseNegatedNode
+		parser.prefixes["[[:"+name+":]]"] = parseNode
+		parser.prefixes["[[:^"+name+":]]"] = parseNegatedNode
 
-		parser.classCases["[[:"+name+":]]"] = parseTable
-		parser.classCases["[[:^"+name+":]]"] = parseNegatedTable
+		parser.inClassPrefixes["[[:"+name+":]]"] = parseTable
+		parser.inClassPrefixes["[[:^"+name+":]]"] = parseNegatedTable
 	}
 }
 
@@ -230,26 +231,64 @@ func WithEscapedMetaChar(
 	}
 
 	return func(parser *CustomParser) {
-		parser.cases["\\"+name] = parse
-		parser.classCases["\\"+name] = parseTable
+		parser.prefixes["\\"+name] = parse
+		parser.inClassPrefixes["\\"+name] = parseTable
 	}
 }
 
-func WithParser(
+func WithPrefix(
 	name string, parse c.Combinator[rune, int, Node],
 ) Option[*CustomParser] {
 	return func(parser *CustomParser) {
 		// TODO : validate name
-		parser.cases[name] = parse
+		parser.prefixes[name] = parse
 	}
 }
 
-func WithInClassParser(
+func WithInClassPrefix(
 	name string, parse c.Combinator[rune, int, *unicode.RangeTable],
 ) Option[*CustomParser] {
 	return func(parser *CustomParser) {
 		// TODO : validate name
-		parser.classCases["\\"+name] = parse
+		parser.inClassPrefixes["\\"+name] = parse
+	}
+}
+
+func WithParser(
+	p c.Combinator[rune, int, Node],
+) Option[*CustomParser] {
+	return func(parser *CustomParser) {
+		parser.parsers = append(parser.parsers, p)
+	}
+}
+
+func WithInClassParser(
+	p c.Combinator[rune, int, *unicode.RangeTable],
+) Option[*CustomParser] {
+	return func(parser *CustomParser) {
+		parser.inClassParsers = append(parser.inClassParsers, p)
+	}
+}
+
+func parseBackReference() c.Combinator[rune, int, Node] {
+	// is it possible to have back reference more than nine?
+	// for example \13 or \99 ?
+	parse := Quantifier(1, 2, c.OneOf[rune, int]([]rune("0123456789")...))
+
+	return func(buf c.Buffer[rune, int]) (Node, error) {
+		runes, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		str := strings.ToLower(string(runes))
+
+		index, err := strconv.ParseInt(str, 16, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		return nodeForReference(int(index)), nil
 	}
 }
 

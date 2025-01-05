@@ -104,8 +104,13 @@ func (t *tree) Match(text string) []*Match {
 	return output.Slice()
 }
 
+// TODO : what about different scanners?
 func (t *tree) Scan(from, to int, input Input, output Output) {
-	scanner := newFullScanner(input, output)
+	// TODO : capacity = max count of groups in expression
+	captures := newCaptures(10)
+	namedCaptures := newNamedCaptures(10)
+
+	scanner := newFullScanner(input, output, captures, namedCaptures)
 	skip := func(_ Node, _, _ int, _ bool) {}
 
 	for _, n := range t.nodes {

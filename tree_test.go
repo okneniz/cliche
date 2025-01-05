@@ -10,8 +10,6 @@ import (
 	test "github.com/okneniz/cliche/testing"
 )
 
-// https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
-
 func TestTree_New(t *testing.T) { // TODO : remove ti?
 	t.Parallel()
 

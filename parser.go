@@ -2,7 +2,6 @@ package cliche
 
 import (
 	"errors"
-	"fmt"
 	"unicode"
 
 	c "github.com/okneniz/parsec/common"
@@ -25,23 +24,26 @@ type CustomParser struct {
 	parseNestedExpression c.Combinator[rune, int, Node]
 	alternationSep        c.Combinator[rune, int, rune]
 
-	cases    map[string]c.Combinator[rune, int, Node]
-	branches *branch[Node]
+	prefixes      map[string]c.Combinator[rune, int, Node]
+	prefixParsers *branch[Node]
 
-	classCases    map[string]c.Combinator[rune, int, *unicode.RangeTable]
-	classBranches *branch[*unicode.RangeTable]
+	inClassPrefixes      map[string]c.Combinator[rune, int, *unicode.RangeTable]
+	inClassPrefixParsers *branch[*unicode.RangeTable]
+
+	parsers        []c.Combinator[rune, int, Node]
+	inClassParsers []c.Combinator[rune, int, *unicode.RangeTable]
 }
 
 func NewParser(options ...Option[*CustomParser]) *CustomParser {
 	p := new(CustomParser)
-	p.cases = make(map[string]c.Combinator[rune, int, Node])
-	p.classCases = make(map[string]c.Combinator[rune, int, *unicode.RangeTable])
+	p.prefixes = make(map[string]c.Combinator[rune, int, Node])
+	p.inClassPrefixes = make(map[string]c.Combinator[rune, int, *unicode.RangeTable])
 
 	// TODO : remove close parens and bracket from escaped chars?
 	for _, r := range ".?+*^$[]{}()" { // spec symbols for expression
 		x := r
 
-		p.cases["\\"+string(r)] = func(buf c.Buffer[rune, int]) (Node, error) {
+		p.prefixes["\\"+string(r)] = func(buf c.Buffer[rune, int]) (Node, error) {
 			return nodeForChar(x), nil
 		}
 	}
@@ -49,12 +51,12 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 	for _, r := range "^-]\\" { // spec symbols for classes
 		x := r
 
-		p.classCases["\\"+string(r)] = func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
+		p.inClassPrefixes["\\"+string(r)] = func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
 			return rangetable.New(x), nil
 		}
 	}
 
-	p.cases["."] = func(buf c.Buffer[rune, int]) (Node, error) {
+	p.prefixes["."] = func(buf c.Buffer[rune, int]) (Node, error) {
 		x := dot{
 			nestedNode: newNestedNode(),
 		}
@@ -62,7 +64,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		return &x, nil
 	}
 
-	p.cases["^"] = func(buf c.Buffer[rune, int]) (Node, error) {
+	p.prefixes["^"] = func(buf c.Buffer[rune, int]) (Node, error) {
 		x := startOfLine{
 			nestedNode: newNestedNode(),
 		}
@@ -70,7 +72,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		return &x, nil
 	}
 
-	p.cases["$"] = func(buf c.Buffer[rune, int]) (Node, error) {
+	p.prefixes["$"] = func(buf c.Buffer[rune, int]) (Node, error) {
 		x := endOfLine{
 			nestedNode: newNestedNode(),
 		}
@@ -78,7 +80,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		return &x, nil
 	}
 
-	p.cases["\\A"] = func(buf c.Buffer[rune, int]) (Node, error) {
+	p.prefixes["\\A"] = func(buf c.Buffer[rune, int]) (Node, error) {
 		x := startOfString{
 			nestedNode: newNestedNode(),
 		}
@@ -86,7 +88,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		return &x, nil
 	}
 
-	p.cases["\\z"] = func(buf c.Buffer[rune, int]) (Node, error) {
+	p.prefixes["\\z"] = func(buf c.Buffer[rune, int]) (Node, error) {
 		x := endOfString{
 			nestedNode: newNestedNode(),
 		}
@@ -98,8 +100,8 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		configure(p)
 	}
 
-	p.branches = newParserBranches(p.cases)
-	p.classBranches = newParserBranches(p.classCases)
+	p.prefixParsers = newParserBranches(p.prefixes)
+	p.inClassPrefixParsers = newParserBranches(p.inClassPrefixes)
 
 	p.alternationSep = c.Eq[rune, int]('|')
 
@@ -143,7 +145,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseNamedGroup(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
-			p.parseUserDefinedNode('|'),
+			p.parseNodeByPrefixes('|'),
 			p.parseCharacterClasses('|'),
 			p.parseCharacter('|'),
 		),
@@ -156,7 +158,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseNamedGroup(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
-			p.parseUserDefinedNode('|', ')'),
+			p.parseNodeByPrefixes('|', ')'),
 			p.parseCharacterClasses('|', ')'),
 			p.parseCharacter('|', ')'),
 		),
@@ -451,6 +453,7 @@ func (p *CustomParser) parseCharacter(
 	}
 }
 
+// TODO : parse group by prefix '(' too?
 func (p *CustomParser) parseGroup(
 	parse c.Combinator[rune, int, *alternation],
 ) c.Combinator[rune, int, Node] {
@@ -461,19 +464,15 @@ func (p *CustomParser) parseGroup(
 				return nil, err
 			}
 
-			x := &group{
+			return &group{
 				nestedNode: newNestedNode(),
-			}
-
-			// TODO : is it good enough for ID?
-			x.uniqID = fmt.Sprintf("%p", x)
-			x.Value = value
-
-			return x, nil
+				Value:      value,
+			}, nil
 		},
 	)
 }
 
+// TODO : parse not captured group by prefix '(' too?
 func (p *CustomParser) parseNotCapturedGroup(
 	parse c.Combinator[rune, int, *alternation],
 ) c.Combinator[rune, int, Node] {
@@ -501,6 +500,7 @@ func (p *CustomParser) parseNotCapturedGroup(
 	)
 }
 
+// TODO : parse named group by prefix '(' too?
 func (p *CustomParser) parseNamedGroup(
 	parse c.Combinator[rune, int, *alternation], except ...rune,
 ) c.Combinator[rune, int, Node] {
@@ -537,6 +537,7 @@ func (p *CustomParser) parseNamedGroup(
 	)
 }
 
+// TODO : parse character class by prefix '[' too?
 func (p *CustomParser) parseCharacterClass(
 	parseTable c.Combinator[rune, int, *unicode.RangeTable],
 ) c.Combinator[rune, int, Node] {
@@ -553,6 +554,7 @@ func (p *CustomParser) parseCharacterClass(
 	}
 }
 
+// TODO : parse negated character class by prefix '[' too?
 func (p *CustomParser) parseNegatedCharacterClass(
 	parseTable c.Combinator[rune, int, *unicode.RangeTable],
 ) c.Combinator[rune, int, Node] {
@@ -623,13 +625,13 @@ func (p *CustomParser) parseCharacterTable(
 	}
 }
 
-func (p *CustomParser) parseUserDefinedNode(
+func (p *CustomParser) parseNodeByPrefixes(
 	except ...rune,
 ) c.Combinator[rune, int, Node] {
 	parse := c.NoneOf[rune, int](except...)
 
 	return func(buf c.Buffer[rune, int]) (Node, error) {
-		current := p.branches.Children
+		current := p.prefixParsers.Children
 
 		for len(current) > 0 {
 			r, err := parse(buf)
@@ -659,7 +661,7 @@ func (p *CustomParser) parseUserDefinedTable(
 	parse := c.NoneOf[rune, int](except...)
 
 	return func(buf c.Buffer[rune, int]) (*unicode.RangeTable, error) {
-		current := p.classBranches.Children
+		current := p.inClassPrefixParsers.Children
 
 		for len(current) > 0 {
 			r, err := parse(buf)
