@@ -148,7 +148,6 @@ func (s *scanner) lastNotEmptySpan() (span.Interface, bool) {
 }
 
 func (s *scanner) MatchGroup(from int, to int) {
-	fmt.Println("MatchGroup", from, to)
 	s.groups.Append(span.New(from, to))
 }
 
@@ -157,7 +156,9 @@ func (s *scanner) GroupsPosition() int {
 }
 
 func (s *scanner) GetGroup(idx int) (span.Interface, bool) {
-	return s.groups.At(idx)
+	// a, b := s.groups.At(idx - 1)
+	// fmt.Println("GetGroup", idx, s.groups, a, b)
+	return s.groups.At(idx - 1)
 }
 
 func (s *scanner) RewindGroups(pos int) {

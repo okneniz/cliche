@@ -24,14 +24,16 @@ type CustomParser struct {
 	parseNestedExpression c.Combinator[rune, int, Node]
 	alternationSep        c.Combinator[rune, int, rune]
 
+	// TODO : move it Config / Builder?
+
 	prefixes      map[string]c.Combinator[rune, int, Node]
 	prefixParsers *branch[Node]
 
 	inClassPrefixes      map[string]c.Combinator[rune, int, *unicode.RangeTable]
 	inClassPrefixParsers *branch[*unicode.RangeTable]
 
-	parsers        []c.Combinator[rune, int, Node]
-	inClassParsers []c.Combinator[rune, int, *unicode.RangeTable]
+	parsers        []func(except ...rune) c.Combinator[rune, int, Node]
+	inClassParsers []func(except ...rune) c.Combinator[rune, int, *unicode.RangeTable]
 }
 
 func NewParser(options ...Option[*CustomParser]) *CustomParser {
@@ -146,6 +148,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|'),
+			p.parseNodeByCustomParsers('|'),
 			p.parseCharacterClasses('|'),
 			p.parseCharacter('|'),
 		),
@@ -159,6 +162,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|', ')'),
+			p.parseNodeByCustomParsers(),
 			p.parseCharacterClasses('|', ')'),
 			p.parseCharacter('|', ')'),
 		),
@@ -247,12 +251,13 @@ func (p *CustomParser) Parse(buf c.Buffer[rune, int]) (Node, error) {
 func (p *CustomParser) parseCharacterClasses(
 	except ...rune,
 ) c.Combinator[rune, int, Node] {
-	exceptions := append(except, ']')
+	except = append(except, ']') // TODO : it's ok?
 
 	parseTable := c.Choice[rune, int, *unicode.RangeTable](
-		c.Try(p.parseRange(exceptions...)),
-		c.Try(p.parseUserDefinedTable(exceptions...)),
-		c.Try(p.parseCharacterTable(exceptions...)),
+		c.Try(p.parseRange(except...)),
+		c.Try(p.parseCustomTable(except...)),
+		c.Try(p.parseCharacterTable(except...)),
+		c.Try(p.parseTableByCustomParsers(except...)),
 	)
 
 	return tryAll(
@@ -655,7 +660,38 @@ func (p *CustomParser) parseNodeByPrefixes(
 	}
 }
 
-func (p *CustomParser) parseUserDefinedTable(
+// prefixes      map[string]c.Combinator[rune, int, Node]
+// prefixParsers *branch[Node]
+
+// inClassPrefixes      map[string]c.Combinator[rune, int, *unicode.RangeTable]
+// inClassPrefixParsers *branch[*unicode.RangeTable]
+
+// parsers        []func(except ...rune) c.Combinator[rune, int, Node]
+// inClassParsers []func(except ...rune) c.Combinator[rune, int, *unicode.RangeTable]
+
+func (p *CustomParser) parseNodeByCustomParsers(
+	except ...rune,
+) c.Combinator[rune, int, Node] {
+	parsers := make([]c.Combinator[rune, int, Node], 0, len(p.parsers))
+	for _, comb := range p.parsers {
+		parsers = append(parsers, comb(except...))
+	}
+
+	return tryAll[Node](parsers...)
+}
+
+func (p *CustomParser) parseTableByCustomParsers(
+	except ...rune,
+) c.Combinator[rune, int, *unicode.RangeTable] {
+	parsers := make([]c.Combinator[rune, int, *unicode.RangeTable], 0, len(p.inClassParsers))
+	for _, comb := range p.inClassParsers {
+		parsers = append(parsers, comb(except...))
+	}
+
+	return tryAll[*unicode.RangeTable](parsers...)
+}
+
+func (p *CustomParser) parseCustomTable(
 	except ...rune,
 ) c.Combinator[rune, int, *unicode.RangeTable] {
 	parse := c.NoneOf[rune, int](except...)

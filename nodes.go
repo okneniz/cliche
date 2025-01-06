@@ -215,12 +215,8 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 			onMatch(n, from, vTo, empty)
 			n.nestedNode.VisitNested(scanner, input, vTo+1, to, onMatch)
 
-			fmt.Println("BEFORE", pos, groupsPos, scanner)
-
 			scanner.Rewind(pos)
 			scanner.RewindGroups(groupsPos)
-
-			fmt.Println("AFTER", scanner)
 		},
 	)
 }
@@ -658,7 +654,7 @@ type referenceNode struct {
 
 func nodeForReference(index int) *referenceNode {
 	return &referenceNode{
-		key:        fmt.Sprintf("\\%d", index),
+		key:        fmt.Sprintf("references to \\%d", index),
 		index:      index,
 		nestedNode: newNestedNode(),
 	}
@@ -691,6 +687,8 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 
 	pos := scanner.Position()
 
+	fmt.Println("VISIT", scanner, exists, matchSpan)
+
 	if !exists || matchSpan.Empty() {
 		scanner.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
@@ -698,6 +696,8 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 
 		scanner.Rewind(pos)
 	} else {
+		// TODO : what about empty matches?
+
 		current := from
 		matchedTo := to
 
@@ -714,6 +714,9 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 			matchedTo = prev
 			current++
 		}
+
+		scanner.Match(n, from, from, n.IsEnd(), false)
+		onMatch(n, from, from, false)
 
 		n.nestedNode.VisitNested(scanner, input, matchedTo+1, to, onMatch)
 		scanner.Rewind(pos)

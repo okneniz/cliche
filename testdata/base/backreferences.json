@@ -1,0 +1,38 @@
+{
+  "Name": "backreferences",
+  "Tests": [
+    {
+      "Name": "simple",
+      "Expressions": [
+        "(x)\\1",
+        "(x|y)\\1",
+        "([a-z])\\1",
+        "(\\w)\\1"
+      ],
+      "Input": "xxx",
+      "Want": [
+        {
+          "SubString": "xx",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "(x)\\1",
+            "(x|y)\\1",
+            "([a-z])\\1",
+            "(\\w)\\1"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 0,
+              "Empty": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

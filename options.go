@@ -1,6 +1,7 @@
 package cliche
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -180,7 +181,7 @@ var (
 
 			return rangetable.New(r), nil
 		}),
-		WithParser(parseBackReference()),
+		WithParser(parseBackReference),
 	}
 )
 
@@ -255,7 +256,7 @@ func WithInClassPrefix(
 }
 
 func WithParser(
-	p c.Combinator[rune, int, Node],
+	p func(except ...rune) c.Combinator[rune, int, Node],
 ) Option[*CustomParser] {
 	return func(parser *CustomParser) {
 		parser.parsers = append(parser.parsers, p)
@@ -263,21 +264,42 @@ func WithParser(
 }
 
 func WithInClassParser(
-	p c.Combinator[rune, int, *unicode.RangeTable],
+	p func(except ...rune) c.Combinator[rune, int, *unicode.RangeTable],
 ) Option[*CustomParser] {
 	return func(parser *CustomParser) {
 		parser.inClassParsers = append(parser.inClassParsers, p)
 	}
 }
 
-func parseBackReference() c.Combinator[rune, int, Node] {
+func parseBackReference(except ...rune) c.Combinator[rune, int, Node] {
+	digits := []rune("0123456789")
+
+	if len(except) > 0 {
+		exceptM := make(map[rune]struct{}, len(except))
+		for _, c := range except {
+			exceptM[c] = struct{}{}
+		}
+
+		for _, c := range digits {
+			if _, exists := exceptM[c]; exists {
+				panic("exceptions include digit " + string(c))
+			}
+		}
+	}
+
 	// is it possible to have back reference more than nine?
 	// for example \13 or \99 ?
-	parse := Quantifier(1, 2, c.OneOf[rune, int]([]rune("0123456789")...))
+	parse := c.Skip[rune, int](
+		c.Eq[rune, int]('\\'),
+		Quantifier(1, 2, c.OneOf[rune, int](digits...)),
+	)
 
 	return func(buf c.Buffer[rune, int]) (Node, error) {
+		fmt.Println("wow", buf)
+
 		runes, err := parse(buf)
 		if err != nil {
+			fmt.Println("WTF", err)
 			return nil, err
 		}
 
@@ -295,7 +317,11 @@ func parseBackReference() c.Combinator[rune, int, Node] {
 func parseHexNumber(
 	from, to int,
 ) c.Combinator[rune, int, int] {
-	parse := Quantifier(from, to, c.OneOf[rune, int]([]rune("0123456789abcdefABCDEF")...))
+	parse := Quantifier(
+		from,
+		to,
+		c.OneOf[rune, int]([]rune("0123456789abcdefABCDEF")...),
+	)
 
 	return func(buf c.Buffer[rune, int]) (int, error) {
 		runes, err := parse(buf)
@@ -314,9 +340,7 @@ func parseHexNumber(
 	}
 }
 
-func parseOctal(
-	size int,
-) c.Combinator[rune, int, int] {
+func parseOctal(size int) c.Combinator[rune, int, int] {
 	allowed := "01234567"
 	parse := c.Count(size, c.OneOf[rune, int]([]rune(allowed)...))
 

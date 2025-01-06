@@ -49,12 +49,10 @@ func Quantifier[T any, P any, S any](from, to int, f c.Combinator[T, P, S]) c.Co
 		result := make([]S, 0, to-from)
 
 		for i := 0; i <= to; i++ {
-			fmt.Println("parse", i, from, to, buffer, result)
 			pos := buffer.Position()
 
 			n, err := f(buffer)
 			if err != nil {
-				fmt.Println("err in Quantifier", n, err)
 				if len(result) >= from {
 					buffer.Seek(pos)
 					return result, nil
