@@ -157,15 +157,6 @@ Possesive - greedy and does not backtrack once match.
 |✅| `(?<name>subexp)` | define named group |
 
 ```
-    (?<name>subexp), (?'name'subexp)
-                     define named group
-                     (Each character of the name must be a word character.)
-
-                     Not only a name but a number is assigned like a capturing
-                     group.
-
-                     Assigning the same name to two or more subexps is allowed.
-
   (?#...)            comment
 
   (?imxdau-imx)      option on/off
@@ -294,6 +285,11 @@ A-2. Original extensions
 ```
 
 ### Backreferences
+
+| support | characters | match |
+|--|--|--|
+|✅| `(exp)\1` | backrefernces by index |
+|❌| `(?<name>exp)\k<name>` | backreferences by name |
 
 ```
   When we say "backreference a group," it actually means, "re-match the same
