@@ -1,7 +1,6 @@
 package cliche
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
@@ -295,11 +294,8 @@ func parseBackReference(except ...rune) c.Combinator[rune, int, Node] {
 	)
 
 	return func(buf c.Buffer[rune, int]) (Node, error) {
-		fmt.Println("wow", buf)
-
 		runes, err := parse(buf)
 		if err != nil {
-			fmt.Println("WTF", err)
 			return nil, err
 		}
 

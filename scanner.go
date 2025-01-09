@@ -156,8 +156,6 @@ func (s *scanner) GroupsPosition() int {
 }
 
 func (s *scanner) GetGroup(idx int) (span.Interface, bool) {
-	// a, b := s.groups.At(idx - 1)
-	// fmt.Println("GetGroup", idx, s.groups, a, b)
 	return s.groups.At(idx - 1)
 }
 

@@ -486,3 +486,14 @@ TODO : js linter for test data
 
 // TODO: remove onMatch Callback params (required only for quantifier?)
 // pass quantifier as scanner?
+
+// JAVASCRIPT - /(a)\2/u; // SyntaxError: Invalid regular expression: Invalid escape
+
+
+// проверить как парсятся ключи в alternation + groups
+// внутри <([^<>]+)>[^<>]+(<(span|em|i|b)>([^<>]+)<\/\3>)[^<>]+<\/\1>
+// находил <(b,s,e,i)>
+// кажется баг где-то
+
+// add test for
+// <([^<>]+)>[^<>]*(<(span|em|i|b)>([^<>]+)<\/\\3>)[^<>]*<\/\\1>

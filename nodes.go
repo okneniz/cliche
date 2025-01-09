@@ -687,8 +687,6 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 
 	pos := scanner.Position()
 
-	fmt.Println("VISIT", scanner, exists, matchSpan)
-
 	if !exists || matchSpan.Empty() {
 		scanner.Match(n, from, from, n.IsEnd(), true)
 		onMatch(n, from, from, true)
@@ -699,10 +697,14 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 		// TODO : what about empty matches?
 
 		current := from
-		matchedTo := to
 
 		// match the same string
 		for prev := matchSpan.From(); prev <= matchSpan.To(); prev++ {
+			if current >= input.Size() {
+				scanner.Rewind(pos)
+				return
+			}
+
 			expected := input.ReadAt(prev)
 			actual := input.ReadAt(current)
 
@@ -711,14 +713,13 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 				return
 			}
 
-			matchedTo = prev
 			current++
 		}
 
-		scanner.Match(n, from, from, n.IsEnd(), false)
-		onMatch(n, from, from, false)
+		scanner.Match(n, from, current-1, n.IsEnd(), false)
+		onMatch(n, from, current-1, false)
 
-		n.nestedNode.VisitNested(scanner, input, matchedTo+1, to, onMatch)
+		n.nestedNode.VisitNested(scanner, input, current, to, onMatch)
 		scanner.Rewind(pos)
 	}
 }

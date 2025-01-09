@@ -2,7 +2,7 @@
   "Name": "backreferences",
   "Tests": [
     {
-      "Name": "simple",
+      "Name": "case 1",
       "Expressions": [
         "(x)\\1",
         "(x|y)\\1",
@@ -33,6 +33,156 @@
           ]
         }
       ]
-    }
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "title=([\"'])(.*)\\1"
+      ],
+      "Input": "title=\"foo\"",
+      "Want": [
+        {
+          "SubString": "title=\"foo\"",
+          "Span": {
+            "From": 0,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "title=([\"'])(.*)\\1"
+          ],
+          "Groups": [
+            {
+              "From": 6,
+              "To": 6,
+              "Empty": false
+            },
+            {
+              "From": 7,
+              "To": 9,
+              "Empty": false
+            }            
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "(\\S+)\\s+\\1",
+        "(\\w+)\\s+\\1",
+        "(\\D+)\\s+\\1",
+        "([^\\d]+)\\s+\\1",
+        "([^\\d|]+)\\s+\\1"
+      ],
+      "Input": "foo bar bar baz",
+      "Want": [
+        {
+          "SubString": "bar bar",
+          "Span": {
+            "From": 4,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "(\\S+)\\s+\\1",
+            "(\\w+)\\s+\\1",
+            "(\\D+)\\s+\\1",
+            "([^\\d]+)\\s+\\1",
+            "([^\\d|]+)\\s+\\1"
+          ],
+          "Groups": [
+            {
+              "From": 4,
+              "To": 6,
+              "Empty": false
+            }    
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 4",
+      "Expressions": [
+        "(.{3}).+\\1"
+      ],
+      "Input": "123123123",
+      "Want": [
+        {
+          "SubString": "123123123",
+          "Span": {
+            "From": 0,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "(.{3}).+\\1"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 2,
+              "Empty": false
+            }    
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 5",
+      "Expressions": [
+        "<([^<>]+)>([^<>]+)<\/\\1>"
+      ],
+      "Input": "<!DOCTYPE html><html><body><h1>My First Heading</h1><p>My first paragraph.</p></body></html>",
+      "Want": [
+        {
+          "SubString": "<h1>My First Heading</h1>",
+          "Span": {
+            "From": 27,
+            "To": 51,
+            "Empty": false
+          },
+          "Expressions": [
+            "<([^<>]+)>([^<>]+)<\/\\1>"
+          ],
+          "Groups": [
+            {
+              "From": 28,
+              "To": 29,
+              "Empty": false
+            },
+            {
+              "From": 31,
+              "To": 46,
+              "Empty": false
+            }    
+          ]
+        },
+        {
+          "SubString": "<p>My first paragraph.</p>",
+          "Span": {
+            "From": 52,
+            "To": 77,
+            "Empty": false
+          },
+          "Expressions": [
+            "<([^<>]+)>([^<>]+)<\/\\1>"
+          ],
+          "Groups": [
+            {
+              "From": 53,
+              "To": 53,
+              "Empty": false
+            },            
+            {
+              "From": 55,
+              "To": 73,
+              "Empty": false
+            }    
+          ]
+        }        
+      ]
+    }    
   ]
 }
+

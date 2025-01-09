@@ -163,7 +163,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|', ')'),
 			p.parseNodeByCustomParsers(),
-			p.parseCharacterClasses('|', ')'),
+			p.parseCharacterClasses(')'),
 			p.parseCharacter('|', ')'),
 		),
 	)
@@ -251,7 +251,7 @@ func (p *CustomParser) Parse(buf c.Buffer[rune, int]) (Node, error) {
 func (p *CustomParser) parseCharacterClasses(
 	except ...rune,
 ) c.Combinator[rune, int, Node] {
-	except = append(except, ']') // TODO : it's ok?
+	except = append(except, ']')
 
 	parseTable := c.Choice[rune, int, *unicode.RangeTable](
 		c.Try(p.parseRange(except...)),

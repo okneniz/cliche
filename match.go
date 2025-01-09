@@ -53,7 +53,7 @@ func (m *Match) Clone() *Match {
 
 func (m *Match) String() string {
 	return fmt.Sprintf(
-		"Match{%s, '%s', (%s) [%s] {%s}}",
+		"Match{%s, '%s', /%s/ [%s] {%s}}",
 		m.span.String(),
 		m.subString,
 		strings.Join(m.expressions.Slice(), ", "),
