@@ -5,6 +5,6 @@ type Interface interface {
 	To() int
 	Empty() bool
 	Size() int
-	IsInclude(int) bool
+	Include(int) bool
 	String() string
 }

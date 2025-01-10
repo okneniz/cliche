@@ -39,7 +39,7 @@ func (p pair) Size() int {
 	return p.to - p.from
 }
 
-func (p pair) IsInclude(x int) bool {
+func (p pair) Include(x int) bool {
 	if x < p.from || x > p.to {
 		return false
 	}

@@ -30,7 +30,7 @@ func (x empty) Size() int {
 	return 0
 }
 
-func (x empty) IsInclude(_ int) bool {
+func (x empty) Include(_ int) bool {
 	return false
 }
 

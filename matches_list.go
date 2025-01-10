@@ -43,7 +43,7 @@ func (b *matchesList) push(m *Match) {
 	last := b.list[len(b.list)-1]
 	lastSpan := last.Span()
 
-	if lastSpan.IsInclude(s.From()) {
+	if lastSpan.Include(s.From()) {
 		z := b.compare(lastSpan, s)
 		if z < 0 {
 			b.list[len(b.list)-1] = m

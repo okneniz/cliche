@@ -468,7 +468,6 @@ TODO : js linter for test data
 // - meta chars \ѣ
 // - custom anything
 
-// TODO : remove all `Is***() bool` prefixes
 // TODO : в тестах проверять, что groups входят в span строки
 
 // TODO :
