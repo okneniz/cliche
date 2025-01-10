@@ -660,15 +660,6 @@ func (p *CustomParser) parseNodeByPrefixes(
 	}
 }
 
-// prefixes      map[string]c.Combinator[rune, int, Node]
-// prefixParsers *branch[Node]
-
-// inClassPrefixes      map[string]c.Combinator[rune, int, *unicode.RangeTable]
-// inClassPrefixParsers *branch[*unicode.RangeTable]
-
-// parsers        []func(except ...rune) c.Combinator[rune, int, Node]
-// inClassParsers []func(except ...rune) c.Combinator[rune, int, *unicode.RangeTable]
-
 func (p *CustomParser) parseNodeByCustomParsers(
 	except ...rune,
 ) c.Combinator[rune, int, Node] {

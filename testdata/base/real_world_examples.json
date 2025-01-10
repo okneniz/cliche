@@ -532,22 +532,6 @@
           ],
           "NamedGroups": [
             {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
               "Name": "name",
               "Span": {
                 "From": 10,
@@ -576,22 +560,6 @@
             "(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})"
           ],
           "NamedGroups": [
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
             {
               "Name": "name",
               "Span": {

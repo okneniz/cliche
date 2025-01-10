@@ -112,6 +112,7 @@ func TestTree_Match(t *testing.T) {
 					for _, w := range actual {
 						w.Normalize()
 					}
+
 					sort.Slice(actual, func(i, j int) bool {
 						return actual[i].String() < actual[j].String()
 					})
@@ -157,7 +158,7 @@ func toTestMatches(xs ...*Match) []*test.Expectation {
 		}
 
 		if len(x.namedGroups) > 0 {
-			named := make([]test.NamedGroup, len(x.namedGroups))
+			named := make([]test.NamedGroup, 0, len(x.namedGroups))
 
 			for k, g := range x.namedGroups {
 				named = append(named, test.NamedGroup{

@@ -1,0 +1,148 @@
+{
+  "Name": "named backreferences",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "(?<name>123)\\k<name>{2}",
+        "(?<name>.+)\\k<name>{2}",
+        "(?<name>.{3})\\k<name>{2}",
+        "(?<name>foo|bar|123)\\k<name>{2}",
+        "(?<name>\\d+)\\k<name>*",
+        "(?<name>[[:alnum:]]+)\\k<name>+"
+      ],
+      "Input": "123123123",
+      "Want": [
+        {
+          "SubString": "123123123",
+          "Span": {
+            "From": 0,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<name>123)\\k<name>{2}",
+            "(?<name>.+)\\k<name>{2}",
+            "(?<name>.{3})\\k<name>{2}",
+            "(?<name>foo|bar|123)\\k<name>{2}",
+            "(?<name>\\d+)\\k<name>*",
+            "(?<name>[[:alnum:]]+)\\k<name>+"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "name",
+              "Span": {
+                "From": 0,
+                "To": 2,
+                "Empty": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "<(?<tag>[^<>]+)>([^<>]+)<\/\\k<tag>>"
+      ],
+      "Input": "<!DOCTYPE html><html><body><h1>My First Heading</h1><p>My first paragraph.</p></body></html>",
+      "Want": [
+        {
+          "SubString": "<h1>My First Heading</h1>",
+          "Span": {
+            "From": 27,
+            "To": 51,
+            "Empty": false
+          },
+          "Expressions": [
+            "<(?<tag>[^<>]+)>([^<>]+)<\/\\k<tag>>"
+          ],
+          "Groups": [
+            {
+              "From": 31,
+              "To": 46,
+              "Empty": false
+            }
+          ],
+          "NamedGroups": [
+            {
+              "Name": "tag",
+              "Span": {
+                "From": 28,
+                "To": 29,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "<p>My first paragraph.</p>",
+          "Span": {
+            "From": 52,
+            "To": 77,
+            "Empty": false
+          },
+          "Expressions": [
+            "<(?<tag>[^<>]+)>([^<>]+)<\/\\k<tag>>"
+          ],
+          "Groups": [
+            {
+              "From": 55,
+              "To": 73,
+              "Empty": false
+            }
+          ],
+          "NamedGroups": [
+            {
+              "Name": "tag",
+              "Span": {
+                "From": 53,
+                "To": 53,
+                "Empty": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "title=(?<quot>[\"'])(?<text>.*)\\k<quot>"
+      ],
+      "Input": "title=\"foo\"",
+      "Want": [
+        {
+          "SubString": "title=\"foo\"",
+          "Span": {
+            "From": 0,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "title=(?<quot>[\"'])(?<text>.*)\\k<quot>"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "quot",
+              "Span": {
+                "From": 6,
+                "To": 6,
+                "Empty": false
+              }
+            },
+            {
+              "Name": "text",
+              "Span": {
+                "From": 7,
+                "To": 9,
+                "Empty": false
+              }
+            } 
+          ]
+        }
+      ]
+    }
+  ]
+}

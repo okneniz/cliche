@@ -180,6 +180,21 @@ var (
 
 			return rangetable.New(r), nil
 		}),
+		WithPrefix("\\k", func(buf c.Buffer[rune, int]) (Node, error) {
+			parse := angles( // TODO : prebuild it by closure
+				c.Some(
+					0,
+					c.Try(c.NoneOf[rune, int]('>')),
+				),
+			)
+
+			name, err := parse(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return nodeForNameReference(string(name)), nil
+		}),
 		WithParser(parseBackReference),
 	}
 )
@@ -217,6 +232,7 @@ func WithBracket(
 	}
 }
 
+// TODO : pass exceptions too
 func WithEscapedMetaChar(
 	name string, predicate func(rune) bool,
 ) Option[*CustomParser] {
@@ -236,6 +252,7 @@ func WithEscapedMetaChar(
 	}
 }
 
+// TODO : pass exceptions too
 func WithPrefix(
 	name string, parse c.Combinator[rune, int, Node],
 ) Option[*CustomParser] {
@@ -245,6 +262,7 @@ func WithPrefix(
 	}
 }
 
+// TODO : pass exceptions too
 func WithInClassPrefix(
 	name string, parse c.Combinator[rune, int, *unicode.RangeTable],
 ) Option[*CustomParser] {
@@ -254,6 +272,7 @@ func WithInClassPrefix(
 	}
 }
 
+// TODO : pass exceptions too
 func WithParser(
 	p func(except ...rune) c.Combinator[rune, int, Node],
 ) Option[*CustomParser] {
@@ -262,6 +281,7 @@ func WithParser(
 	}
 }
 
+// TODO : pass exceptions too
 func WithInClassParser(
 	p func(except ...rune) c.Combinator[rune, int, *unicode.RangeTable],
 ) Option[*CustomParser] {

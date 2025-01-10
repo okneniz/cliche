@@ -286,19 +286,20 @@ A-2. Original extensions
 
 ### Backreferences
 
+When we say "backreference a group," it actually means, "re-match the same text matched by the subexp in that group."
+
 | support | characters | match |
 |--|--|--|
 |✅| `(exp)\1` | backrefernces by index |
-|❌| `(?<name>exp)\k<name>` | backreferences by name |
+|✅| `(?<name>exp)\k<name>` | backreferences by name |
+
 
 ```
-  When we say "backreference a group," it actually means, "re-match the same
-  text matched by the subexp in that group."
+  
 
   \n  \k<n>     \k'n'     (n >= 1) backreference the nth group in the regexp
       \k<-n>    \k'-n'    (n >= 1) backreference the nth group counting
                           backwards from the referring position
-      \k<name>  \k'name'  backreference a group with the specified name
 
   When backreferencing with a name that is assigned to more than one groups,
   the last group with the name is checked first, if not matched then the

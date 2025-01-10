@@ -24,14 +24,6 @@
           ],
           "NamedGroups": [
             {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
               "Name": "name",
               "Span": {
                 "From": 2,
@@ -52,14 +44,6 @@
             "f(?<name>o|b)o"
           ],
           "NamedGroups": [
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
             {
               "Name": "name",
               "Span": {
@@ -83,30 +67,6 @@
             "(?<first>f)(?<second>o)(?<third>o)"
           ],
           "NamedGroups": [
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
             {
               "Name": "first",
               "Span": {
@@ -146,30 +106,6 @@
           ],
           "NamedGroups": [
             {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
               "Name": "first",
               "Span": {
                 "From": 4,
@@ -207,30 +143,6 @@
             "(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)"
           ],
           "NamedGroups": [
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
             {
               "Name": "first",
               "Span": {
@@ -280,22 +192,6 @@
           ],
           "NamedGroups": [
             {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
               "Name": "first",
               "Span": {
                 "From": 1,
@@ -324,30 +220,6 @@
             "(?<first>b(?<second>a(?<third>r)))"
           ],
           "NamedGroups": [
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
             {
               "Name": "second",
               "Span": {
@@ -385,22 +257,6 @@
             "(?<first>(?<second>b)az)"
           ],
           "NamedGroups": [
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
-            },
             {
               "Name": "second",
               "Span": {
