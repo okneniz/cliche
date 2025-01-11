@@ -145,6 +145,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		tryAll(
 			p.parseNotCapturedGroup(alternation),
 			p.parseNamedGroup(alternation),
+			p.parseLookAhead(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|'),
@@ -159,6 +160,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		tryAll(
 			p.parseNotCapturedGroup(alternation),
 			p.parseNamedGroup(alternation),
+			p.parseLookAhead(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|', ')'),
@@ -534,6 +536,33 @@ func (p *CustomParser) parseNamedGroup(
 			x := namedGroup{
 				Name:       string(name),
 				Value:      variants,
+				nestedNode: newNestedNode(),
+			}
+
+			return &x, nil
+		},
+	)
+}
+
+func (p *CustomParser) parseLookAhead(
+	parse c.Combinator[rune, int, *alternation], except ...rune,
+) c.Combinator[rune, int, Node] {
+	before := SkipString("?=")
+
+	return parens(
+		func(buf c.Buffer[rune, int]) (Node, error) {
+			_, err := before(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			value, err := parse(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			x := LookAhead{
+				Value:      value,
 				nestedNode: newNestedNode(),
 			}
 

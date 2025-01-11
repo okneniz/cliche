@@ -76,11 +76,12 @@ func (n *nestedNode) VisitNested(
 	from, to int,
 	onMatch Callback,
 ) {
-	for _, nested := range n.Nested {
+	for k, nested := range n.Nested {
 		// pos := scanner.Position()
 		// groupsPos := scanner.GroupsPosition()
 		// namedGroupPos := scanner.NamedGroupsPosition()
 
+		fmt.Println("scan nested", k, from, to)
 		nested.Visit(scanner, input, from, to, onMatch)
 
 		// scanner.Rewind(pos)
@@ -802,4 +803,53 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, on
 		n.nestedNode.VisitNested(scanner, input, current, to, onMatch)
 		scanner.Rewind(pos)
 	}
+}
+
+type LookAhead struct {
+	Value *alternation `json:"value,omitempty"`
+	*nestedNode
+}
+
+func (n *LookAhead) GetKey() string {
+	return fmt.Sprintf("(?=%s)", n.Value.GetKey())
+}
+
+func (n *LookAhead) Traverse(f func(Node)) {
+	f(n)
+
+	for _, x := range n.Nested {
+		x.Traverse(f)
+	}
+}
+
+// test both - \d+(?=(\$))
+// and - \d+(?=\$)
+
+// test too - (1(?=2)2(?=3)3(?=4))
+
+func (n *LookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+	n.Value.visitAlternation(
+		scanner,
+		input,
+		from,
+		to,
+		func(_ Node, vFrom, vTo int, empty bool) {
+			pos := scanner.Position()
+			holesPos := scanner.HolesPosition()
+
+			fmt.Println("scanner before", vFrom, vTo, scanner)
+
+			// what about empty spans, just skip it?
+			scanner.MarkAsHole(from, vTo)
+			scanner.Match(n, from, from, n.IsEnd(), true)
+			onMatch(n, from, from, true)
+			fmt.Println("scanner after", scanner)
+
+			scanner.RewindHoles(holesPos)
+			n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+			fmt.Println("scanner after+", scanner)
+
+			scanner.Rewind(pos)
+		},
+	)
 }

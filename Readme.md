@@ -147,7 +147,6 @@ Possesive - greedy and does not backtrack once match.
 |✅| `[:xdigit:]` | `0030 - 0039 \| 0041 - 0046 \| 0061 - 0066 \| (0-9, a-f, A-F)` |
 |✅| `[:word:]` | `Letter \| Mark \| Decimal_Number \| Connector_Punctuation` |
 
-
 ### Captured group
 
 | support | characters | match |
@@ -156,34 +155,61 @@ Possesive - greedy and does not backtrack once match.
 |✅| `(subexp)` | capturing group |
 |✅| `(?<name>subexp)` | define named group |
 
+### Backreferences
+
+When we say "backreference a group," it actually means, "re-match the same text matched by the subexp in that group."
+
+| support | characters | match |
+|--|--|--|
+|✅| `(exp)\1` | backrefernces by index |
+|✅| `(?<name>exp)\k<name>` | backreferences by name |
+
+
 ```
-  (?#...)            comment
+  
 
-  (?imxdau-imx)      option on/off
-                         i: ignore case
-                         m: multi-line (dot (.) also matches newline)
-                         x: extended form
+  \n  \k<n>     \k'n'     (n >= 1) backreference the nth group in the regexp
+      \k<-n>    \k'-n'    (n >= 1) backreference the nth group counting
+                          backwards from the referring position
 
-                       character set option (character range option)
-                         d: Default (compatible with Ruby 1.9.3)
-                            \w, \d and \s doesn't match non-ASCII characters.
-                            \b, \B and POSIX brackets use the each encoding's
-                            rules.
-                         a: ASCII
-                            ONIG_OPTION_ASCII_RANGE option is turned on.
-                            \w, \d, \s and POSIX brackets doesn't match
-                            non-ASCII characters.
-                            \b and \B use the ASCII rules.
-                         u: Unicode
-                            ONIG_OPTION_ASCII_RANGE option is turned off.
-                            \w (\W), \d (\D), \s (\S), \b (\B) and POSIX
-                            brackets use the each encoding's rules.
+  When backreferencing with a name that is assigned to more than one groups,
+  the last group with the name is checked first, if not matched then the
+  previous one with the name, and so on, until there is a match.
 
-  (?imxdau-imx:subexp)
-                     option on/off for subexp
+  * Backreference by number is forbidden if any named group is defined and
+    ONIG_OPTION_CAPTURE_GROUP is not set.
+
+  * ONIG_SYNTAX_PERL: \g{n}, \g{-n} and \g{name} can also be used.
+    If a name is defined more than once in Perl syntax, only the left-most
+    group is checked.
 
 
-  (?=subexp)         look-ahead
+  backreference with recursion level
+
+    (n >= 1, level >= 0)
+
+    \k<n+level>  \k'n+level'
+    \k<n-level>  \k'n-level'
+    \k<-n+level> \k'-n+level'
+    \k<-n-level> \k'-n-level'
+
+    \k<name+level> \k'name+level'
+    \k<name-level> \k'name-level'
+```
+
+### Asertions
+ 
+ https://www.regular-expressions.info/lookaround.html
+
+The difference is that lookaround actually matches characters, but then gives up the match, 
+returning only the result: match or no match. That is why they are called “assertions”.
+
+| support | characters | match |
+|--|--|--|
+|✅| `(?=subexp)` | look-ahead |
+
+
+```
   (?!subexp)         negative look-ahead
   (?<=subexp)        look-behind
   (?<!subexp)        negative look-behind
@@ -194,10 +220,6 @@ Possesive - greedy and does not backtrack once match.
 
                      In negative look-behind, capturing group isn't allowed,
                      but non-capturing group (?:) is allowed.
-
-  \K                 keep
-                     Another expression of look-behind. Keep the stuff left
-                     of the \K, don't include it in the result.
 
   (?>subexp)         atomic group
                      no backtracks in subexp.
@@ -253,6 +275,39 @@ Possesive - greedy and does not backtrack once match.
                         https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-presen.pdf
 ```
 
+### Options
+
+```
+  (?#...)            comment
+
+  (?imxdau-imx)      option on/off
+                         i: ignore case
+                         m: multi-line (dot (.) also matches newline)
+                         x: extended form
+
+                       character set option (character range option)
+                         d: Default (compatible with Ruby 1.9.3)
+                            \w, \d and \s doesn't match non-ASCII characters.
+                            \b, \B and POSIX brackets use the each encoding's
+                            rules.
+                         a: ASCII
+                            ONIG_OPTION_ASCII_RANGE option is turned on.
+                            \w, \d, \s and POSIX brackets doesn't match
+                            non-ASCII characters.
+                            \b and \B use the ASCII rules.
+                         u: Unicode
+                            ONIG_OPTION_ASCII_RANGE option is turned off.
+                            \w (\W), \d (\D), \s (\S), \b (\B) and POSIX
+                            brackets use the each encoding's rules.
+
+  (?imxdau-imx:subexp)
+                     option on/off for subexp
+
+  \K                 keep
+                     Another expression of look-behind. Keep the stuff left
+                     of the \K, don't include it in the result.
+```
+
 ```
   Behavior of an unnamed group (...) changes with the following conditions.
   (But named group is not changed.)
@@ -282,48 +337,6 @@ A-2. Original extensions
    + named group                  (?<name>...), (?'name'...)
    + named backref                \k<name>
    + subexp call                  \g<name>, \g<group-num>
-```
-
-### Backreferences
-
-When we say "backreference a group," it actually means, "re-match the same text matched by the subexp in that group."
-
-| support | characters | match |
-|--|--|--|
-|✅| `(exp)\1` | backrefernces by index |
-|✅| `(?<name>exp)\k<name>` | backreferences by name |
-
-
-```
-  
-
-  \n  \k<n>     \k'n'     (n >= 1) backreference the nth group in the regexp
-      \k<-n>    \k'-n'    (n >= 1) backreference the nth group counting
-                          backwards from the referring position
-
-  When backreferencing with a name that is assigned to more than one groups,
-  the last group with the name is checked first, if not matched then the
-  previous one with the name, and so on, until there is a match.
-
-  * Backreference by number is forbidden if any named group is defined and
-    ONIG_OPTION_CAPTURE_GROUP is not set.
-
-  * ONIG_SYNTAX_PERL: \g{n}, \g{-n} and \g{name} can also be used.
-    If a name is defined more than once in Perl syntax, only the left-most
-    group is checked.
-
-
-  backreference with recursion level
-
-    (n >= 1, level >= 0)
-
-    \k<n+level>  \k'n+level'
-    \k<n-level>  \k'n-level'
-    \k<-n+level> \k'-n+level'
-    \k<-n-level> \k'-n-level'
-
-    \k<name+level> \k'name+level'
-    \k<name-level> \k'name-level'
 ```
 
 ### Subexp calls ("Tanaka Akira special")
@@ -493,3 +506,15 @@ TODO : js linter for test data
 
 // add test for
 // <([^<>]+)>[^<>]*(<(span|em|i|b)>([^<>]+)<\/\\3>)[^<>]*<\/\\1>
+
+// add test for different captures for string "123$ 231€ 321₽"
+//  (\\d+(?=(\\$|₽)))
+//  (\\d+(?=\\$|₽))
+
+// add test for "123$ 231€ 321₽"
+// (((123)))
+
+// Добавить метод Nonsence который говорит какие выражения никогда не заматчатся
+// - например из-за пустой range table
+// - или из-за якоря \z после \A
+// - или странного assertion / lookahead, например 1(?=3)2

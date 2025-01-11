@@ -5,10 +5,23 @@ import (
 	"strings"
 )
 
-type truncatedList[T fmt.Stringer] struct {
+type TruncatedList[T any] interface {
+	Append(T)
+	At(int) (T, bool)
+	First() (T, bool)
+	Last() (T, bool)
+	Size() int
+	Truncate(int)
+	Slice() []T
+	String() string
+}
+
+type truncatedList[T any] struct {
 	data []T
 	size int
 }
+
+var _ TruncatedList[string] = new(truncatedList[string])
 
 func newTruncatedList[T fmt.Stringer](cap int) *truncatedList[T] {
 	return &truncatedList[T]{
@@ -17,7 +30,7 @@ func newTruncatedList[T fmt.Stringer](cap int) *truncatedList[T] {
 	}
 }
 
-func (l *truncatedList[T]) append(item T) {
+func (l *truncatedList[T]) Append(item T) {
 	if l.size >= len(l.data) {
 		l.data = append(l.data, item)
 	} else {
@@ -27,33 +40,16 @@ func (l *truncatedList[T]) append(item T) {
 	l.size++
 }
 
-func (l *truncatedList[T]) len() int {
-	return l.size
-}
-
-func (l *truncatedList[T]) truncate(newSize int) {
-	if newSize < 0 || newSize > l.size {
-		return
-	}
-
-	l.size = newSize
-}
-
-func (l *truncatedList[T]) at(idx int) T {
+func (l *truncatedList[T]) At(idx int) (T, bool) {
 	if idx < 0 || idx >= len(l.data) {
-		err := OutOfBounds{
-			Min:   0,
-			Max:   l.size,
-			Value: idx,
-		}
-
-		panic(err)
+		var zero T
+		return zero, false
 	}
 
-	return l.data[idx]
+	return l.data[idx], true
 }
 
-func (l *truncatedList[T]) first() (T, bool) {
+func (l *truncatedList[T]) First() (T, bool) {
 	if l.size == 0 {
 		var x T
 		return x, false
@@ -62,7 +58,7 @@ func (l *truncatedList[T]) first() (T, bool) {
 	return l.data[0], true
 }
 
-func (l *truncatedList[T]) last() (T, bool) {
+func (l *truncatedList[T]) Last() (T, bool) {
 	if l.size == 0 {
 		var x T
 		return x, false
@@ -71,7 +67,19 @@ func (l *truncatedList[T]) last() (T, bool) {
 	return l.data[l.size-1], true
 }
 
-func (l *truncatedList[T]) toSlice() []T {
+func (l *truncatedList[T]) Size() int {
+	return l.size
+}
+
+func (l *truncatedList[T]) Truncate(newSize int) {
+	if newSize < 0 || newSize > l.size {
+		return
+	}
+
+	l.size = newSize
+}
+
+func (l *truncatedList[T]) Slice() []T {
 	if l.size == 0 {
 		return nil
 	}
@@ -86,7 +94,8 @@ func (l *truncatedList[T]) String() string {
 
 	items := make([]string, l.size) // TODO : use buffer instead
 	for i := 0; i < l.size; i++ {
-		items[i] = l.data[i].String()
+		items[i] = fmt.Sprintf("%v", l.data[i])
 	}
+
 	return fmt.Sprintf("[%s]", strings.Join(items, ", "))
 }

@@ -46,8 +46,8 @@ func (m *Match) Clone() *Match {
 		subString:   m.subString,
 		span:        m.span,
 		expressions: newSet().merge(m.expressions),
-		groups:      m.groups,
-		namedGroups: m.namedGroups,
+		groups:      m.groups,      // clone it too?
+		namedGroups: m.namedGroups, // clone it too?
 	}
 }
 

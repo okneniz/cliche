@@ -1,0 +1,171 @@
+{
+  "Name": "lookahead",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "1(?=\\d)2"
+      ],
+      "Input": "123 123",
+      "Want": [
+        {
+          "SubString": "12",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "1(?=\\d)2"
+          ]
+        },
+        {
+          "SubString": "12",
+          "Span": {
+            "From": 4,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "1(?=\\d)2"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "\\d+(?=\\$)"
+      ],
+      "Input": "1 turkey costs 30$",
+      "Want": [
+        {
+          "SubString": "30",
+          "Span": {
+            "From": 15,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d+(?=\\$)"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "(\\d+(?=(\\$|₽)))",
+        "\\d+(?=(\\$|₽))",
+        "\\d+(?=\\$|₽)"
+      ],
+      "Input": "123$ 231€ 321₽",
+      "Want": [
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(\\d+(?=(\\$|₽)))"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 2,
+              "Empty": false
+            },
+            {
+              "From": 3,
+              "To": 3,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "321",
+          "Span": {
+            "From": 10,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "(\\d+(?=(\\$|₽)))"
+          ],
+          "Groups": [
+            {
+              "From": 10,
+              "To": 12,
+              "Empty": false
+            },
+            {
+              "From": 13,
+              "To": 13,
+              "Empty": false
+            }    
+          ]
+        },
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d+(?=(\\$|₽))"
+          ],
+          "Groups": [
+            {
+              "From": 3,
+              "To": 3,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "321",
+          "Span": {
+            "From": 10,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d+(?=(\\$|₽))"
+          ],
+          "Groups": [
+            {
+              "From": 13,
+              "To": 13,
+              "Empty": false
+            }  
+          ]
+        },
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d+(?=\\$|₽)"
+          ]
+        },
+        {
+          "SubString": "321",
+          "Span": {
+            "From": 10,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d+(?=\\$|₽)"
+          ]
+        }
+      ]
+    }
+  ]
+}

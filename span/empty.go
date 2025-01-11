@@ -11,6 +11,10 @@ var (
 )
 
 func Empty(pos int) Interface {
+	if pos < 0 {
+		panic(fmt.Sprintf("invalid bounds %d", pos))
+	}
+
 	return empty(pos)
 }
 

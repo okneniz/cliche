@@ -20,14 +20,19 @@ type Scanner interface {
 	NamedGroupsPosition() int
 	GetNamedGroup(name string) (span.Interface, bool)
 	RewindNamedGroups(pos int)
+
+	MarkAsHole(from int, to int)
+	HolesPosition() int
+	RewindHoles(pos int)
 }
 
 type scanner struct {
 	input       Input
 	output      Output
-	expression  *truncatedList[nodeMatch]
+	expression  TruncatedList[nodeMatch]
 	groups      Captures
 	namedGroups NamedCaptures
+	holes       TruncatedList[span.Interface]
 }
 
 var _ Scanner = new(scanner)
@@ -35,8 +40,8 @@ var _ Scanner = new(scanner)
 func newFullScanner(
 	input Input,
 	output Output,
-	groups Captures,
-	namedGroups NamedCaptures,
+	groups Captures, // or hide it?
+	namedGroups NamedCaptures, // or hide it?
 ) *scanner {
 	s := new(scanner)
 	s.input = input
@@ -44,9 +49,11 @@ func newFullScanner(
 	s.groups = groups
 	s.namedGroups = namedGroups
 
-	// TODO : get all attributes by args with interfaces
 	// TODO : capacity = height of tree
 	s.expression = newTruncatedList[nodeMatch](50)
+
+	// TODO : capacity = max count of assertions / lookaheads / lookbehins in expression
+	s.holes = newTruncatedList[span.Interface](3)
 
 	return s
 }
@@ -60,11 +67,11 @@ func (s *scanner) String() string {
 }
 
 func (s *scanner) Position() int {
-	return s.expression.len()
+	return s.expression.Size()
 }
 
 func (s *scanner) Rewind(pos int) {
-	s.expression.truncate(pos)
+	s.expression.Truncate(pos)
 }
 
 func (s *scanner) Match(n Node, from, to int, leaf, empty bool) {
@@ -76,36 +83,108 @@ func (s *scanner) Match(n Node, from, to int, leaf, empty bool) {
 		x.span = span.New(from, to)
 	}
 
-	s.expression.append(x)
+	s.expression.Append(x)
 	if !leaf {
 		return
 	}
 
-	sp, exists := s.currentMatchSpan()
+	sp, exists := s.currentMatchSpan() // check lastHole and collision in (lastNotEmptySpan method)
 	if !exists {
 		return
 	}
 
-	var (
-		subString string
-		err       error
-	)
+	groups := s.groups.Slice()
+	namedGroups := s.namedGroups.Map()
 
-	if !sp.Empty() {
-		subString, err = s.input.Substring(sp.From(), sp.To())
-		if err != nil {
-			panic(err)
+	// what about empty last hole, just skip empty holes?
+	if lastHole, ok := s.holes.Last(); ok {
+		if sp.To() == lastHole.To() {
+			sp = span.New(sp.From(), lastHole.From()-1)
 		}
+
+		for i, _ := range groups {
+			if groups[i].To() == lastHole.To() && groups[i].From() != lastHole.From() {
+				groups[i] = span.New(groups[i].From(), lastHole.From()-1)
+				break
+			}
+		}
+
+		for k, v := range namedGroups {
+			if v.To() == lastHole.To() && v.From() != lastHole.From() {
+				namedGroups[k] = span.New(v.From(), lastHole.From()-1)
+				break
+			}
+		}
+
 	}
 
 	s.output.Yield(
 		n,
-		subString,
+		s.getSubString(sp),
 		sp,
-		s.groups.Slice(),
-		s.namedGroups.Map(),
+		groups,
+		namedGroups,
 	)
 }
+
+func (s *scanner) getSubString(sp span.Interface) string {
+	if sp.Empty() {
+		return ""
+	}
+
+	if sp.From() >= s.input.Size() || sp.To() >= s.input.Size() {
+		return "" // or panic?
+	}
+
+	// if s.holes.Size() > 0 {
+	// 	return s.getSubStringWithHoles(sp)
+	// }
+
+	size := sp.Size()
+	subString := make([]rune, 0, size)
+
+	for idx := sp.From(); idx <= sp.To(); idx++ {
+		r := s.input.ReadAt(idx)
+		subString = append(subString, r)
+	}
+
+	return string(subString)
+}
+
+// func (s *scanner) getSubStringWithHoles(sp span.Interface) string {
+// 	size := sp.Size() // remove holes to better allocations?
+// 	subString := make([]rune, 0, size)
+
+// 	holeIdx := 0
+// 	hole := s.nextHole(holeIdx)
+
+// 	for idx := sp.From(); idx <= sp.To(); idx++ {
+// 		fmt.Println("debug", idx, hole)
+
+// 		for hole.To() < idx {
+// 			holeIdx++
+// 			hole = s.nextHole(holeIdx)
+// 		}
+
+// 		if hole.Include(idx) {
+// 			continue
+// 		}
+
+// 		r := s.input.ReadAt(idx)
+// 		subString = append(subString, r)
+// 	}
+
+// 	return string(subString)
+// }
+
+// func (s *scanner) nextHole(idx int) span.Interface {
+// 	hole, ok := s.holes.At(idx)
+// 	if !ok {
+// 		hole = span.Empty(s.input.Size() + 1)
+// 	}
+
+// 	return hole
+// }
 
 func (s *scanner) currentMatchSpan() (span.Interface, bool) {
 	begin, exists := s.firstSpan()
@@ -129,7 +208,8 @@ func (s *scanner) currentMatchSpan() (span.Interface, bool) {
 }
 
 func (s *scanner) firstSpan() (span.Interface, bool) {
-	if x, ok := s.expression.first(); ok {
+	if x, ok := s.expression.First(); ok {
+		// TODO : skip empty too?
 		return x.span, true
 	}
 
@@ -137,8 +217,12 @@ func (s *scanner) firstSpan() (span.Interface, bool) {
 }
 
 func (s *scanner) lastNotEmptySpan() (span.Interface, bool) {
-	for i := s.expression.len() - 1; i >= 0; i-- {
-		m := s.expression.at(i)
+	for i := s.expression.Size() - 1; i >= 0; i-- {
+		m, ok := s.expression.At(i)
+		if !ok {
+			return nil, false
+		}
+
 		if !m.span.Empty() {
 			return m.span, true
 		}
@@ -177,4 +261,16 @@ func (s *scanner) GetNamedGroup(name string) (span.Interface, bool) {
 
 func (s *scanner) RewindNamedGroups(pos int) {
 	s.namedGroups.Rewind(pos)
+}
+
+func (s *scanner) MarkAsHole(from int, to int) {
+	s.holes.Append(span.New(from, to))
+}
+
+func (s *scanner) HolesPosition() int {
+	return s.holes.Size()
+}
+
+func (s *scanner) RewindHoles(pos int) {
+	s.holes.Truncate(pos)
 }

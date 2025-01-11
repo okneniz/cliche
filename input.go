@@ -17,7 +17,6 @@ type simpleBuffer struct {
 type Input interface {
 	ReadAt(int) rune
 	Size() int
-	Substring(int, int) (string, error)
 	String() string
 }
 
@@ -51,35 +50,12 @@ func (b *simpleBuffer) ReadAt(idx int) rune {
 	return b.data[idx]
 }
 
-func (b *simpleBuffer) Size() int { // TODO : check for another runes
+func (b *simpleBuffer) Size() int {
 	return len(b.data)
 }
 
 func (b *simpleBuffer) String() string {
 	return fmt.Sprintf("Buffer(%s, %d)", string(b.data), b.position)
-}
-
-func (b *simpleBuffer) Substring(from, to int) (string, error) {
-	if from > to {
-		// TODO : use OutOfBounds?
-		return "", fmt.Errorf(
-			"invalid bounds for substring: from=%d to=%d size=%d",
-			from,
-			to,
-			len(b.data),
-		)
-	}
-
-	if from < 0 || from >= len(b.data) || to >= len(b.data) {
-		return "", fmt.Errorf(
-			"out of bounds buffer: from=%d to=%d size=%d",
-			from,
-			to,
-			len(b.data),
-		)
-	}
-
-	return string(b.data[from : to+1]), nil
 }
 
 // Seek - change buffer position
