@@ -204,14 +204,13 @@ returning only the result: match or no match. That is why they are called “ass
 | support | characters | match |
 |--|--|--|
 |✅| `(?=subexp)` | look-ahead |
+|✅| `(?<=subexp)` | look-behind |
 
 
 ```
   (?!subexp)         negative look-ahead
   (?<=subexp)        look-behind
-  (?<!subexp)        negative look-behind
-
-                     Subexp of look-behind must be fixed-width.
+  (?<!subexp)        Subexp of look-behind must be fixed-width.
                      But top-level alternatives can be of various lengths.
                      ex. (?<=a|bc) is OK. (?<=aaa(?:b|cd)) is not allowed.
 
