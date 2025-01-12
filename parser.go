@@ -59,11 +59,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 	}
 
 	p.prefixes["."] = func(buf c.Buffer[rune, int]) (Node, error) {
-		x := dot{
-			nestedNode: newNestedNode(),
-		}
-
-		return &x, nil
+		return newDot(), nil
 	}
 
 	p.prefixes["^"] = func(buf c.Buffer[rune, int]) (Node, error) {
@@ -146,6 +142,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseNotCapturedGroup(alternation),
 			p.parseNamedGroup(alternation),
 			p.parseLookAhead(alternation),
+			p.parseLookBehind(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|'),
@@ -161,6 +158,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseNotCapturedGroup(alternation),
 			p.parseNamedGroup(alternation),
 			p.parseLookAhead(alternation),
+			p.parseLookBehind(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|', ')'),
@@ -471,10 +469,7 @@ func (p *CustomParser) parseGroup(
 				return nil, err
 			}
 
-			return &group{
-				nestedNode: newNestedNode(),
-				Value:      value,
-			}, nil
+			return newGroup(value), nil
 		},
 	)
 }
@@ -497,12 +492,7 @@ func (p *CustomParser) parseNotCapturedGroup(
 				return nil, err
 			}
 
-			x := notCapturedGroup{
-				Value:      value,
-				nestedNode: newNestedNode(),
-			}
-
-			return &x, nil
+			return newNotCapturedGroup(value), nil
 		},
 	)
 }
@@ -533,13 +523,7 @@ func (p *CustomParser) parseNamedGroup(
 				return nil, err
 			}
 
-			x := namedGroup{
-				Name:       string(name),
-				Value:      variants,
-				nestedNode: newNestedNode(),
-			}
-
-			return &x, nil
+			return newNamedGroup(string(name), variants), nil
 		},
 	)
 }
@@ -567,6 +551,35 @@ func (p *CustomParser) parseLookAhead(
 			}
 
 			return &x, nil
+		},
+	)
+}
+
+func (p *CustomParser) parseLookBehind(
+	parse c.Combinator[rune, int, *alternation], except ...rune,
+) c.Combinator[rune, int, Node] {
+	before := SkipString("?<=")
+
+	return parens(
+		func(buf c.Buffer[rune, int]) (Node, error) {
+			_, err := before(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			value, err := parse(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			n, err := newLookBehind(value)
+			if err != nil {
+				// TODO : return explanation from parser
+				// handle not inly NothingMatched error
+				panic(err)
+			}
+
+			return n, nil
 		},
 	)
 }

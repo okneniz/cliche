@@ -18,7 +18,21 @@ type Node interface {
 
 	Visit(Scanner, Input, int, int, Callback)
 	Merge(Node) // remove, implement Merge(Node, Node) method in parser or tree
+
+	// Add parent to travers
+	// Should return bool to interupt traversing?
 	Traverse(func(Node))
+
+	// TODO : works only for fixed chain with one end node?
+	// don't work for tree?
+
+	// TODO : it's improtanto for group too have chain in Value instead tree
+	// make special type for this case?
+
+	// TODO : what about alternation of chains?
+	Size() (int, bool)
+
+	// TODO : what about anchors, is it endless or zero sized?
 }
 
 type Callback func(x Node, from int, to int, empty bool)
@@ -90,9 +104,37 @@ func (n *nestedNode) VisitNested(
 	}
 }
 
+func (n *nestedNode) NestedSize() (int, bool) {
+	if len(n.Nested) == 0 {
+		return 0, true
+	}
+
+	var size *int
+
+	for _, child := range n.Nested {
+		if x, fixedSize := child.Size(); fixedSize {
+			if size != nil && *size != x {
+				return 0, false
+			}
+
+			size = &x
+		} else {
+			return 0, false
+		}
+	}
+
+	if size == nil {
+		return 0, false
+	}
+
+	return *size, true
+}
+
 type alternation struct {
+	// TODO : why not list, order is important
 	Value     map[string]Node   `json:"value,omitempty"`
 	lastNodes map[Node]struct{} // TODO : interface like key, is it ok?
+	size      *int
 	*nestedNode
 }
 
@@ -183,9 +225,43 @@ func (n *alternation) visitVariants(scanner Scanner, input Input, from, to int, 
 	}
 }
 
+func (n *alternation) Size() (int, bool) {
+	var size *int
+	for _, variant := range n.Value {
+		if x, fixedSize := variant.Size(); fixedSize {
+			if size != nil && *size != x {
+				return 0, false
+			}
+
+			size = &x
+		} else {
+			return 0, false
+		}
+	}
+
+	if size == nil {
+		return 0, false
+	}
+
+	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		return *size + nestedSize, true
+	}
+
+	return 0, false
+}
+
 type group struct {
 	Value *alternation `json:"value,omitempty"`
 	*nestedNode
+}
+
+func newGroup(expression *alternation) *group {
+	g := &group{
+		nestedNode: newNestedNode(),
+		Value:      expression,
+	}
+
+	return g
 }
 
 func (n *group) GetKey() string {
@@ -222,10 +298,30 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 	)
 }
 
+func (n *group) Size() (int, bool) {
+	if size, fixedSize := n.Value.Size(); fixedSize {
+		if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+			return size + nestedSize, true
+		}
+	}
+
+	return 0, false
+}
+
 type namedGroup struct {
 	Name  string       `json:"name,omitempty"`
 	Value *alternation `json:"value,omitempty"`
 	*nestedNode
+}
+
+func newNamedGroup(name string, expression *alternation) *namedGroup {
+	g := &namedGroup{
+		Name:       name,
+		nestedNode: newNestedNode(),
+		Value:      expression,
+	}
+
+	return g
 }
 
 func (n *namedGroup) GetKey() string {
@@ -262,10 +358,31 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch C
 	)
 }
 
+func (n *namedGroup) Size() (int, bool) {
+	if size, fixedSize := n.Value.Size(); fixedSize {
+		if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+			return size + nestedSize, true
+		}
+	}
+
+	return 0, false
+}
+
 // TODO : what about back references?
+// Add tests too
+
 type notCapturedGroup struct {
 	Value *alternation `json:"value,omitempty"`
 	*nestedNode
+}
+
+func newNotCapturedGroup(expression *alternation) *notCapturedGroup {
+	g := &notCapturedGroup{
+		Value:      expression,
+		nestedNode: newNestedNode(),
+	}
+
+	return g
 }
 
 func (n *notCapturedGroup) GetKey() string {
@@ -298,10 +415,27 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onM
 	)
 }
 
-// not simple node with table because diferent behaviour for different scan options
+func (n *notCapturedGroup) Size() (int, bool) {
+	if size, fixedSize := n.Value.Size(); fixedSize {
+		if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+			return size + nestedSize, true
+		}
+	}
+
+	return 0, false
+}
+
+// not simple node with table because §diferent behaviour for different scan options
 // TODO : add something to empty json value, and in another spec symbols
 type dot struct {
+	size *int
 	*nestedNode
+}
+
+func newDot() *dot {
+	return &dot{
+		nestedNode: newNestedNode(),
+	}
 }
 
 func (n *dot) GetKey() string {
@@ -330,6 +464,14 @@ func (n *dot) Visit(scanner Scanner, input Input, from, to int, onMatch Callback
 
 		scanner.Rewind(pos)
 	}
+}
+
+func (n *dot) Size() (int, bool) {
+	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		return 1 + nestedSize, true
+	}
+
+	return 0, false
 }
 
 type startOfLine struct {
@@ -385,6 +527,14 @@ func (n *startOfLine) isEndOfLine(input Input, idx int) bool {
 	}
 }
 
+func (n *startOfLine) Size() (int, bool) {
+	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		return nestedSize, true
+	}
+
+	return 0, false
+}
+
 type endOfLine struct {
 	*nestedNode
 }
@@ -428,6 +578,14 @@ func (n *endOfLine) isEndOfLine(input Input, idx int) bool {
 	return input.ReadAt(idx) == '\n'
 }
 
+func (n *endOfLine) Size() (int, bool) {
+	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		return nestedSize, true
+	}
+
+	return 0, false
+}
+
 type startOfString struct {
 	*nestedNode
 }
@@ -454,6 +612,10 @@ func (n *startOfString) Visit(scanner Scanner, input Input, from, to int, onMatc
 	}
 }
 
+func (n *startOfString) Size() (int, bool) {
+	return 0, true
+}
+
 type endOfString struct {
 	*nestedNode
 }
@@ -478,6 +640,14 @@ func (n *endOfString) Visit(scanner Scanner, input Input, from, to int, onMatch 
 		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
 		scanner.Rewind(pos)
 	}
+}
+
+func (n *endOfString) Size() (int, bool) {
+	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		return nestedSize, true
+	}
+
+	return 0, false
 }
 
 // https://www.regular-expressions.info/repeat.html
@@ -592,8 +762,18 @@ func (n *quantifier) inBounds(q int) bool {
 	return n.From == q
 }
 
-// https://www.regular-expressions.info/charclass.html
+// TODO : add tests to fail on parsing not fixed size quantificators in look behind assertions
+func (n *quantifier) Size() (int, bool) {
+	if size, fixedSize := n.Value.Size(); fixedSize {
+		if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+			return size + nestedSize, true
+		}
+	}
 
+	return 0, false
+}
+
+// https://www.regular-expressions.info/charclass.html
 type simpleNode struct {
 	key       string
 	predicate func(rune) bool
@@ -643,6 +823,16 @@ func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		scanner.Rewind(pos)
 		scanner.RewindGroups(groupsPos)
 	}
+}
+
+func (n *simpleNode) Size() (int, bool) {
+	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		return 1 + nestedSize, true
+	}
+
+	fmt.Println("simpleNode without fixed size", n)
+
+	return 0, false
 }
 
 // back reference \1, \2 or \9
@@ -725,6 +915,10 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 	}
 }
 
+func (n *referenceNode) Size() (int, bool) {
+	return 0, false
+}
+
 // named back reference \k<name>
 
 type nameReferenceNode struct {
@@ -805,6 +999,10 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, on
 	}
 }
 
+func (n *nameReferenceNode) Size() (int, bool) {
+	return 0, false
+}
+
 type LookAhead struct {
 	Value *alternation `json:"value,omitempty"`
 	*nestedNode
@@ -837,19 +1035,106 @@ func (n *LookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			pos := scanner.Position()
 			holesPos := scanner.HolesPosition()
 
-			fmt.Println("scanner before", vFrom, vTo, scanner)
-
 			// what about empty spans, just skip it?
-			scanner.MarkAsHole(from, vTo)
+			scanner.MarkAsHole(from, vTo) // or just scanner rewind to "FROM" pos without holes?
 			scanner.Match(n, from, from, n.IsEnd(), true)
 			onMatch(n, from, from, true)
-			fmt.Println("scanner after", scanner)
 
 			scanner.RewindHoles(holesPos)
 			n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
-			fmt.Println("scanner after+", scanner)
 
 			scanner.Rewind(pos)
 		},
 	)
+}
+
+func (n *LookAhead) Size() (int, bool) {
+	return 0, false
+}
+
+type LookBehind struct {
+	Value             *alternation `json:"value,omitempty"`
+	subExpressionSize int
+	*nestedNode
+}
+
+func newLookBehind(expression *alternation) (*LookBehind, error) {
+	size, fixedSize := expression.Size()
+	if !fixedSize {
+		return nil, fmt.Errorf("Invalid pattern in look-behind, must be fixed size")
+	}
+
+	return &LookBehind{
+		Value:             expression,
+		subExpressionSize: size,
+		nestedNode:        newNestedNode(),
+	}, nil
+}
+
+func (n *LookBehind) GetKey() string {
+	return fmt.Sprintf("(?<=%s)", n.Value.GetKey())
+}
+
+func (n *LookBehind) Traverse(f func(Node)) {
+	f(n)
+
+	for _, x := range n.Nested {
+		x.Traverse(f)
+	}
+}
+
+// (?<=\$)\d+
+// 1 turkey costs $30
+
+// \d+(?=\$)
+// 1 turkey costs 30$
+
+// cost is (?<=\$)\d+
+// \d+(?=\$) is cost
+
+// is it the same?
+
+func (n *LookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+	// тут нужно точно знать на сколько шагов отмотать назад (вычисть из from)
+	// чтобы сработал вот такой кейс
+	// /\$(?<=\$)10/ match "$10" from "cost is $10"
+	// /cost is \$(?<=\$)10/ match "cost is $10" from "cost is $10"
+
+	// плюс нужна какая-то валидация или вроде того
+
+	// в общем нужно выражение фиксированной длины
+
+	// TODO : what about anchors?
+	fmt.Println("wtf", from, n.subExpressionSize)
+
+	if from < n.subExpressionSize {
+		return
+	}
+
+	pos := scanner.Position()
+
+	n.Value.visitAlternation(
+		scanner,
+		input,
+		from-n.subExpressionSize,
+		to,
+		func(_ Node, vFrom, vTo int, empty bool) {
+			scanner.Rewind(pos)
+
+			fmt.Println("scanner before", from, vTo, scanner)
+
+			scanner.Match(n, from, from, n.IsEnd(), true)
+			onMatch(n, from, from, true)
+			fmt.Println("scanner after", input.Position(), scanner)
+
+			n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+			fmt.Println("scanner after+", input.Position(), scanner)
+
+			scanner.Rewind(pos)
+		},
+	)
+}
+
+func (n *LookBehind) Size() (int, bool) {
+	return 0, false
 }

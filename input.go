@@ -17,6 +17,7 @@ type simpleBuffer struct {
 type Input interface {
 	ReadAt(int) rune
 	Size() int
+	Position() int
 	String() string
 }
 

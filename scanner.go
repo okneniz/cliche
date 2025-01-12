@@ -60,9 +60,10 @@ func newFullScanner(
 
 func (s *scanner) String() string {
 	return fmt.Sprintf(
-		"Scanner(\n\toutput=%s,\n\tgroups=%s\n)",
+		"Scanner(\n\toutput=%s,\n\tgroups=%s,\n\tholes=%s\n)",
 		s.output.String(),
 		s.groups,
+		s.holes.String(),
 	)
 }
 
@@ -84,6 +85,7 @@ func (s *scanner) Match(n Node, from, to int, leaf, empty bool) {
 	}
 
 	s.expression.Append(x)
+	fmt.Println("debug", s.String())
 	if !leaf {
 		return
 	}

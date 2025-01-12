@@ -166,8 +166,6 @@ When we say "backreference a group," it actually means, "re-match the same text 
 
 
 ```
-  
-
   \n  \k<n>     \k'n'     (n >= 1) backreference the nth group in the regexp
       \k<-n>    \k'-n'    (n >= 1) backreference the nth group counting
                           backwards from the referring position
@@ -182,7 +180,6 @@ When we say "backreference a group," it actually means, "re-match the same text 
   * ONIG_SYNTAX_PERL: \g{n}, \g{-n} and \g{name} can also be used.
     If a name is defined more than once in Perl syntax, only the left-most
     group is checked.
-
 
   backreference with recursion level
 
@@ -224,24 +221,6 @@ returning only the result: match or no match. That is why they are called “ass
   (?>subexp)         atomic group
                      no backtracks in subexp.
 
-  (?(cond)yes-subexp), (?(cond)yes-subexp|no-subexp)
-                    conditional expression
-                    Matches yes-subexp if (cond) yields a true value, matches
-                    no-subexp otherwise.
-                    Following (cond) can be used:
-
-                    (n)  (n >= 1)
-                        Checks if the numbered capturing group has matched
-                        something.
-
-                    (<name>), ('name')
-                        Checks if a group with the given name has matched
-                        something.
-
-                        BUG: If the name is defined more than once, the
-                        left-most group is checked, but it should be the
-                        same as \k<name>.
-
   (?~subexp)        absence operator (experimental)
                     Matches any string which doesn't contain any string which
                     matches subexp.
@@ -260,11 +239,16 @@ returning only the result: match or no match. That is why they are called “ass
                       \A\/\*(?~\*\/)\*\/\z doesn't match "/**/ */".
                       This is different from \A\/\*.*?\*\/\z which uses a
                       reluctant quantifier (.*?).
-:
+
                       Unlike (?:(?!abc).)*c, (?~abc)c matches "abc", because
                       (?~abc) matches "ab".
 
                       (?~) never matches.
+
+  \K  keep
+      Another expression of look-behind. Keep the stuff left
+      of the \K, don't include it in the result.
+
 
                     Theoretical backgrounds are discussed in Tanaka Akira's
                     paper and slide (both Japanese):
@@ -275,68 +259,26 @@ returning only the result: match or no match. That is why they are called “ass
                         https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-presen.pdf
 ```
 
-### Options
+### Condition
 
 ```
-  (?#...)            comment
+  (?(cond)yes-subexp), (?(cond)yes-subexp|no-subexp)
+                    conditional expression
+                    Matches yes-subexp if (cond) yields a true value, matches
+                    no-subexp otherwise.
+                    Following (cond) can be used:
 
-  (?imxdau-imx)      option on/off
-                         i: ignore case
-                         m: multi-line (dot (.) also matches newline)
-                         x: extended form
+                    (n)  (n >= 1)
+                        Checks if the numbered capturing group has matched
+                        something.
 
-                       character set option (character range option)
-                         d: Default (compatible with Ruby 1.9.3)
-                            \w, \d and \s doesn't match non-ASCII characters.
-                            \b, \B and POSIX brackets use the each encoding's
-                            rules.
-                         a: ASCII
-                            ONIG_OPTION_ASCII_RANGE option is turned on.
-                            \w, \d, \s and POSIX brackets doesn't match
-                            non-ASCII characters.
-                            \b and \B use the ASCII rules.
-                         u: Unicode
-                            ONIG_OPTION_ASCII_RANGE option is turned off.
-                            \w (\W), \d (\D), \s (\S), \b (\B) and POSIX
-                            brackets use the each encoding's rules.
+                    (<name>), ('name')
+                        Checks if a group with the given name has matched
+                        something.
 
-  (?imxdau-imx:subexp)
-                     option on/off for subexp
-
-  \K                 keep
-                     Another expression of look-behind. Keep the stuff left
-                     of the \K, don't include it in the result.
-```
-
-```
-  Behavior of an unnamed group (...) changes with the following conditions.
-  (But named group is not changed.)
-
-  case 1. /.../     (named group is not used, no option)
-
-     (...) is treated as a capturing group.
-
-  case 2. /.../g    (named group is not used, 'g' option)
-
-     (...) is treated as a non-capturing group (?:...).
-
-  case 3. /..(?<name>..)../   (named group is used, no option)
-
-     (...) is treated as a non-capturing group.
-     numbered-backref/call is not allowed.
-
-  case 4. /..(?<name>..)../G  (named group is used, 'G' option)
-
-     (...) is treated as a capturing group.
-     numbered-backref/call is allowed.
-
-  ('g' and 'G' options are argued in ruby-dev ML)
-
-A-2. Original extensions
-
-   + named group                  (?<name>...), (?'name'...)
-   + named backref                \k<name>
-   + subexp call                  \g<name>, \g<group-num>
+                        BUG: If the name is defined more than once, the
+                        left-most group is checked, but it should be the
+                        same as \k<name>.
 ```
 
 ### Subexp calls ("Tanaka Akira special")
@@ -372,6 +314,64 @@ A-2. Original extensions
     Use (?&name), (?n), (?-n), (?+n), (?R) or (?0) instead of \g<>.
     Calls with a name that is assigned to more than one groups are allowed,
     and the left-most subexp is used.
+```
+
+### Options
+
+```
+  (?#...)            comment
+
+  (?imxdau-imx)      option on/off
+                         i: ignore case
+                         m: multi-line (dot (.) also matches newline)
+                         x: extended form
+
+                       character set option (character range option)
+                         d: Default (compatible with Ruby 1.9.3)
+                            \w, \d and \s doesn't match non-ASCII characters.
+                            \b, \B and POSIX brackets use the each encoding's
+                            rules.
+                         a: ASCII
+                            ONIG_OPTION_ASCII_RANGE option is turned on.
+                            \w, \d, \s and POSIX brackets doesn't match
+                            non-ASCII characters.
+                            \b and \B use the ASCII rules.
+                         u: Unicode
+                            ONIG_OPTION_ASCII_RANGE option is turned off.
+                            \w (\W), \d (\D), \s (\S), \b (\B) and POSIX
+                            brackets use the each encoding's rules.
+
+  (?imxdau-imx:subexp) option on/off for subexp
+
+
+  Behavior of an unnamed group (...) changes with the following conditions.
+  (But named group is not changed.)
+
+  case 1. /.../     (named group is not used, no option)
+
+     (...) is treated as a capturing group.
+
+  case 2. /.../g    (named group is not used, 'g' option)
+
+     (...) is treated as a non-capturing group (?:...).
+
+  case 3. /..(?<name>..)../   (named group is used, no option)
+
+     (...) is treated as a non-capturing group.
+     numbered-backref/call is not allowed.
+
+  case 4. /..(?<name>..)../G  (named group is used, 'G' option)
+
+     (...) is treated as a capturing group.
+     numbered-backref/call is allowed.
+
+  ('g' and 'G' options are argued in ruby-dev ML)
+
+A-2. Original extensions
+
+   + named group                  (?<name>...), (?'name'...)
+   + named backref                \k<name>
+   + subexp call                  \g<name>, \g<group-num>
 ```
 
 ## Roadmap
@@ -518,3 +518,24 @@ TODO : js linter for test data
 // - например из-за пустой range table
 // - или из-за якоря \z после \A
 // - или странного assertion / lookahead, например 1(?=3)2
+
+// https://www.regular-expressions.info/lookaround.html 
+// Regex Engine Internals
+// - The regex q(?=u)i can never match anything. 
+
+// Добавить тесты на утверждения типа "никогд не заматчится"
+// https://www.regular-expressions.info/lookaround.html
+//
+// Lookaround Is Atomic
+//
+// For this reason, the regex (?=(\d+))\w+\1 never matches 123x12.
+//
+// But the regex (?=(\d+))\w+\1 does match 56x56 in 456x56
+
+// cost is /\$(?<=\$)10/ match "cost is $10"
+
+// TODO : check this
+// https://stackoverflow.com/questions/2973436/regex-lookahead-lookbehind-and-atomic-groups
+// (?<=foo)bar(?=bar)    finds the 1st bar ("bar" with "foo" before it and "bar" after it)
+// it doesn't work on rubular for sting "foobar"
+

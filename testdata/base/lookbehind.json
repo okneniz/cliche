@@ -1,0 +1,112 @@
+{
+  "Name": "lookbehind",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "(?<=\\$)\\d+",
+        "(?<=.)\\d+"
+      ],
+      "Input": "1 turkey costs $30",
+      "Want": [
+        {
+          "SubString": "30",
+          "Span": {
+            "From": 16,
+            "To": 17,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<=\\$)\\d+",
+            "(?<=.)\\d+"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "(?<=foo)bar"
+      ],
+      "Input": "foobar",
+      "Want": [
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 3,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<=foo)bar"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "(?<=a)b"
+      ],
+      "Input": "cab",
+      "Want": [
+        {
+          "SubString": "b",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<=a)b"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 4",
+      "Expressions": [
+        "(?<=a)b"
+      ],
+      "Input": "bed",
+      "Want": []
+    },
+    {
+      "Name": "case 5",
+      "Expressions": [
+        "(?<=a)b"
+      ],
+      "Input": "debt",
+      "Want": []
+    },
+    {
+      "Name": "case 6",
+      "Expressions": [
+        "(?<=\\$)\\d+(?:\\.\\d*)?"
+      ],
+      "Input": "$10.53",
+      "Want": [
+        {
+          "SubString": "10.53",
+          "Span": {
+            "From": 1,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<=\\$)\\d+(?:\\.\\d*)?"
+          ]
+        }      
+      ]
+    },
+
+    {
+      "Name": "case 7",
+      "Expressions": [
+        "(?<=\\$)\\d+(?:\\.\\d*)?"
+      ],
+      "Input": "10.53",
+      "Want": []
+    }    
+  ]
+}
