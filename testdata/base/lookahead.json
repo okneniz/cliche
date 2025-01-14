@@ -166,6 +166,49 @@
           ]
         }
       ]
-    }
+    },
+    {
+      "Name": "case 4",
+      "Expressions": [
+        "q(?=u)i"
+      ],
+      "Input": "quit",
+      "Want": []
+    },
+    {
+      "Name": "case 5",
+      "Expressions": [
+        "(\\d+(?=(\\$|₽)))"
+      ],
+      "Input": "123x12",
+      "Want": []
+    },
+    {
+      "Name": "case 6",
+      "Expressions": [
+        "(?=(\\d+))\\w+\\1"
+      ],
+      "Input": "456x56",
+      "Want": [
+        {
+          "SubString": "56x56",
+          "Span": {
+            "From": 1,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?=(\\d+))\\w+\\1"
+          ],
+          "Groups": [
+            {
+              "From": 1,
+              "To": 2,
+              "Empty": false
+            }
+          ]
+        }
+      ]
+    }    
   ]
 }

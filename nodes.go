@@ -970,7 +970,6 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, on
 		scanner.Rewind(pos)
 	} else {
 		// TODO : what about empty matches?
-
 		current := from
 
 		// match the same string
@@ -1008,6 +1007,13 @@ type LookAhead struct {
 	*nestedNode
 }
 
+func newLookAhead(expression *alternation) *LookAhead {
+	return &LookAhead{
+		Value:      expression,
+		nestedNode: newNestedNode(),
+	}
+}
+
 func (n *LookAhead) GetKey() string {
 	return fmt.Sprintf("(?=%s)", n.Value.GetKey())
 }
@@ -1019,11 +1025,6 @@ func (n *LookAhead) Traverse(f func(Node)) {
 		x.Traverse(f)
 	}
 }
-
-// test both - \d+(?=(\$))
-// and - \d+(?=\$)
-
-// test too - (1(?=2)2(?=3)3(?=4))
 
 func (n *LookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	n.Value.visitAlternation(
@@ -1049,6 +1050,62 @@ func (n *LookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 }
 
 func (n *LookAhead) Size() (int, bool) {
+	return 0, false
+}
+
+type NegativeLookAhead struct {
+	Value *alternation `json:"value,omitempty"`
+	*nestedNode
+}
+
+func newNegativeLookAhead(expression *alternation) *NegativeLookAhead {
+	return &NegativeLookAhead{
+		Value:      expression,
+		nestedNode: newNestedNode(),
+	}
+}
+
+func (n *NegativeLookAhead) GetKey() string {
+	return fmt.Sprintf("(?!%s)", n.Value.GetKey())
+}
+
+func (n *NegativeLookAhead) Traverse(f func(Node)) {
+	f(n)
+
+	for _, x := range n.Nested {
+		x.Traverse(f)
+	}
+}
+
+func (n *NegativeLookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+	matched := false
+	pos := scanner.Position()
+
+	n.Value.visitAlternation(
+		scanner,
+		input,
+		from,
+		to,
+		func(_ Node, vFrom, vTo int, empty bool) {
+			matched = true
+			scanner.Rewind(pos)
+			// TODO : stop here
+		},
+	)
+
+	if !matched {
+		scanner.Rewind(pos)
+
+		scanner.Match(n, from, from, n.IsEnd(), true)
+		onMatch(n, from, from, true)
+
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+	}
+
+	scanner.Rewind(pos)
+}
+
+func (n *NegativeLookAhead) Size() (int, bool) {
 	return 0, false
 }
 
@@ -1083,30 +1140,8 @@ func (n *LookBehind) Traverse(f func(Node)) {
 	}
 }
 
-// (?<=\$)\d+
-// 1 turkey costs $30
-
-// \d+(?=\$)
-// 1 turkey costs 30$
-
-// cost is (?<=\$)\d+
-// \d+(?=\$) is cost
-
-// is it the same?
-
 func (n *LookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	// тут нужно точно знать на сколько шагов отмотать назад (вычисть из from)
-	// чтобы сработал вот такой кейс
-	// /\$(?<=\$)10/ match "$10" from "cost is $10"
-	// /cost is \$(?<=\$)10/ match "cost is $10" from "cost is $10"
-
-	// плюс нужна какая-то валидация или вроде того
-
-	// в общем нужно выражение фиксированной длины
-
 	// TODO : what about anchors?
-	fmt.Println("wtf", from, n.subExpressionSize)
-
 	if from < n.subExpressionSize {
 		return
 	}
@@ -1121,14 +1156,9 @@ func (n *LookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		func(_ Node, vFrom, vTo int, empty bool) {
 			scanner.Rewind(pos)
 
-			fmt.Println("scanner before", from, vTo, scanner)
-
 			scanner.Match(n, from, from, n.IsEnd(), true)
 			onMatch(n, from, from, true)
-			fmt.Println("scanner after", input.Position(), scanner)
-
 			n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
-			fmt.Println("scanner after+", input.Position(), scanner)
 
 			scanner.Rewind(pos)
 		},

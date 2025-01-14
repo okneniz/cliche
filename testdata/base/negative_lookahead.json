@@ -1,0 +1,66 @@
+{
+  "Name": "negative lookahead",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "q(?!u)"
+      ],
+      "Input": "Iraq",
+      "Want": [
+        {
+          "SubString": "q",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "q(?!u)"
+          ]
+        }        
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "q(?!u)"
+      ],
+      "Input": "quit",
+      "Want": [        
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "(q(?!\\d)(.*))"
+      ],
+      "Input": "qwery",
+      "Want": [
+        {
+          "SubString": "qwery",
+          "Span": {
+            "From": 0,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "(q(?!\\d)(.*))"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 4,
+              "Empty": false
+            },
+            {
+              "From": 1,
+              "To": 4,
+              "Empty": false
+            }            
+          ]          
+        }
+      ]
+    }
+  ]
+}

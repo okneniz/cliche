@@ -1,4 +1,3 @@
-
 # Cliche
 
 Regular expressions engine.
@@ -205,20 +204,20 @@ returning only the result: match or no match. That is why they are called “ass
 |--|--|--|
 |✅| `(?=subexp)` | look-ahead |
 |✅| `(?<=subexp)` | look-behind |
-
+|✅| `(?!subexp)` | negative look-ahead |
+|❌| `(?<!subexp)` | negative look-behind |
+|❌| `(?>subexp)` | atomic group |
+|❌| `(?~subexp)` | absence operator |
 
 ```
-  (?!subexp)         negative look-ahead
-  (?<=subexp)        look-behind
-  (?<!subexp)        Subexp of look-behind must be fixed-width.
-                     But top-level alternatives can be of various lengths.
-                     ex. (?<=a|bc) is OK. (?<=aaa(?:b|cd)) is not allowed.
+Subexp of look-behind must be fixed-width.
+But top-level alternatives can be of various lengths.
+ex. (?<=a|bc) is OK. (?<=aaa(?:b|cd)) is not allowed.
 
-                     In negative look-behind, capturing group isn't allowed,
-                     but non-capturing group (?:) is allowed.
+In negative look-behind, capturing group isn't allowed,
+but non-capturing group (?:) is allowed.
 
-  (?>subexp)         atomic group
-                     no backtracks in subexp.
+Atomic group no backtracks in subexp.
 
   (?~subexp)        absence operator (experimental)
                     Matches any string which doesn't contain any string which
@@ -248,36 +247,35 @@ returning only the result: match or no match. That is why they are called “ass
       Another expression of look-behind. Keep the stuff left
       of the \K, don't include it in the result.
 
+  Theoretical backgrounds are discussed in Tanaka Akira's
+  paper and slide (both Japanese):
 
-                    Theoretical backgrounds are discussed in Tanaka Akira's
-                    paper and slide (both Japanese):
-
-                      * Absent Operator for Regular Expression
-                        https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-paper.pdf
-                      * 正規表現における非包含オペレータの提案
-                        https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-presen.pdf
+    * Absent Operator for Regular Expression
+      https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-paper.pdf
+    * 正規表現における非包含オペレータの提案
+      https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-presen.pdf
 ```
 
 ### Condition
 
 ```
   (?(cond)yes-subexp), (?(cond)yes-subexp|no-subexp)
-                    conditional expression
-                    Matches yes-subexp if (cond) yields a true value, matches
-                    no-subexp otherwise.
-                    Following (cond) can be used:
+    conditional expression
+    Matches yes-subexp if (cond) yields a true value, matches
+    no-subexp otherwise.
+    Following (cond) can be used:
 
-                    (n)  (n >= 1)
-                        Checks if the numbered capturing group has matched
-                        something.
+    (n)  (n >= 1)
+        Checks if the numbered capturing group has matched
+        something.
 
-                    (<name>), ('name')
-                        Checks if a group with the given name has matched
-                        something.
+    (<name>), ('name')
+        Checks if a group with the given name has matched
+        something.
 
-                        BUG: If the name is defined more than once, the
-                        left-most group is checked, but it should be the
-                        same as \k<name>.
+        BUG: If the name is defined more than once, the
+        left-most group is checked, but it should be the
+        same as \k<name>.
 ```
 
 ### Subexp calls ("Tanaka Akira special")
@@ -318,8 +316,6 @@ returning only the result: match or no match. That is why they are called “ass
 ### Options
 
 ```
-  (?#...)            comment
-
   (?imxdau-imx)      option on/off
                          i: ignore case
                          m: multi-line (dot (.) also matches newline)
@@ -341,7 +337,6 @@ returning only the result: match or no match. That is why they are called “ass
                             brackets use the each encoding's rules.
 
   (?imxdau-imx:subexp) option on/off for subexp
-
 
   Behavior of an unnamed group (...) changes with the following conditions.
   (But named group is not changed.)
@@ -371,6 +366,12 @@ A-2. Original extensions
    + named group                  (?<name>...), (?'name'...)
    + named backref                \k<name>
    + subexp call                  \g<name>, \g<group-num>
+```
+
+### Other
+
+```
+(?#...)            comment
 ```
 
 ## Roadmap
@@ -538,3 +539,9 @@ TODO : js linter for test data
 // (?<=foo)bar(?=bar)    finds the 1st bar ("bar" with "foo" before it and "bar" after it)
 // it doesn't work on rubular for sting "foobar"
 
+// TODO : check this too
+
+// (\d+(?!(\$|₽)))
+// 123$ 231€ 321₽
+// rubular render something strange - https://rubular.com
+// problem copy euro symbol to irb
