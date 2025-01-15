@@ -144,6 +144,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseLookAhead(alternation),
 			p.parseNegativeLookAhead(alternation),
 			p.parseLookBehind(alternation),
+			p.parseNegativeLookBehind(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|'),
@@ -161,6 +162,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseLookAhead(alternation),
 			p.parseNegativeLookAhead(alternation),
 			p.parseLookBehind(alternation),
+			p.parseNegativeLookBehind(alternation),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|', ')'),
@@ -592,6 +594,35 @@ func (p *CustomParser) parseLookBehind(
 			}
 
 			n, err := newLookBehind(value)
+			if err != nil {
+				// TODO : return explanation from parser
+				// handle not inly NothingMatched error
+				panic(err)
+			}
+
+			return n, nil
+		},
+	)
+}
+
+func (p *CustomParser) parseNegativeLookBehind(
+	parse c.Combinator[rune, int, *alternation], except ...rune,
+) c.Combinator[rune, int, Node] {
+	before := SkipString("?<!")
+
+	return parens(
+		func(buf c.Buffer[rune, int]) (Node, error) {
+			_, err := before(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			value, err := parse(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			n, err := newNegativeLookBehind(value)
 			if err != nil {
 				// TODO : return explanation from parser
 				// handle not inly NothingMatched error

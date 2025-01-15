@@ -1093,6 +1093,8 @@ func (n *NegativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 		},
 	)
 
+	scanner.Rewind(pos)
+
 	if !matched {
 		scanner.Rewind(pos)
 
@@ -1166,5 +1168,81 @@ func (n *LookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 }
 
 func (n *LookBehind) Size() (int, bool) {
+	return 0, false
+}
+
+type NegativeLookBehind struct {
+	Value             *alternation `json:"value,omitempty"`
+	subExpressionSize int
+	*nestedNode
+}
+
+func newNegativeLookBehind(expression *alternation) (*NegativeLookBehind, error) {
+	size, fixedSize := expression.Size()
+	if !fixedSize {
+		return nil, fmt.Errorf("Invalid pattern in negative look-behind, must be fixed size")
+	}
+
+	return &NegativeLookBehind{
+		Value:             expression,
+		subExpressionSize: size,
+		nestedNode:        newNestedNode(),
+	}, nil
+}
+
+func (n *NegativeLookBehind) GetKey() string {
+	return fmt.Sprintf("(?<!%s)", n.Value.GetKey())
+}
+
+func (n *NegativeLookBehind) Traverse(f func(Node)) {
+	f(n)
+
+	for _, x := range n.Nested {
+		x.Traverse(f)
+	}
+}
+
+func (n *NegativeLookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+	// TODO : what about anchors?
+	pos := scanner.Position()
+
+	if from < n.subExpressionSize {
+		scanner.Match(n, from, from, n.IsEnd(), true)
+		onMatch(n, from, from, true)
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+		scanner.Rewind(pos)
+		return
+	}
+
+	matched := false
+	fmt.Println("debug nlb :", from, to)
+
+	n.Value.visitAlternation(
+		scanner,
+		input,
+		from-n.subExpressionSize,
+		to,
+		func(_ Node, vFrom, vTo int, empty bool) {
+			scanner.Rewind(pos)
+			matched = true
+			// TODO : stop here
+		},
+	)
+
+	fmt.Println("debug nlb =", from, to, matched)
+
+	scanner.Rewind(pos)
+
+	if !matched {
+		scanner.Rewind(pos)
+		scanner.Match(n, from, from, n.IsEnd(), true)
+		onMatch(n, from, from, true)
+		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+	}
+
+	scanner.Rewind(pos)
+}
+
+func (n *NegativeLookBehind) Size() (int, bool) {
 	return 0, false
 }

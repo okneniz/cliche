@@ -1,0 +1,219 @@
+{
+  "Name": "negative lookbehind",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "(?<!a)b"
+      ],
+      "Input": "abcdbe",
+      "Want": [
+        {
+          "SubString": "b",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<!a)b"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "(?<!a)b"
+      ],
+      "Input": "bed",
+      "Want": [
+        {
+          "SubString": "b",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<!a)b"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "(?<!a)b"
+      ],
+      "Input": "debt",
+      "Want": [
+        {
+          "SubString": "b",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<!a)b"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 4",
+      "Expressions": [
+        "(?<!-)\\d+"
+      ],
+      "Input": "3",
+      "Want": [
+        {
+          "SubString": "3",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<!-)\\d+"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 5",
+      "Expressions": [
+        "(?<!-)\\d+"
+      ],
+      "Input": "+3",
+      "Want": [
+        {
+          "SubString": "3",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<!-)\\d+"
+          ]
+        }      
+      ]
+    },
+    {
+      "Name": "case 6",
+      "Expressions": [
+        "(?<!-)\\d+"
+      ],
+      "Input": "-3",
+      "Want": []
+    },
+    {
+      "Name": "case 7",
+      "Expressions": [
+        "((?<!_)cat)"
+      ],
+      "Input": "cat _cat 42catcat",
+      "Want": [
+        {
+          "SubString": "cat",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "((?<!_)cat)"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 2,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "cat",
+          "Span": {
+            "From": 11,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "((?<!_)cat)"
+          ],
+          "Groups": [
+            {
+              "From": 11,
+              "To": 13,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "cat",
+          "Span": {
+            "From": 14,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "((?<!_)cat)"
+          ],
+          "Groups": [
+            {
+              "From": 14,
+              "To": 16,
+              "Empty": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 8",
+      "Expressions": [
+        "(?<!_)(?:cat)"
+      ],
+      "Input": "cat _cat 42catcat",
+      "Want": [
+        {
+          "SubString": "cat",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<!_)(?:cat)"
+          ]
+        },
+        {
+          "SubString": "cat",
+          "Span": {
+            "From": 11,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<!_)(?:cat)"
+          ]
+        },
+        {
+          "SubString": "cat",
+          "Span": {
+            "From": 14,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<!_)(?:cat)"
+          ]
+        }
+      ]
+    }
+
+  ]
+}

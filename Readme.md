@@ -205,7 +205,7 @@ returning only the result: match or no match. That is why they are called “ass
 |✅| `(?=subexp)` | look-ahead |
 |✅| `(?<=subexp)` | look-behind |
 |✅| `(?!subexp)` | negative look-ahead |
-|❌| `(?<!subexp)` | negative look-behind |
+|✅| `(?<!subexp)` | negative look-behind |
 |❌| `(?>subexp)` | atomic group |
 |❌| `(?~subexp)` | absence operator |
 
