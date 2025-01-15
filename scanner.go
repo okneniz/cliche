@@ -85,7 +85,6 @@ func (s *scanner) Match(n Node, from, to int, leaf, empty bool) {
 	}
 
 	s.expression.Append(x)
-	fmt.Println("debug", s.String())
 	if !leaf {
 		return
 	}
@@ -161,8 +160,6 @@ func (s *scanner) getSubString(sp span.Interface) string {
 // 	hole := s.nextHole(holeIdx)
 
 // 	for idx := sp.From(); idx <= sp.To(); idx++ {
-// 		fmt.Println("debug", idx, hole)
-
 // 		for hole.To() < idx {
 // 			holeIdx++
 // 			hole = s.nextHole(holeIdx)

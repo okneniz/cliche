@@ -90,12 +90,11 @@ func (n *nestedNode) VisitNested(
 	from, to int,
 	onMatch Callback,
 ) {
-	for k, nested := range n.Nested {
+	for _, nested := range n.Nested {
 		// pos := scanner.Position()
 		// groupsPos := scanner.GroupsPosition()
 		// namedGroupPos := scanner.NamedGroupsPosition()
 
-		fmt.Println("scan nested", k, from, to)
 		nested.Visit(scanner, input, from, to, onMatch)
 
 		// scanner.Rewind(pos)
@@ -830,8 +829,6 @@ func (n *simpleNode) Size() (int, bool) {
 		return 1 + nestedSize, true
 	}
 
-	fmt.Println("simpleNode without fixed size", n)
-
 	return 0, false
 }
 
@@ -1215,7 +1212,6 @@ func (n *NegativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 	}
 
 	matched := false
-	fmt.Println("debug nlb :", from, to)
 
 	n.Value.visitAlternation(
 		scanner,
@@ -1228,8 +1224,6 @@ func (n *NegativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 			// TODO : stop here
 		},
 	)
-
-	fmt.Println("debug nlb =", from, to, matched)
 
 	scanner.Rewind(pos)
 
