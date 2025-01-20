@@ -1,4 +1,4 @@
-package cliche
+package testing
 
 import (
 	"encoding/json"
@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/okneniz/cliche/scanner"
 )
 
 type (
@@ -149,4 +151,55 @@ func LoadAllTestFiles(dir string) ([]*TestFile, error) {
 	})
 
 	return files, err
+}
+
+func TestMatchesToExpectations(xs ...*scanner.Match) []*Expectation {
+	exs := make([]*Expectation, 0, len(xs))
+
+	for _, x := range xs {
+		ex := &Expectation{
+			SubString: x.SubString(),
+			Span: Span{
+				From:  x.Span().From(),
+				To:    x.Span().To(),
+				Empty: x.Span().Empty(),
+			},
+			Expressions: x.Expressions(),
+		}
+
+		if len(x.Groups()) > 0 {
+			groups := make([]Span, 0, len(x.Groups()))
+
+			for _, g := range x.Groups() {
+				groups = append(groups, Span{
+					From:  g.From(),
+					To:    g.To(),
+					Empty: g.Empty(),
+				})
+			}
+
+			ex.Groups = groups
+		}
+
+		if len(x.NamedGroups()) > 0 {
+			named := make([]NamedGroup, 0, len(x.NamedGroups()))
+
+			for k, g := range x.NamedGroups() {
+				named = append(named, NamedGroup{
+					Name: k,
+					Span: Span{
+						From:  g.From(),
+						To:    g.To(),
+						Empty: g.Empty(),
+					},
+				})
+			}
+
+			ex.NamedGroups = named
+		}
+
+		exs = append(exs, ex)
+	}
+
+	return exs
 }

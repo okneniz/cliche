@@ -1,4 +1,4 @@
-package cliche
+package scanner
 
 import (
 	"encoding/json"
@@ -15,6 +15,8 @@ type NamedCaptures interface {
 	Map() map[string]span.Interface
 	String() string
 }
+
+// TODO : add unit tests too
 
 type namedCaptures struct {
 	spans []span.Interface
@@ -73,7 +75,7 @@ func (c *namedCaptures) Rewind(pos int) {
 		}
 	}
 
-	// TODO : use truncated list
+	// TODO : use truncated list too
 	c.spans = c.spans[:pos]
 	c.order = c.order[:pos]
 }

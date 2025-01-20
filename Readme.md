@@ -545,3 +545,7 @@ TODO : js linter for test data
 // 123$ 231€ 321₽
 // rubular render something strange - https://rubular.com
 // problem copy euro symbol to irb
+
+// TODO : использовть bitset для ключей Node
+// для utf нужен make([]byte, unicode.MaxRune / sozeOf(byte))
+// если predicate сработал, то ставить bit = 1, иначе bit = 0

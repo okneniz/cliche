@@ -1,13 +1,14 @@
-package cliche
+package scanner
 
 import (
 	"fmt"
 
+	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/span"
 )
 
 type nodeMatch struct {
-	node Node
+	node node.Node
 	span span.Interface
 }
 

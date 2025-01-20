@@ -1,4 +1,4 @@
-package cliche
+package scanner
 
 import (
 	"fmt"
@@ -16,6 +16,8 @@ type Captures interface {
 	Slice() []span.Interface
 	String() string
 }
+
+// TODO : add unit tests too
 
 type captures struct {
 	spans []span.Interface

@@ -3,6 +3,12 @@ package cliche
 import (
 	"bytes"
 	"encoding/json"
+
+	"github.com/okneniz/cliche/buf"
+	"github.com/okneniz/cliche/node"
+	"github.com/okneniz/cliche/parser"
+	"github.com/okneniz/cliche/scanner"
+	c "github.com/okneniz/parsec/common"
 )
 
 type Tree interface {
@@ -10,26 +16,29 @@ type Tree interface {
 	Size() int
 	MarshalJSON() ([]byte, error)
 	String() string
-	Match(string) []*Match
+	Match(string) []*scanner.Match
 }
 
-var _ Tree = new(tree)
+var (
+	_ Tree                = new(tree)
+	_ c.Buffer[rune, int] = buf.NewRunesBuffer("")
+)
 
 type tree struct {
-	nodes  map[string]Node
-	parser Parser
+	nodes  map[string]node.Node
+	parser parser.Parser
 }
 
-func New(parser Parser) *tree {
+func New(parser parser.Parser) *tree {
 	tr := new(tree)
-	tr.nodes = make(map[string]Node)
+	tr.nodes = make(map[string]node.Node)
 	tr.parser = parser
 	return tr
 }
 
 func (t *tree) Add(strs ...string) error {
 	for _, str := range strs {
-		buf := newBuffer(str)
+		buf := buf.NewRunesBuffer(str)
 
 		node, err := t.parser.Parse(buf)
 		if err != nil {
@@ -46,7 +55,7 @@ func (t *tree) Size() int {
 	size := 0
 
 	for _, x := range t.nodes {
-		x.Traverse(func(_ Node) {
+		x.Traverse(func(_ node.Node) {
 			size++
 		})
 	}
@@ -76,8 +85,8 @@ func (t *tree) String() string {
 	return string(data)
 }
 
-func (t *tree) addExpression(str string, newNode Node) {
-	newNode.Traverse(func(x Node) {
+func (t *tree) addExpression(str string, newNode node.Node) {
+	newNode.Traverse(func(x node.Node) {
 		if len(x.GetNestedNodes()) == 0 { // TODO : strange hack)
 			x.AddExpression(str)
 		}
@@ -92,26 +101,30 @@ func (t *tree) addExpression(str string, newNode Node) {
 	}
 }
 
-func (t *tree) Match(text string) []*Match {
+func (t *tree) Match(text string) []*scanner.Match {
 	if len(text) == 0 {
 		return nil
 	}
 
-	input := newBuffer(text)
-	output := newOutput()
-	t.Scan(0, input.Size()-1, input, output)
+	input := buf.NewRunesBuffer(text)
+	output := scanner.NewOutput()
+	scanner := scanner.NewFullScanner(input, output)
+
+	t.Scan(scanner, 0, input.Size()-1, input, output)
 
 	return output.Slice()
 }
 
-// TODO : what about different scanners?
-func (t *tree) Scan(from, to int, input Input, output Output) {
-	// TODO : capacity = max count of groups in expression
-	captures := newCaptures(10)
-	namedCaptures := newNamedCaptures(10)
+func (t *tree) Scan(
+	scanner node.Scanner,
+	from, to int,
+	input node.Input,
+	output node.Output,
+) {
+	// Rewrite to scanner.Scan()
+	// move logic about scanning to scanner
 
-	scanner := newFullScanner(input, output, captures, namedCaptures)
-	skip := func(_ Node, _, _ int, _ bool) {}
+	skip := func(_ node.Node, _, _ int, _ bool) {}
 
 	for _, n := range t.nodes {
 		nextFrom := from

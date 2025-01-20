@@ -1,10 +1,12 @@
-package cliche
+package scanner
 
 import (
 	"fmt"
 
 	"github.com/okneniz/cliche/span"
 )
+
+// TODO : add unit tests too
 
 type matchesList struct {
 	list []*Match

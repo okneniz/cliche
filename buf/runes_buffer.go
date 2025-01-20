@@ -1,4 +1,4 @@
-package cliche
+package buf
 
 import (
 	"fmt"
@@ -6,7 +6,10 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-type simpleBuffer struct {
+// TODO : use for parsing another buffer?
+// TODO : add unit tests too
+
+type RunesBuffer struct {
 	data     []rune
 	position int
 
@@ -14,32 +17,21 @@ type simpleBuffer struct {
 	// positions []int (stack of last positions)
 }
 
-type Input interface {
-	ReadAt(int) rune
-	Size() int
-	Position() int
-	String() string
-}
-
-var _ Input = &simpleBuffer{}
-var _ c.Buffer[rune, int] = &simpleBuffer{}
-
 // newBuffer - make buffer which can read text on input
-func newBuffer(str string) *simpleBuffer {
-	b := new(simpleBuffer)
+func NewRunesBuffer(str string) *RunesBuffer {
+	b := new(RunesBuffer)
 	b.data = []rune(str)
 	b.position = 0
 	return b
 }
 
 // Read - read next item, if greedy buffer keep position after reading.
-func (b *simpleBuffer) Read(greedy bool) (rune, error) {
+func (b *RunesBuffer) Read(greedy bool) (rune, error) {
 	if b.IsEOF() {
 		return 0, c.EndOfFile
 	}
 
 	x := b.data[b.position]
-
 	if greedy {
 		b.position++
 	}
@@ -47,29 +39,29 @@ func (b *simpleBuffer) Read(greedy bool) (rune, error) {
 	return x, nil
 }
 
-func (b *simpleBuffer) ReadAt(idx int) rune {
+func (b *RunesBuffer) ReadAt(idx int) rune {
 	return b.data[idx]
 }
 
-func (b *simpleBuffer) Size() int {
+func (b *RunesBuffer) Size() int {
 	return len(b.data)
 }
 
-func (b *simpleBuffer) String() string {
+func (b *RunesBuffer) String() string {
 	return fmt.Sprintf("Buffer(%s, %d)", string(b.data), b.position)
 }
 
 // Seek - change buffer position
-func (b *simpleBuffer) Seek(x int) {
+func (b *RunesBuffer) Seek(x int) {
 	b.position = x
 }
 
 // Position - return current buffer position
-func (b *simpleBuffer) Position() int {
+func (b *RunesBuffer) Position() int {
 	return b.position
 }
 
 // IsEOF - true if buffer ended
-func (b *simpleBuffer) IsEOF() bool {
+func (b *RunesBuffer) IsEOF() bool {
 	return b.position >= len(b.data)
 }

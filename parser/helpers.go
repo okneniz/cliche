@@ -1,4 +1,4 @@
-package cliche
+package parser
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ func SkipString(data string) c.Combinator[rune, int, struct{}] {
 	}
 }
 
-func tryAll[T any](parsers ...c.Combinator[rune, int, T]) c.Combinator[rune, int, T] {
+func TryAll[T any](parsers ...c.Combinator[rune, int, T]) c.Combinator[rune, int, T] {
 	attempts := make([]c.Combinator[rune, int, T], len(parsers))
 
 	for i, parse := range parsers {
@@ -43,7 +43,7 @@ func tryAll[T any](parsers ...c.Combinator[rune, int, T]) c.Combinator[rune, int
 func Quantifier[T any, P any, S any](from, to int, f c.Combinator[T, P, S]) c.Combinator[T, P, []S] {
 	return func(buffer c.Buffer[T, P]) ([]S, error) {
 		if from > to {
-			panic(fmt.Sprintf("from must be less than to, actual from=%d and to = %d", from, to))
+			panic(fmt.Sprintf("param 'from' must be less than 'to', actual from=%d and to=%d", from, to))
 		}
 
 		result := make([]S, 0, to-from)
@@ -68,7 +68,7 @@ func Quantifier[T any, P any, S any](from, to int, f c.Combinator[T, P, S]) c.Co
 	}
 }
 
-func between[T any, S any](
+func Between[T any, S any](
 	before c.Combinator[rune, int, S],
 	body c.Combinator[rune, int, T],
 	after c.Combinator[rune, int, S],
@@ -76,47 +76,47 @@ func between[T any, S any](
 	return c.Between(before, body, after)
 }
 
-func parens[T any](
+func Parens[T any](
 	body c.Combinator[rune, int, T],
 ) c.Combinator[rune, int, T] {
-	return between(
+	return Between(
 		c.Eq[rune, int]('('),
 		body,
 		c.Eq[rune, int](')'),
 	)
 }
 
-func braces[T any](
+func Braces[T any](
 	body c.Combinator[rune, int, T],
 ) c.Combinator[rune, int, T] {
-	return between(
+	return Between(
 		c.Eq[rune, int]('{'),
 		body,
 		c.Eq[rune, int]('}'),
 	)
 }
 
-func angles[T any](
+func Angles[T any](
 	body c.Combinator[rune, int, T],
 ) c.Combinator[rune, int, T] {
-	return between(
+	return Between(
 		c.Eq[rune, int]('<'),
 		body,
 		c.Eq[rune, int]('>'),
 	)
 }
 
-func squares[T any](
+func Squares[T any](
 	body c.Combinator[rune, int, T],
 ) c.Combinator[rune, int, T] {
-	return between(
+	return Between(
 		c.Eq[rune, int]('['),
 		body,
 		c.Eq[rune, int](']'),
 	)
 }
 
-func number() c.Combinator[rune, int, int] {
+func Number() c.Combinator[rune, int, int] {
 	digit := c.Try[rune, int](c.Range[rune, int]('0', '9'))
 	zero := rune('0')
 

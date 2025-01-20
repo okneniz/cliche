@@ -1,4 +1,4 @@
-package cliche
+package scanner
 
 import (
 	"fmt"
@@ -6,14 +6,19 @@ import (
 	"strings"
 
 	"github.com/okneniz/cliche/span"
+	"github.com/okneniz/cliche/structs"
 )
 
 type Match struct {
 	subString   string
 	span        span.Interface
-	expressions Set
+	expressions structs.Set[string]
 	groups      []span.Interface
 	namedGroups map[string]span.Interface
+}
+
+func (m *Match) SubString() string {
+	return m.subString
 }
 
 func (m *Match) Span() span.Interface {
@@ -45,7 +50,7 @@ func (m *Match) Clone() *Match {
 	return &Match{
 		subString:   m.subString,
 		span:        m.span,
-		expressions: newSet().merge(m.expressions),
+		expressions: m.expressions.Clone(),
 		groups:      m.groups,      // clone it too?
 		namedGroups: m.namedGroups, // clone it too?
 	}

@@ -1,4 +1,4 @@
-package cliche
+package parser
 
 import (
 	"bytes"

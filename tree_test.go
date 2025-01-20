@@ -7,11 +7,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	test "github.com/okneniz/cliche/testing"
+	tableTests "github.com/okneniz/cliche/testing"
 )
 
-func TestTree_New(t *testing.T) { // TODO : remove ti?
+func TestTree_New(t *testing.T) {
 	t.Parallel()
+
+	// TODO : add more examples
 
 	tr := New(DefaultParser)
 	err := tr.Add(
@@ -81,7 +83,7 @@ func TestTree_New(t *testing.T) { // TODO : remove ti?
 func TestTree_Match(t *testing.T) {
 	t.Parallel()
 
-	files, err := test.LoadAllTestFiles("/Users/andi/dev/golang/regular/testdata/base/")
+	files, err := tableTests.LoadAllTestFiles("/Users/andi/dev/golang/regular/testdata/base/")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,7 +110,7 @@ func TestTree_Match(t *testing.T) {
 					t.Logf("tree: %s", tr)
 					t.Logf("input: '%s'", test.Input)
 
-					actual := toTestMatches(matches...) // TODO : move it to testing too
+					actual := tableTests.TestMatchesToExpectations(matches...)
 					for _, w := range actual {
 						w.Normalize()
 					}
@@ -127,55 +129,4 @@ func TestTree_Match(t *testing.T) {
 			}
 		})
 	}
-}
-
-func toTestMatches(xs ...*Match) []*test.Expectation {
-	exs := make([]*test.Expectation, 0, len(xs))
-
-	for _, x := range xs {
-		ex := &test.Expectation{
-			SubString: x.subString,
-			Span: test.Span{
-				From:  x.span.From(),
-				To:    x.span.To(),
-				Empty: x.span.Empty(),
-			},
-			Expressions: x.expressions.Slice(),
-		}
-
-		if len(x.groups) > 0 {
-			groups := make([]test.Span, 0, len(x.groups))
-
-			for _, g := range x.groups {
-				groups = append(groups, test.Span{
-					From:  g.From(),
-					To:    g.To(),
-					Empty: g.Empty(),
-				})
-			}
-
-			ex.Groups = groups
-		}
-
-		if len(x.namedGroups) > 0 {
-			named := make([]test.NamedGroup, 0, len(x.namedGroups))
-
-			for k, g := range x.namedGroups {
-				named = append(named, test.NamedGroup{
-					Name: k,
-					Span: test.Span{
-						From:  g.From(),
-						To:    g.To(),
-						Empty: g.Empty(),
-					},
-				})
-			}
-
-			ex.NamedGroups = named
-		}
-
-		exs = append(exs, ex)
-	}
-
-	return exs
 }

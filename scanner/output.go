@@ -1,41 +1,30 @@
-package cliche
+package scanner
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/span"
 )
 
-type Output interface {
-	Yield(
-		n Node,
-		subString string,
-		sp span.Interface,
-		groups []span.Interface,
-		namedGroups map[string]span.Interface,
-	)
+// TODO : add unit tests too
 
-	LastPosOf(n Node) (int, bool)
-	Slice() []*Match
-	String() string
+type Output struct {
+	matches map[node.Node]*matchesList
 }
 
-type output struct {
-	matches map[Node]*matchesList
+var _ node.Output = NewOutput()
+
+func NewOutput() *Output {
+	out := new(Output)
+	out.matches = make(map[node.Node]*matchesList)
+	return out
 }
 
-var _ Output = new(output)
-
-func newOutput() *output {
-	s := new(output)
-	s.matches = make(map[Node]*matchesList)
-	return s
-}
-
-func (s *output) String() string {
+func (out *Output) String() string {
 	ms := make([]string, 0, 10)
-	for _, v := range s.Slice() {
+	for _, v := range out.Slice() {
 		ms = append(ms, v.String())
 	}
 
@@ -46,8 +35,8 @@ func (s *output) String() string {
 }
 
 // TODO : remove subString from params
-func (s *output) Yield(
-	n Node,
+func (out *Output) Yield(
+	n node.Node,
 	subString string,
 	sp span.Interface,
 	groups []span.Interface,
@@ -57,22 +46,25 @@ func (s *output) Yield(
 		subString: subString,
 		span:      sp,
 		// TODO : how to avoid copies / allocations?
-		expressions: newSet().merge(n.GetExpressions()),
+		// maybe just save pointer to current expression
+		// and swap nodes expressions by new collection only
+		// when new expressions add (or any other mutations)?
+		expressions: n.GetExpressions().Clone(),
 		groups:      groups,
 		namedGroups: namedGroups,
 	}
 
-	list, exists := s.matches[n]
+	list, exists := out.matches[n]
 	if !exists {
 		list = newMatchesList()
-		s.matches[n] = list
+		out.matches[n] = list
 	}
 
 	list.push(m)
 }
 
-func (s *output) LastPosOf(n Node) (int, bool) {
-	m, exists := s.matches[n]
+func (out *Output) LastPosOf(n node.Node) (int, bool) {
+	m, exists := out.matches[n]
 	if !exists {
 		return -1, false
 	}
@@ -85,22 +77,21 @@ func (s *output) LastPosOf(n Node) (int, bool) {
 	return match.Span().To(), true
 }
 
-// TODO : []*Match or []Match
-func (s *output) Slice() []*Match {
+func (out *Output) Slice() []*Match {
 	size := 0
-	for _, v := range s.matches {
+	for _, v := range out.matches {
 		size += v.size()
 	}
 
 	result := make([]*Match, 0, size)
 	c := make(map[string]int)
 
-	for _, list := range s.matches {
+	for _, list := range out.matches {
 		for _, v := range list.Slice() {
 			key := v.Key()
 
 			if idx, exists := c[key]; exists {
-				result[idx].expressions.merge(v.expressions)
+				v.expressions.AddTo(result[idx].expressions)
 			} else {
 				c[key] = len(result)
 				// TODO : how to remove copy / allocations?
