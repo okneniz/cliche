@@ -65,11 +65,7 @@ func (n *quantifier) recursiveVisit(
 				onMatch(match, mFrom, mTo, empty)
 			}
 
-			next := count + 1
-
-			if n.Quantity.Gt(next) { // TODO : remove it? double check?
-				n.recursiveVisit(next, scanner, input, mTo+1, to, onMatch)
-			}
+			n.recursiveVisit(count+1, scanner, input, mTo+1, to, onMatch)
 		}
 	})
 }
