@@ -1,7 +1,7 @@
 package structs
 
 type Set[T comparable] interface {
-	Add(item T)
+	Add(item ...T)
 	AddTo(other Set[T])
 	Size() int
 	Slice() []T
@@ -19,15 +19,15 @@ func NewMapSet[T comparable](items ...T) *mapSet[T] {
 		items: make(map[T]struct{}, len(items)),
 	}
 
-	for _, x := range items {
-		s.Add(x)
-	}
+	s.Add(items...)
 
 	return s
 }
 
-func (s *mapSet[T]) Add(item T) {
-	s.items[item] = struct{}{}
+func (s *mapSet[T]) Add(items ...T) {
+	for _, item := range items {
+		s.items[item] = struct{}{}
+	}
 }
 
 func (s *mapSet[T]) AddTo(other Set[T]) {
