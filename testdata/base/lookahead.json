@@ -80,7 +80,8 @@
             {
               "From": 3,
               "To": 3,
-              "Empty": false
+              "Empty": false,
+              "OutOfString": true
             }
           ]
         },
@@ -103,7 +104,8 @@
             {
               "From": 13,
               "To": 13,
-              "Empty": false
+              "Empty": false,
+              "OutOfString": true
             }    
           ]
         },
@@ -121,7 +123,8 @@
             {
               "From": 3,
               "To": 3,
-              "Empty": false
+              "Empty": false,
+              "OutOfString": true
             }
           ]
         },
@@ -139,7 +142,8 @@
             {
               "From": 13,
               "To": 13,
-              "Empty": false
+              "Empty": false,
+              "OutOfString": true
             }  
           ]
         },
@@ -209,6 +213,118 @@
           ]
         }
       ]
-    }    
+    },
+    {
+      "Name": "case 7",
+      "Expressions": [
+        "(\\d+(?=(?<currency>\\$|₽)))",
+        "\\d+(?=(?<currency>\\$|₽))"
+      ],
+      "Input": "123$ 231€ 321₽",
+      "Want": [
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(\\d+(?=(?<currency>\\$|₽)))"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 2,
+              "Empty": false
+            }
+          ],
+          "NamedGroups": [
+            {
+              "Name": "currency",
+              "OutOfString": true,
+              "Span": {
+                "From": 3,
+                "To": 3,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d+(?=(?<currency>\\$|₽))"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "currency",
+              "OutOfString": true,
+              "Span": {
+                "From": 3,
+                "To": 3,
+                "Empty": false
+              }
+            }
+          ]
+        },
+        {
+          "SubString": "321",
+          "Span": {
+            "From": 10,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "(\\d+(?=(?<currency>\\$|₽)))"
+          ],
+          "Groups": [
+            {
+              "From": 10,
+              "To": 12,
+              "Empty": false
+            }  
+          ],
+          "NamedGroups": [
+            {
+              "Name": "currency",
+              "OutOfString": true,
+              "Span": {
+                "From": 13,
+                "To": 13,
+                "Empty": false
+              }
+            }
+          ]          
+        },        
+        {
+          "SubString": "321",
+          "Span": {
+            "From": 10,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\d+(?=(?<currency>\\$|₽))"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "currency",
+              "OutOfString": true,
+              "Span": {
+                "From": 13,
+                "To": 13,
+                "Empty": false
+              }
+            }
+          ]          
+        }
+      ]
+    }   
   ]
 }

@@ -549,3 +549,7 @@ TODO : js linter for test data
 // TODO : использовть bitset для ключей Node
 // для utf нужен make([]byte, unicode.MaxRune / sozeOf(byte))
 // если predicate сработал, то ставить bit = 1, иначе bit = 0
+
+// ((?<=(^))(.+)(?=($)))
+//
+// must match any string

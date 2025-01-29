@@ -118,13 +118,40 @@ func TestTree_Match(t *testing.T) {
 					sort.Slice(actual, func(i, j int) bool {
 						return actual[i].String() < actual[j].String()
 					})
+
 					actualStr, err := json.MarshalIndent(actual, "", "  ")
 					require.NoError(t, err)
 
 					expectedStr, err := json.MarshalIndent(test.Want, "", "  ")
 					require.NoError(t, err)
 
-					require.Equal(t, string(expectedStr), string(actualStr))
+					require.JSONEq(t, string(expectedStr), string(actualStr))
+
+					for _, expectation := range actual {
+						for _, group := range expectation.Groups {
+							if group.OutOfString {
+								outOf := (group.From > expectation.Span.From && group.To > expectation.Span.From) ||
+									(group.From < expectation.Span.From && group.To < expectation.Span.From)
+
+								require.True(t, outOf)
+							} else {
+								require.LessOrEqual(t, expectation.Span.From, group.From)
+								require.GreaterOrEqual(t, expectation.Span.To, group.To)
+							}
+						}
+
+						for _, group := range expectation.NamedGroups {
+							if group.OutOfString {
+								outOf := (group.Span.From > expectation.Span.From && group.Span.To > expectation.Span.From) ||
+									(group.Span.From < expectation.Span.From && group.Span.To < expectation.Span.From)
+
+								require.True(t, outOf)
+							} else {
+								require.LessOrEqual(t, expectation.Span.From, group.Span.From)
+								require.GreaterOrEqual(t, expectation.Span.To, group.Span.To)
+							}
+						}
+					}
 				})
 			}
 		})

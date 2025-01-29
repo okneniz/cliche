@@ -26,16 +26,22 @@ type (
 		Want        []*Expectation
 	}
 
+	Group struct {
+		Span
+		OutOfString bool
+	}
+
 	NamedGroup struct {
-		Name string
-		Span Span
+		Name        string
+		Span        Span
+		OutOfString bool
 	}
 
 	Expectation struct {
 		SubString   string
 		Span        Span
 		Expressions []string
-		Groups      []Span       `json:",omitempty"`
+		Groups      []Group      `json:",omitempty"`
 		NamedGroups []NamedGroup `json:",omitempty"`
 	}
 
@@ -168,13 +174,19 @@ func TestMatchesToExpectations(xs ...*scanner.Match) []*Expectation {
 		}
 
 		if len(x.Groups()) > 0 {
-			groups := make([]Span, 0, len(x.Groups()))
+			groups := make([]Group, 0, len(x.Groups()))
 
 			for _, g := range x.Groups() {
-				groups = append(groups, Span{
-					From:  g.From(),
-					To:    g.To(),
-					Empty: g.Empty(),
+				outOfString := ((g.From() < x.Span().From() && g.To() < x.Span().To()) ||
+					(g.From() > x.Span().From() && g.From() > x.Span().To()))
+
+				groups = append(groups, Group{
+					OutOfString: outOfString,
+					Span: Span{
+						From:  g.From(),
+						To:    g.To(),
+						Empty: g.Empty(),
+					},
 				})
 			}
 
@@ -185,6 +197,9 @@ func TestMatchesToExpectations(xs ...*scanner.Match) []*Expectation {
 			named := make([]NamedGroup, 0, len(x.NamedGroups()))
 
 			for k, g := range x.NamedGroups() {
+				outOfString := ((g.From() < x.Span().From() && g.To() < x.Span().To()) ||
+					(g.From() > x.Span().From() && g.From() > x.Span().To()))
+
 				named = append(named, NamedGroup{
 					Name: k,
 					Span: Span{
@@ -192,6 +207,7 @@ func TestMatchesToExpectations(xs ...*scanner.Match) []*Expectation {
 						To:    g.To(),
 						Empty: g.Empty(),
 					},
+					OutOfString: outOfString,
 				})
 			}
 
