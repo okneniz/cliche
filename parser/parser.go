@@ -60,27 +60,6 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		}
 	}
 
-	// TODO : move it to DefaultOptions too
-	p.prefixes["."] = func(buf c.Buffer[rune, int]) (node.Node, error) {
-		return node.NewDot(), nil
-	}
-
-	p.prefixes["^"] = func(buf c.Buffer[rune, int]) (node.Node, error) {
-		return node.NewStartOfLine(), nil
-	}
-
-	p.prefixes["$"] = func(buf c.Buffer[rune, int]) (node.Node, error) {
-		return node.NewEndOfLine(), nil
-	}
-
-	p.prefixes["\\A"] = func(buf c.Buffer[rune, int]) (node.Node, error) {
-		return node.StartOfString(), nil
-	}
-
-	p.prefixes["\\z"] = func(buf c.Buffer[rune, int]) (node.Node, error) {
-		return node.EndOfString(), nil
-	}
-
 	for _, configure := range options {
 		configure(p)
 	}

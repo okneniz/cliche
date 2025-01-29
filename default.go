@@ -78,6 +78,21 @@ var (
 		parser.WithEscapedMetaChar("H", func(x rune) bool {
 			return !isHex(x)
 		}),
+		parser.WithPrefix(".", func(buf c.Buffer[rune, int]) (node.Node, error) {
+			return node.NewDot(), nil
+		}),
+		parser.WithPrefix("^", func(buf c.Buffer[rune, int]) (node.Node, error) {
+			return node.NewStartOfLine(), nil
+		}),
+		parser.WithPrefix("$", func(buf c.Buffer[rune, int]) (node.Node, error) {
+			return node.NewEndOfLine(), nil
+		}),
+		parser.WithPrefix("\\A", func(buf c.Buffer[rune, int]) (node.Node, error) {
+			return node.StartOfString(), nil
+		}),
+		parser.WithPrefix("\\z", func(buf c.Buffer[rune, int]) (node.Node, error) {
+			return node.EndOfString(), nil
+		}),
 		parser.WithPrefix("\\p", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			table, err := propertyTable(buf)
 			if err != nil {
