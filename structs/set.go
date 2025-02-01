@@ -31,7 +31,7 @@ func (s *mapSet[T]) Add(items ...T) {
 }
 
 func (s *mapSet[T]) AddTo(other Set[T]) {
-	for item, _ := range s.items {
+	for item := range s.items {
 		other.Add(item)
 	}
 }

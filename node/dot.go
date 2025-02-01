@@ -3,7 +3,6 @@ package node
 // not simple node with table because §diferent behaviour for different scan options
 // TODO : add something to empty json value, and in another spec symbols
 type dot struct {
-	size *int
 	*nestedNode
 }
 

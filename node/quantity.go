@@ -8,9 +8,9 @@ import (
 // TODO : move to span
 
 type Quantity struct {
-	from int  `json:"from"`
-	to   *int `json:"to,omitempty"`
-	more bool `json:"more,omitempty"`
+	from int
+	to   *int
+	more bool
 }
 
 func NewQuantity(from int, to int) *Quantity {

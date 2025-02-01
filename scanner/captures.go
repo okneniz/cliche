@@ -71,10 +71,6 @@ func (c *captures) String() string {
 
 func (c *captures) Slice() []span.Interface {
 	s := make([]span.Interface, len(c.spans))
-
-	for i, x := range c.spans {
-		s[i] = x
-	}
-
+	copy(s, c.spans)
 	return s
 }

@@ -95,7 +95,7 @@ func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {
 			sp = span.New(sp.From(), lastHole.From()-1)
 		}
 
-		for i, _ := range groups {
+		for i := range groups {
 			if groups[i].To() == lastHole.To() && groups[i].From() != lastHole.From() {
 				groups[i] = span.New(groups[i].From(), lastHole.From()-1)
 				break

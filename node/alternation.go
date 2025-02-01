@@ -20,7 +20,6 @@ type alternation struct {
 	// TODO : why not list, order is important
 	Value     map[string]Node   `json:"value,omitempty"`
 	lastNodes map[Node]struct{} // TODO : interface like key, is it ok?
-	size      *int
 	*nestedNode
 }
 
