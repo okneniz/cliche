@@ -1,19 +1,13 @@
 package scanner
 
-import (
-	"fmt"
-	"strings"
-)
-
 type TruncatedList[T any] interface {
-	Append(T)
+	Append(...T)
+	Truncate(int)
+	Size() int
 	At(int) (T, bool)
 	First() (T, bool)
 	Last() (T, bool)
-	Size() int
-	Truncate(int)
 	Slice() []T
-	String() string
 }
 
 type truncatedList[T any] struct {
@@ -21,16 +15,22 @@ type truncatedList[T any] struct {
 	size int
 }
 
-var _ TruncatedList[string] = new(truncatedList[string])
+var _ TruncatedList[int] = new(truncatedList[int])
 
-func newTruncatedList[T fmt.Stringer](cap int) *truncatedList[T] {
+func newTruncatedList[T any](cap int) *truncatedList[T] {
 	return &truncatedList[T]{
 		data: make([]T, 0, cap),
 		size: 0,
 	}
 }
 
-func (l *truncatedList[T]) Append(item T) {
+func (l *truncatedList[T]) Append(items ...T) {
+	for _, x := range items {
+		l.append(x)
+	}
+}
+
+func (l *truncatedList[T]) append(item T) {
 	if l.size >= len(l.data) {
 		l.data = append(l.data, item)
 	} else {
@@ -38,6 +38,18 @@ func (l *truncatedList[T]) Append(item T) {
 	}
 
 	l.size++
+}
+
+func (l *truncatedList[T]) Truncate(newSize int) {
+	if newSize < 0 || newSize > l.size {
+		return
+	}
+
+	l.size = newSize
+}
+
+func (l *truncatedList[T]) Size() int {
+	return l.size
 }
 
 func (l *truncatedList[T]) At(idx int) (T, bool) {
@@ -67,35 +79,10 @@ func (l *truncatedList[T]) Last() (T, bool) {
 	return l.data[l.size-1], true
 }
 
-func (l *truncatedList[T]) Size() int {
-	return l.size
-}
-
-func (l *truncatedList[T]) Truncate(newSize int) {
-	if newSize < 0 || newSize > l.size {
-		return
-	}
-
-	l.size = newSize
-}
-
 func (l *truncatedList[T]) Slice() []T {
 	if l.size == 0 {
-		return nil
+		return []T{}
 	}
 
 	return l.data[0:l.size]
-}
-
-func (l *truncatedList[T]) String() string {
-	if l.size == 0 {
-		return "[]"
-	}
-
-	items := make([]string, l.size) // TODO : use buffer instead
-	for i := 0; i < l.size; i++ {
-		items[i] = fmt.Sprintf("%v", l.data[i])
-	}
-
-	return fmt.Sprintf("[%s]", strings.Join(items, ", "))
 }

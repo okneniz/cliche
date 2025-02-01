@@ -7,155 +7,328 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_truncatedList(t *testing.T) {
-	t.Parallel()
+func TestTruncatedList_Append(t *testing.T) {
+	type example struct {
+		init   []int
+		append []int
+		want   []int
+	}
 
-	l := newTruncatedList[num](2)
+	examples := []example{
+		{
+			init:   []int{},
+			append: []int{},
+			want:   []int{},
+		},
+		{
+			init:   []int{},
+			append: []int{1},
+			want:   []int{1},
+		},
+		{
+			init:   []int{1},
+			append: []int{2, 3},
+			want:   []int{1, 2, 3},
+		},
+		{
+			init:   []int{1, 2, 3},
+			append: []int{3, 2, 1},
+			want:   []int{1, 2, 3, 3, 2, 1},
+		},
+	}
 
-	require.Equal(t, 0, l.Size())
+	for i, example := range examples {
+		test := example
 
-	_, ok := l.First()
-	require.False(t, ok)
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			list := newTruncatedList[int](0)
+			list.Append(test.init...)
 
-	_, ok = l.Last()
-	require.False(t, ok)
-
-	require.Nil(t, l.Slice())
-	require.Equal(t, l.String(), "[]")
-
-	l.Append(1)
-
-	require.Equal(t, 1, l.Size())
-
-	first, ok := l.First()
-	require.True(t, ok)
-	require.Equal(t, first, num(1))
-
-	last, ok := l.Last()
-	require.True(t, ok)
-	require.Equal(t, last, num(1))
-
-	require.Equal(t, l.Slice(), []num{1})
-	require.Equal(t, l.String(), "[1]")
-
-	l.Append(2)
-
-	require.Equal(t, 2, l.Size())
-
-	first, ok = l.First()
-	require.True(t, ok)
-	require.Equal(t, first, num(1))
-
-	last, ok = l.Last()
-	require.True(t, ok)
-	require.Equal(t, last, num(2))
-
-	require.Equal(t, l.Slice(), []num{1, 2})
-	require.Equal(t, l.String(), "[1, 2]")
-
-	l.Append(3)
-
-	require.Equal(t, 3, l.Size())
-
-	first, ok = l.First()
-	require.True(t, ok)
-	require.Equal(t, first, num(1))
-
-	last, ok = l.Last()
-	require.True(t, ok)
-	require.Equal(t, last, num(3))
-
-	require.Equal(t, l.Slice(), []num{1, 2, 3})
-	require.Equal(t, l.String(), "[1, 2, 3]")
-
-	l.Append(4)
-
-	require.Equal(t, 4, l.Size())
-
-	first, ok = l.First()
-	require.True(t, ok)
-	require.Equal(t, first, num(1))
-
-	last, ok = l.Last()
-	require.True(t, ok)
-	require.Equal(t, last, num(4))
-
-	require.Equal(t, l.Slice(), []num{1, 2, 3, 4})
-	require.Equal(t, l.String(), "[1, 2, 3, 4]")
-
-	l.Truncate(2)
-
-	require.Equal(t, 2, l.Size())
-
-	first, ok = l.First()
-	require.True(t, ok)
-	require.Equal(t, first, num(1))
-
-	last, ok = l.Last()
-	require.True(t, ok)
-	require.Equal(t, last, num(2))
-
-	require.Equal(t, l.Slice(), []num{1, 2})
-	require.Equal(t, l.String(), "[1, 2]")
-
-	l.Append(10)
-
-	require.Equal(t, 3, l.Size())
-
-	first, ok = l.First()
-	require.True(t, ok)
-	require.Equal(t, first, num(1))
-
-	last, ok = l.Last()
-	require.True(t, ok)
-	require.Equal(t, last, num(10))
-
-	require.Equal(t, l.Slice(), []num{1, 2, 10})
-	require.Equal(t, l.String(), "[1, 2, 10]")
-
-	l.Truncate(0)
-
-	require.Equal(t, 0, l.Size())
-
-	_, ok = l.First()
-	require.False(t, ok)
-
-	_, ok = l.Last()
-	require.False(t, ok)
-
-	require.Nil(t, l.Slice())
-	require.Equal(t, l.String(), "[]")
-
-	l.Append(10)
-	l.Append(20)
-	l.Append(30)
-
-	require.Equal(t, 3, l.Size())
-
-	first, ok = l.First()
-	require.True(t, ok)
-	require.Equal(t, first, num(10))
-
-	last, ok = l.Last()
-	require.True(t, ok)
-	require.Equal(t, last, num(30))
-
-	require.Equal(t, l.Slice(), []num{10, 20, 30})
-	require.Equal(t, l.String(), "[10, 20, 30]")
-
-	require.NotPanics(t, func() { l.Truncate(-1) })
-	require.NotPanics(t, func() { l.Truncate(10) })
-
-	l.Truncate(0)
-
-	require.NotPanics(t, func() { l.Truncate(-1) })
-	require.NotPanics(t, func() { l.Truncate(10) })
-
-	l.Truncate(0)
+			list.Append(test.append...)
+			require.Equal(t, list.Slice(), test.want)
+		})
+	}
 }
 
-type num int
+func TestTruncatedList_At(t *testing.T) {
+	type example struct {
+		list   []int
+		index  int
+		exists bool
+		value  int
+	}
 
-func (t num) String() string {
-	return fmt.Sprintf("%d", t)
+	examples := []example{
+		{
+			list:   []int{},
+			index:  0,
+			exists: false,
+			value:  0,
+		},
+		{
+			list:   []int{},
+			index:  3,
+			exists: false,
+			value:  0,
+		},
+		{
+			list:   []int{1},
+			index:  0,
+			exists: true,
+			value:  1,
+		},
+		{
+			list:   []int{1},
+			index:  3,
+			exists: false,
+			value:  0,
+		},
+		{
+			list:   []int{1, 2, 3, 4, 5},
+			index:  3,
+			exists: true,
+			value:  4,
+		},
+	}
+
+	for i, example := range examples {
+		test := example
+
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			list := newTruncatedList[int](0)
+			list.Append(test.list...)
+
+			value, exists := list.At(test.index)
+			require.Equal(t, exists, test.exists)
+			require.Equal(t, value, test.value)
+		})
+	}
+}
+
+func TestTruncatedList_Truncate(t *testing.T) {
+	type example struct {
+		init     []int
+		truncate int
+		want     []int
+	}
+
+	examples := []example{
+		{
+			init:     []int{},
+			truncate: 0,
+			want:     []int{},
+		},
+		{
+			init:     []int{},
+			truncate: 10,
+			want:     []int{},
+		},
+		{
+			init:     []int{},
+			truncate: -10,
+			want:     []int{},
+		},
+		{
+			init:     []int{1},
+			truncate: 0,
+			want:     []int{},
+		},
+		{
+			init:     []int{1},
+			truncate: 1,
+			want:     []int{1},
+		},
+		{
+			init:     []int{1},
+			truncate: 3,
+			want:     []int{1},
+		},
+		{
+			init:     []int{1},
+			truncate: -1,
+			want:     []int{1},
+		},
+		{
+			init:     []int{1, 2, 3},
+			truncate: 0,
+			want:     []int{},
+		},
+		{
+			init:     []int{1, 2, 3},
+			truncate: -1,
+			want:     []int{1, 2, 3},
+		},
+		{
+			init:     []int{1, 2, 3},
+			truncate: 1,
+			want:     []int{1},
+		},
+		{
+			init:     []int{1, 2, 3},
+			truncate: 3,
+			want:     []int{1, 2, 3},
+		},
+		{
+			init:     []int{1, 2, 3},
+			truncate: 4,
+			want:     []int{1, 2, 3},
+		},
+	}
+
+	for i, example := range examples {
+		test := example
+
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			list := newTruncatedList[int](0)
+			list.Append(test.init...)
+
+			require.Equal(t, list.Size(), len(test.init))
+			list.Truncate(test.truncate)
+			require.Equal(t, list.Slice(), test.want)
+			require.Equal(t, list.Size(), len(test.want))
+		})
+	}
+}
+
+func TestTruncatedList_Size(t *testing.T) {
+	type example struct {
+		list []int
+		size int
+	}
+
+	examples := []example{
+		{
+			list: []int{},
+			size: 0,
+		},
+		{
+			list: []int{1},
+			size: 1,
+		},
+		{
+			list: []int{1, 2, 3},
+			size: 3,
+		},
+	}
+
+	for i, example := range examples {
+		test := example
+
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			list := newTruncatedList[int](0)
+			list.Append(test.list...)
+			require.Equal(t, list.Size(), test.size)
+		})
+	}
+}
+
+func TestTruncatedList_First(t *testing.T) {
+	type example struct {
+		list   []int
+		exists bool
+		value  int
+	}
+
+	examples := []example{
+		{
+			list:   []int{},
+			exists: false,
+			value:  0,
+		},
+		{
+			list:   []int{1},
+			exists: true,
+			value:  1,
+		},
+		{
+			list:   []int{1, 2, 3},
+			exists: true,
+			value:  1,
+		},
+	}
+
+	for i, example := range examples {
+		test := example
+
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			list := newTruncatedList[int](0)
+			list.Append(test.list...)
+
+			value, exists := list.First()
+			require.Equal(t, exists, test.exists)
+			require.Equal(t, value, test.value)
+		})
+	}
+}
+
+func TestTruncatedList_Last(t *testing.T) {
+	type example struct {
+		list   []int
+		exists bool
+		value  int
+	}
+
+	examples := []example{
+		{
+			list:   []int{},
+			exists: false,
+			value:  0,
+		},
+		{
+			list:   []int{1},
+			exists: true,
+			value:  1,
+		},
+		{
+			list:   []int{1, 2, 3},
+			exists: true,
+			value:  3,
+		},
+	}
+
+	for i, example := range examples {
+		test := example
+
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			list := newTruncatedList[int](0)
+			list.Append(test.list...)
+
+			value, exists := list.Last()
+			require.Equal(t, exists, test.exists)
+			require.Equal(t, value, test.value)
+		})
+	}
+}
+
+func TestTruncatedList_Slice(t *testing.T) {
+	type example struct {
+		list []int
+		want []int
+	}
+
+	examples := []example{
+		{
+			list: []int{},
+			want: []int{},
+		},
+		{
+			list: []int{1},
+			want: []int{1},
+		},
+		{
+			list: []int{1, 2, 3},
+			want: []int{1, 2, 3},
+		},
+	}
+
+	for i, example := range examples {
+		test := example
+
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			list := newTruncatedList[int](0)
+			require.Equal(t, list.Slice(), []int{})
+			list.Append(test.list...)
+			require.Equal(t, list.Slice(), test.want)
+		})
+	}
 }

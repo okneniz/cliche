@@ -7,26 +7,26 @@ import (
 )
 
 func SkipString(data string) c.Combinator[rune, int, struct{}] {
-	none := struct{}{}
+	nothing := struct{}{}
 
 	return func(buf c.Buffer[rune, int]) (struct{}, error) {
 		l := len(data)
 		for _, x := range data {
 			r, err := buf.Read(true)
 			if err != nil {
-				return none, err
+				return nothing, err
 			}
 			if x != r {
-				return none, c.NothingMatched
+				return nothing, c.NothingMatched
 			}
 			l -= 1
 		}
 
 		if l != 0 {
-			return none, c.NothingMatched
+			return nothing, c.NothingMatched
 		}
 
-		return none, nil
+		return nothing, nil
 	}
 }
 

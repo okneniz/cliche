@@ -37,11 +37,11 @@ func NewFullScanner(input Input, output node.Output) *FullScanner {
 	s.input = input
 	s.output = output
 
-	// TODO : capacity = max count of groups in expression
+	// TODO : capacity = max count of captured groups in expression
 	s.groups = newCaptures(10)
 	s.namedGroups = newNamedCaptures(10)
 
-	// TODO : capacity = height of tree
+	// TODO : capacity = height of tree (but what about quantifier)
 	s.expression = newTruncatedList[nodeMatch](50)
 
 	// TODO : capacity = max count of assertions / lookaheads / lookbehins in expression
@@ -52,10 +52,10 @@ func NewFullScanner(input Input, output node.Output) *FullScanner {
 
 func (s *FullScanner) String() string {
 	return fmt.Sprintf(
-		"Scanner(\n\toutput=%s,\n\tgroups=%s,\n\tholes=%s\n)",
+		"Scanner(\n\toutput=%s,\n\tgroups=%s,\n\tholes=%v\n)",
 		s.output.String(),
 		s.groups,
-		s.holes.String(),
+		s.holes,
 	)
 }
 

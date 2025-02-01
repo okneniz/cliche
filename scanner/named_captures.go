@@ -6,10 +6,11 @@ import (
 	"github.com/okneniz/cliche/span"
 )
 
+// rename to ordered map?
 type NamedCaptures interface {
 	Get(string) (span.Interface, bool)
 	Put(string, span.Interface)
-	Rewind(int)
+	Rewind(int) // rename to truncate?
 	Empty() bool
 	Size() int
 	Map() map[string]span.Interface
