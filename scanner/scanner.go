@@ -34,7 +34,7 @@ type Captures interface {
 	Slice() []span.Interface
 }
 
-var _ Captures = newTruncatedList[span.Interface](10)
+var _ Captures = newTruncatedList[span.Interface](0)
 
 type NamedCaptures interface {
 	Get(string) (span.Interface, bool)
@@ -46,7 +46,7 @@ type NamedCaptures interface {
 	String() string
 }
 
-var _ NamedCaptures = newOrderedMap(10)
+var _ NamedCaptures = newOrderedMap[string, span.Interface](0)
 
 var _ node.Output = new(Output)
 
@@ -63,7 +63,7 @@ func NewFullScanner(input Input, output node.Output) *FullScanner {
 
 	// TODO : capacity = max count of captured groups in expression
 	s.groups = newTruncatedList[span.Interface](10)
-	s.namedGroups = newOrderedMap(10)
+	s.namedGroups = newOrderedMap[string, span.Interface](10)
 
 	// TODO : capacity = height of tree (but what about quantifier)
 	s.expression = newTruncatedList[nodeMatch](50)

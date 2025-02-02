@@ -2,75 +2,73 @@ package scanner
 
 import (
 	"encoding/json"
-
-	"github.com/okneniz/cliche/span"
 )
 
 // TODO : add unit tests
 
-type OrderedMap struct {
-	spans []span.Interface
-	order []string
-	names map[string]int
+type OrderedMap[K comparable, V any] struct {
+	keys   map[K]int
+	values []V
+	order  []K
 }
 
-func newOrderedMap(capacity int) *OrderedMap {
-	return &OrderedMap{
-		spans: make([]span.Interface, 0, capacity),
-		order: make([]string, 0, capacity),
-		names: make(map[string]int, capacity),
+func newOrderedMap[K comparable, V any](capacity int) *OrderedMap[K, V] {
+	return &OrderedMap[K, V]{
+		keys:   make(map[K]int, capacity),
+		values: make([]V, 0, capacity),
+		order:  make([]K, 0, capacity),
 	}
 }
 
-func (c *OrderedMap) Get(name string) (span.Interface, bool) {
-	idx, exists := c.names[name]
+func (c *OrderedMap[K, V]) Get(key K) (V, bool) {
+	idx, exists := c.keys[key]
 	if !exists {
-		return nil, false
+		var x V
+		return x, false
 	}
 
-	return c.spans[idx], true
+	return c.values[idx], true
 }
 
-func (c *OrderedMap) Put(name string, s span.Interface) {
-	_, exists := c.names[name]
+func (c *OrderedMap[K, V]) Put(key K, s V) {
+	_, exists := c.keys[key]
 	if exists {
 		return
 	}
 
-	c.order = append(c.order, name)
-	c.spans = append(c.spans, s)
-	c.names[name] = len(c.spans) - 1
+	c.order = append(c.order, key)
+	c.values = append(c.values, s)
+	c.keys[key] = len(c.values) - 1
 }
 
-func (c *OrderedMap) Empty() bool {
-	return len(c.spans) == 0
+func (c *OrderedMap[K, V]) Empty() bool {
+	return len(c.values) == 0
 }
 
-func (c *OrderedMap) Size() int {
-	return len(c.spans)
+func (c *OrderedMap[K, V]) Size() int {
+	return len(c.values)
 }
 
-// rename to truncate
-func (c *OrderedMap) Truncate(pos int) {
+func (c *OrderedMap[K, V]) Truncate(pos int) {
 	if pos < 0 || pos >= c.Size() {
 		return
 	}
 
 	for i := len(c.order) - 1; i >= pos; i-- {
-		name := c.order[i]
+		key := c.order[i]
 
-		if idx, exists := c.names[name]; exists && idx >= pos {
-			delete(c.names, name)
+		if idx, exists := c.keys[key]; exists && idx >= pos {
+			delete(c.keys, key)
 		}
 	}
 
 	// TODO : use truncated list
-	c.spans = c.spans[:pos]
+	c.values = c.values[:pos]
 	c.order = c.order[:pos]
 }
 
-func (c *OrderedMap) String() string {
-	js, err := json.Marshal(c.names)
+func (c *OrderedMap[K, V]) String() string {
+	js, err := json.Marshal(c.keys)
 	if err != nil {
 		return err.Error()
 	}
@@ -78,11 +76,11 @@ func (c *OrderedMap) String() string {
 	return string(js)
 }
 
-func (c *OrderedMap) Map() map[string]span.Interface {
-	m := make(map[string]span.Interface, len(c.names))
+func (c *OrderedMap[K, V]) Map() map[K]V {
+	m := make(map[K]V, len(c.keys))
 
-	for k, v := range c.names {
-		x := c.spans[v] // TODO : check bounds
+	for k, v := range c.keys {
+		x := c.values[v] // TODO : check bounds
 		m[k] = x
 	}
 
