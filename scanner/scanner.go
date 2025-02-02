@@ -12,7 +12,7 @@ type FullScanner struct {
 	input       node.Input
 	output      node.Output
 	expression  TruncatedList[nodeMatch]
-	groups      TruncatedList[span.Interface]
+	groups      Captures
 	namedGroups NamedCaptures
 	holes       TruncatedList[span.Interface]
 }
@@ -23,6 +23,30 @@ type Input interface {
 	Position() int
 	String() string
 }
+
+type Captures interface {
+	Append(...span.Interface)
+	Truncate(int)
+	Size() int
+	At(int) (span.Interface, bool)
+	First() (span.Interface, bool)
+	Last() (span.Interface, bool)
+	Slice() []span.Interface
+}
+
+var _ Captures = newTruncatedList[span.Interface](10)
+
+type NamedCaptures interface {
+	Get(string) (span.Interface, bool)
+	Put(string, span.Interface)
+	Truncate(int) // rename to truncate?
+	Empty() bool
+	Size() int
+	Map() map[string]span.Interface
+	String() string
+}
+
+var _ NamedCaptures = newOrderedMap(10)
 
 var _ node.Output = new(Output)
 
@@ -39,7 +63,7 @@ func NewFullScanner(input Input, output node.Output) *FullScanner {
 
 	// TODO : capacity = max count of captured groups in expression
 	s.groups = newTruncatedList[span.Interface](10)
-	s.namedGroups = newNamedCaptures(10)
+	s.namedGroups = newOrderedMap(10)
 
 	// TODO : capacity = height of tree (but what about quantifier)
 	s.expression = newTruncatedList[nodeMatch](50)
@@ -251,7 +275,7 @@ func (s *FullScanner) GetNamedGroup(name string) (span.Interface, bool) {
 }
 
 func (s *FullScanner) RewindNamedGroups(pos int) {
-	s.namedGroups.Rewind(pos)
+	s.namedGroups.Truncate(pos)
 }
 
 func (s *FullScanner) MarkAsHole(from int, to int) {
