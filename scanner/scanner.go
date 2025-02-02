@@ -6,15 +6,16 @@ import (
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/span"
+	"github.com/okneniz/cliche/structs" // shouldn't be deps, add special interface for pointer types
 )
 
 type FullScanner struct {
 	input       node.Input
 	output      node.Output
-	expression  TruncatedList[nodeMatch]
+	expression  *structs.TruncatedList[nodeMatch]
 	groups      Captures
 	namedGroups NamedCaptures
-	holes       TruncatedList[span.Interface]
+	holes       *structs.TruncatedList[span.Interface]
 }
 
 type Input interface {
@@ -34,19 +35,19 @@ type Captures interface {
 	Slice() []span.Interface
 }
 
-var _ Captures = newTruncatedList[span.Interface](0)
+var _ Captures = structs.NewTruncatedList[span.Interface](0)
 
 type NamedCaptures interface {
 	Get(string) (span.Interface, bool)
 	Put(string, span.Interface)
-	Truncate(int) // rename to truncate?
+	Truncate(int)
 	Empty() bool
 	Size() int
 	Map() map[string]span.Interface
-	String() string
+	String() string // TODO : remove and use map when it needed
 }
 
-var _ NamedCaptures = newOrderedMap[string, span.Interface](0)
+var _ NamedCaptures = structs.NewOrderedMap[string, span.Interface](0)
 
 var _ node.Output = new(Output)
 
@@ -62,14 +63,14 @@ func NewFullScanner(input Input, output node.Output) *FullScanner {
 	s.output = output
 
 	// TODO : capacity = max count of captured groups in expression
-	s.groups = newTruncatedList[span.Interface](10)
-	s.namedGroups = newOrderedMap[string, span.Interface](10)
+	s.groups = structs.NewTruncatedList[span.Interface](10)
+	s.namedGroups = structs.NewOrderedMap[string, span.Interface](10)
 
 	// TODO : capacity = height of tree (but what about quantifier)
-	s.expression = newTruncatedList[nodeMatch](50)
+	s.expression = structs.NewTruncatedList[nodeMatch](50)
 
 	// TODO : capacity = max count of assertions / lookaheads / lookbehins in expression
-	s.holes = newTruncatedList[span.Interface](3)
+	s.holes = structs.NewTruncatedList[span.Interface](3)
 
 	return s
 }

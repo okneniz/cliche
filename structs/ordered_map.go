@@ -1,4 +1,4 @@
-package scanner
+package structs
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ type OrderedMap[K comparable, V any] struct {
 	order  []K
 }
 
-func newOrderedMap[K comparable, V any](capacity int) *OrderedMap[K, V] {
+func NewOrderedMap[K comparable, V any](capacity int) *OrderedMap[K, V] {
 	return &OrderedMap[K, V]{
 		keys:   make(map[K]int, capacity),
 		values: make([]V, 0, capacity),

@@ -1,4 +1,4 @@
-package scanner
+package structs
 
 import (
 	"fmt"
@@ -41,7 +41,7 @@ func TestTruncatedList_Append(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			list := newTruncatedList[int](0)
+			list := NewTruncatedList[int](0)
 			list.Append(test.init...)
 
 			list.Append(test.append...)
@@ -95,7 +95,7 @@ func TestTruncatedList_At(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			list := newTruncatedList[int](0)
+			list := NewTruncatedList[int](0)
 			list.Append(test.list...)
 
 			value, exists := list.At(test.index)
@@ -184,7 +184,7 @@ func TestTruncatedList_Truncate(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			list := newTruncatedList[int](0)
+			list := NewTruncatedList[int](0)
 			list.Append(test.init...)
 
 			require.Equal(t, list.Size(), len(test.init))
@@ -220,7 +220,7 @@ func TestTruncatedList_Size(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			list := newTruncatedList[int](0)
+			list := NewTruncatedList[int](0)
 			list.Append(test.list...)
 			require.Equal(t, list.Size(), test.size)
 		})
@@ -256,7 +256,7 @@ func TestTruncatedList_First(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			list := newTruncatedList[int](0)
+			list := NewTruncatedList[int](0)
 			list.Append(test.list...)
 
 			value, exists := list.First()
@@ -295,7 +295,7 @@ func TestTruncatedList_Last(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			list := newTruncatedList[int](0)
+			list := NewTruncatedList[int](0)
 			list.Append(test.list...)
 
 			value, exists := list.Last()
@@ -330,7 +330,7 @@ func TestTruncatedList_Slice(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
-			list := newTruncatedList[int](0)
+			list := NewTruncatedList[int](0)
 			require.Equal(t, list.Slice(), []int{})
 			list.Append(test.list...)
 			require.Equal(t, list.Slice(), test.want)
