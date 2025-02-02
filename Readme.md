@@ -146,7 +146,7 @@ Possesive - greedy and does not backtrack once match.
 |✅| `[:xdigit:]` | `0030 - 0039 \| 0041 - 0046 \| 0061 - 0066 \| (0-9, a-f, A-F)` |
 |✅| `[:word:]` | `Letter \| Mark \| Decimal_Number \| Connector_Punctuation` |
 
-### Captured group
+### Extended groups
 
 | support | characters | match |
 |--|--|--|

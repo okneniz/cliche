@@ -41,7 +41,7 @@ func (l *truncatedList[T]) append(item T) {
 }
 
 func (l *truncatedList[T]) Truncate(newSize int) {
-	if newSize < 0 || newSize > l.size {
+	if newSize < 0 || newSize >= l.size {
 		return
 	}
 
@@ -62,27 +62,17 @@ func (l *truncatedList[T]) At(idx int) (T, bool) {
 }
 
 func (l *truncatedList[T]) First() (T, bool) {
-	if l.size == 0 {
-		var x T
-		return x, false
-	}
-
-	return l.data[0], true
+	return l.At(0)
 }
 
 func (l *truncatedList[T]) Last() (T, bool) {
-	if l.size == 0 {
-		var x T
-		return x, false
-	}
-
-	return l.data[l.size-1], true
+	return l.At(l.Size() - 1)
 }
 
 func (l *truncatedList[T]) Slice() []T {
-	if l.size == 0 {
-		return []T{}
+	s := make([]T, l.size)
+	for i := 0; i < l.size; i++ {
+		s[i] = l.data[i]
 	}
-
-	return l.data[0:l.size]
+	return s
 }

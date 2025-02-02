@@ -165,6 +165,11 @@ func TestTruncatedList_Truncate(t *testing.T) {
 		},
 		{
 			init:     []int{1, 2, 3},
+			truncate: 2,
+			want:     []int{1, 2},
+		},
+		{
+			init:     []int{1, 2, 3},
 			truncate: 3,
 			want:     []int{1, 2, 3},
 		},

@@ -12,7 +12,7 @@ type FullScanner struct {
 	input       node.Input
 	output      node.Output
 	expression  TruncatedList[nodeMatch]
-	groups      Captures
+	groups      TruncatedList[span.Interface]
 	namedGroups NamedCaptures
 	holes       TruncatedList[span.Interface]
 }
@@ -38,7 +38,7 @@ func NewFullScanner(input Input, output node.Output) *FullScanner {
 	s.output = output
 
 	// TODO : capacity = max count of captured groups in expression
-	s.groups = newCaptures(10)
+	s.groups = newTruncatedList[span.Interface](10)
 	s.namedGroups = newNamedCaptures(10)
 
 	// TODO : capacity = height of tree (but what about quantifier)
