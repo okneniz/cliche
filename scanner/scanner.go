@@ -10,7 +10,7 @@ import (
 )
 
 type FullScanner struct {
-	input       node.Input
+	input       Input
 	output      node.Output
 	expression  *structs.TruncatedList[nodeMatch]
 	groups      Captures
@@ -21,8 +21,6 @@ type FullScanner struct {
 type Input interface {
 	ReadAt(int) rune
 	Size() int
-	Position() int
-	String() string
 }
 
 type Captures interface {
