@@ -35,8 +35,6 @@ type Captures interface {
 	Slice() []span.Interface
 }
 
-var _ Captures = structs.NewTruncatedList[span.Interface](0)
-
 type NamedCaptures interface {
 	Get(string) (span.Interface, bool)
 	Put(string, span.Interface)
@@ -47,14 +45,12 @@ type NamedCaptures interface {
 	String() string // TODO : remove and use map when it needed
 }
 
-var _ NamedCaptures = structs.NewOrderedMap[string, span.Interface](0)
-
-var _ node.Output = new(Output)
-
 var (
-	_ node.Scanner = new(FullScanner)
-	_ node.Input   = buf.NewRunesBuffer("")
-	_ node.Output  = NewOutput()
+	_ node.Scanner  = new(FullScanner)
+	_ node.Input    = buf.NewRunesBuffer("")
+	_ node.Output   = NewOutput()
+	_ Captures      = structs.NewTruncatedList[span.Interface](0)
+	_ NamedCaptures = structs.NewOrderedMap[string, span.Interface](0)
 )
 
 func NewFullScanner(input Input, output node.Output) *FullScanner {
