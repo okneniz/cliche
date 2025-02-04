@@ -9,6 +9,8 @@ import (
 	"golang.org/x/text/unicode/rangetable"
 )
 
+// move it to special package too? (encoding)
+
 type UnicodeTable struct {
 	tbl *unicode.RangeTable
 }

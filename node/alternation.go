@@ -85,6 +85,7 @@ func (n *alternation) Visit(scanner Scanner, input Input, from, to int, onMatch 
 	)
 }
 
+// TODO : как бы удалить и оставить только Visit?
 func (n *alternation) VisitAlternation(
 	scanner Scanner,
 	input Input,

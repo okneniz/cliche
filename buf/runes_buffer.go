@@ -26,6 +26,7 @@ func NewRunesBuffer(str string) *RunesBuffer {
 }
 
 // Read - read next item, if greedy buffer keep position after reading.
+// only for parsec
 func (b *RunesBuffer) Read(greedy bool) (rune, error) {
 	if b.IsEOF() {
 		return 0, c.EndOfFile
@@ -48,7 +49,7 @@ func (b *RunesBuffer) Size() int {
 }
 
 func (b *RunesBuffer) String() string {
-	return fmt.Sprintf("Buffer(%s, %d)", string(b.data), b.position)
+	return fmt.Sprintf("RunesBuffer(%s, %d)", string(b.data), b.position)
 }
 
 // Seek - change buffer position
