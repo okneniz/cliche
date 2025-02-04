@@ -33,6 +33,11 @@ func (c *OrderedMap[K, V]) Get(key K) (V, bool) {
 // TODO : what about rewriting same key and Truncation?
 // test it
 // may be store list of indexes in keys?
+
+// TODO :
+// RUBY : /(?<test>.)(?<test>.)(?<test>.)/.match("123").named_captures => {"test"=>"3"}
+// OrderedMap save only last value
+
 func (c *OrderedMap[K, V]) Put(key K, s V) {
 	_, exists := c.keys[key]
 	if exists {
@@ -70,7 +75,7 @@ func (c *OrderedMap[K, V]) Truncate(pos int) {
 }
 
 func (c *OrderedMap[K, V]) String() string {
-	js, err := json.Marshal(c.keys)
+	js, err := json.Marshal(c.Map())
 	if err != nil {
 		return err.Error()
 	}
