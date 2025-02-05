@@ -51,6 +51,22 @@ func (t *tree) Add(strs ...string) error {
 	return nil
 }
 
+func (t *tree) addExpression(str string, newNode node.Node) {
+	newNode.Traverse(func(x node.Node) { // TODO it in parser
+		if len(x.GetNestedNodes()) == 0 {
+			x.AddExpression(str)
+		}
+	})
+
+	key := newNode.GetKey()
+
+	if prev, exists := t.nodes[key]; exists {
+		prev.Merge(newNode)
+	} else {
+		t.nodes[key] = newNode
+	}
+}
+
 func (t *tree) Size() int {
 	size := 0
 
@@ -61,6 +77,20 @@ func (t *tree) Size() int {
 	}
 
 	return size
+}
+
+func (t *tree) Match(text string) []*scanner.Match {
+	if len(text) == 0 {
+		return nil
+	}
+
+	input := buf.NewRunesBuffer(text)
+	output := scanner.NewOutput()
+	scanner := scanner.NewFullScanner(input, output, t.nodes)
+
+	scanner.Scan(0, input.Size()-1)
+
+	return output.Slice()
 }
 
 func (t *tree) MarshalJSON() ([]byte, error) {
@@ -83,34 +113,4 @@ func (t *tree) String() string {
 	}
 
 	return string(data)
-}
-
-func (t *tree) addExpression(str string, newNode node.Node) {
-	newNode.Traverse(func(x node.Node) {
-		if len(x.GetNestedNodes()) == 0 { // TODO : strange hack)
-			x.AddExpression(str)
-		}
-	})
-
-	key := newNode.GetKey()
-
-	if prev, exists := t.nodes[key]; exists {
-		prev.Merge(newNode)
-	} else {
-		t.nodes[key] = newNode
-	}
-}
-
-func (t *tree) Match(text string) []*scanner.Match {
-	if len(text) == 0 {
-		return nil
-	}
-
-	input := buf.NewRunesBuffer(text)
-	output := scanner.NewOutput()
-	scanner := scanner.NewFullScanner(input, output, t.nodes)
-
-	scanner.Scan(0, input.Size()-1)
-
-	return output.Slice()
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/span"
-	"github.com/okneniz/cliche/structs" // shouldn't be deps, add special interface for pointer types
+	"github.com/okneniz/cliche/structs"
 )
 
 type FullScanner struct {

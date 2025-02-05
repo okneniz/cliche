@@ -60,7 +60,7 @@ func (out *Output) Yield(
 		out.matches[n] = list
 	}
 
-	list.push(m)
+	list.Push(m)
 }
 
 func (out *Output) LastPosOf(n node.Node) (int, bool) {
@@ -69,7 +69,7 @@ func (out *Output) LastPosOf(n node.Node) (int, bool) {
 		return -1, false
 	}
 
-	match, exists := m.maximum()
+	match, exists := m.Maximum()
 	if !exists {
 		return -1, false
 	}
@@ -80,7 +80,7 @@ func (out *Output) LastPosOf(n node.Node) (int, bool) {
 func (out *Output) Slice() []*Match {
 	size := 0
 	for _, v := range out.matches {
-		size += v.size()
+		size += v.Size()
 	}
 
 	result := make([]*Match, 0, size)

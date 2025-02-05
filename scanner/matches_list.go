@@ -35,7 +35,7 @@ func (b *matchesList) compare(m1, m2 span.Interface) int {
 	}
 }
 
-func (b *matchesList) push(m *Match) {
+func (b *matchesList) Push(m *Match) {
 	if len(b.list) == 0 {
 		b.list = append(b.list, m)
 		return
@@ -58,7 +58,7 @@ func (b *matchesList) push(m *Match) {
 	b.list = append(b.list, m)
 }
 
-func (b *matchesList) maximum() (*Match, bool) {
+func (b *matchesList) Maximum() (*Match, bool) {
 	if len(b.list) == 0 {
 		return nil, false
 	}
@@ -66,7 +66,7 @@ func (b *matchesList) maximum() (*Match, bool) {
 	return b.list[len(b.list)-1], true
 }
 
-func (b *matchesList) size() int {
+func (b *matchesList) Size() int {
 	return len(b.list)
 }
 
