@@ -125,7 +125,8 @@ func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {
 		return
 	}
 
-	sp, exists := s.currentMatchSpan() // check lastHole and collision in (lastNotEmptySpan method)
+	// check lastHole and collision in (lastNotEmptySpan method)
+	sp, exists := s.currentMatchSpan()
 	if !exists {
 		return
 	}

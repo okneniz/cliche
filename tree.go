@@ -6,9 +6,7 @@ import (
 
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
-	"github.com/okneniz/cliche/parser"
 	"github.com/okneniz/cliche/scanner"
-	c "github.com/okneniz/parsec/common"
 )
 
 type Tree interface {
@@ -19,52 +17,43 @@ type Tree interface {
 	Match(string) []*scanner.Match
 }
 
+type Parser interface {
+	Parse(string) (node.Node, error)
+}
+
 var (
-	_ Tree                = new(tree)
-	_ c.Buffer[rune, int] = buf.NewRunesBuffer("")
+	_ Tree = new(tree)
 )
 
 type tree struct {
 	nodes  map[string]node.Node
-	parser parser.Parser
+	parser Parser
 }
 
-func New(parser parser.Parser) *tree {
+func New(parser Parser) *tree {
 	tr := new(tree)
 	tr.nodes = make(map[string]node.Node)
 	tr.parser = parser
 	return tr
 }
 
-func (t *tree) Add(strs ...string) error {
-	for _, str := range strs {
-		buf := buf.NewRunesBuffer(str)
-
-		node, err := t.parser.Parse(buf)
+func (t *tree) Add(expressions ...string) error {
+	for _, expression := range expressions {
+		node, err := t.parser.Parse(expression)
 		if err != nil {
 			return err
 		}
 
-		t.addExpression(str, node)
+		key := node.GetKey()
+
+		if prev, exists := t.nodes[key]; exists {
+			prev.Merge(node)
+		} else {
+			t.nodes[key] = node
+		}
 	}
 
 	return nil
-}
-
-func (t *tree) addExpression(str string, newNode node.Node) {
-	newNode.Traverse(func(x node.Node) { // TODO it in parser
-		if len(x.GetNestedNodes()) == 0 {
-			x.AddExpression(str)
-		}
-	})
-
-	key := newNode.GetKey()
-
-	if prev, exists := t.nodes[key]; exists {
-		prev.Merge(newNode)
-	} else {
-		t.nodes[key] = newNode
-	}
 }
 
 func (t *tree) Size() int {

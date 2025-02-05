@@ -3,6 +3,7 @@ package parser
 import (
 	"errors"
 
+	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
 )
@@ -11,18 +12,12 @@ var (
 	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
 )
 
-type Parser interface {
-	Parse(c.Buffer[rune, int]) (node.Node, error)
-}
-
 type Option[T any] func(T)
 
 type CustomParser struct {
 	parseExpression       c.Combinator[rune, int, node.Node]
 	parseNestedExpression c.Combinator[rune, int, node.Node]
 	alternationSep        c.Combinator[rune, int, rune]
-
-	// TODO : move it Config / Builder?
 
 	prefixes      map[string]c.Combinator[rune, int, node.Node]
 	prefixParsers *branch[node.Node]
@@ -189,7 +184,26 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 	return p
 }
 
-func (p *CustomParser) Parse(buf c.Buffer[rune, int]) (node.Node, error) {
+func (p *CustomParser) Parse(str string) (node.Node, error) {
+	buffer := buf.NewRunesBuffer(str)
+
+	newNode, err := p.parseAlternationOrExpression(buffer)
+	if err != nil {
+		return nil, err
+	}
+
+	newNode.Traverse(func(x node.Node) {
+		if len(x.GetNestedNodes()) == 0 { // its leaf
+			x.AddExpression(str)
+		}
+	})
+
+	return newNode, nil
+}
+
+func (p *CustomParser) parseAlternationOrExpression(
+	buf c.Buffer[rune, int],
+) (node.Node, error) {
 	expression, err := p.parseExpression(buf)
 	if err != nil {
 		return nil, err
