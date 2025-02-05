@@ -10,15 +10,15 @@
       "Input": "foo + bar = baz",
       "Want": [
         {
-           "SubString": "+",
-           "Span": {
-             "From": 4,
-             "To": 4,
-             "Empty": false
-           },
-           "Expressions": [
-             "\\o{053}"
-           ]
+          "SubString": "+",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\o{053}"
+          ]
         },
         {
           "SubString": "f",
@@ -30,7 +30,7 @@
           "Expressions": [
             "\\o{146}"
           ]
-        }         
+        }
       ]
     },
     {
@@ -42,15 +42,15 @@
       "Input": "foo + bar = baz",
       "Want": [
         {
-           "SubString": "+",
-           "Span": {
-             "From": 4,
-             "To": 4,
-             "Empty": false
-           },
-           "Expressions": [
-             "\\x2B"
-           ]
+          "SubString": "+",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\x2B"
+          ]
         },
         {
           "SubString": "f",
@@ -62,9 +62,9 @@
           "Expressions": [
             "\\x66"
           ]
-        }         
+        }
       ]
-    },    
+    },
     {
       "Name": "match '\\uHHHH'",
       "Expressions": [
@@ -76,25 +76,25 @@
         "\\u002b",
         "\\u66",
         "\\u066",
-        "\\u0066"        
+        "\\u0066"
       ],
       "Input": "foo + bar = baz",
       "Want": [
         {
-           "SubString": "+",
-           "Span": {
-             "From": 4,
-             "To": 4,
-             "Empty": false
-           },
-           "Expressions": [
-		        "\\u2B",
-		        "\\u02B",
-		        "\\u002B",
-		        "\\u2b",
-		        "\\u02b",
-		        "\\u002b"
-           ]
+          "SubString": "+",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\u2B",
+            "\\u02B",
+            "\\u002B",
+            "\\u2b",
+            "\\u02b",
+            "\\u002b"
+          ]
         },
         {
           "SubString": "f",
@@ -104,12 +104,12 @@
             "Empty": false
           },
           "Expressions": [
-	        "\\u66",
-	        "\\u066",
-	        "\\u0066" 
+            "\\u66",
+            "\\u066",
+            "\\u0066"
           ]
-        }         
+        }
       ]
-    }      
+    }
   ]
 }

@@ -44,7 +44,7 @@
     {
       "Name": "case 2",
       "Expressions": [
-        "<(?<tag>[^<>]+)>([^<>]+)<\/\\k<tag>>"
+        "<(?<tag>[^<>]+)>([^<>]+)</\\k<tag>>"
       ],
       "Input": "<!DOCTYPE html><html><body><h1>My First Heading</h1><p>My first paragraph.</p></body></html>",
       "Want": [
@@ -56,7 +56,7 @@
             "Empty": false
           },
           "Expressions": [
-            "<(?<tag>[^<>]+)>([^<>]+)<\/\\k<tag>>"
+            "<(?<tag>[^<>]+)>([^<>]+)</\\k<tag>>"
           ],
           "Groups": [
             {
@@ -84,7 +84,7 @@
             "Empty": false
           },
           "Expressions": [
-            "<(?<tag>[^<>]+)>([^<>]+)<\/\\k<tag>>"
+            "<(?<tag>[^<>]+)>([^<>]+)</\\k<tag>>"
           ],
           "Groups": [
             {
@@ -139,7 +139,7 @@
                 "To": 9,
                 "Empty": false
               }
-            } 
+            }
           ]
         }
       ]

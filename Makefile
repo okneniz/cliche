@@ -1,4 +1,4 @@
-default: test
+default: test lint
 
 test:
 	go test -v -timeout 60s -coverprofile=coverage.out ./...
@@ -7,8 +7,11 @@ test:
 install-linter:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2
 
-lint: fmt
+lint: fmt json_fmt
 	golangci-lint run ./...
+
+json_fmt:
+	for file in $(find ./testdata/base -name '*.json'); do jq -M -e . < $file > $file.out && mv $file.out $file; done
 
 fmt:
 	gofmt -w -s .

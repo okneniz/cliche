@@ -743,7 +743,7 @@
           "Expressions": [
             "\\h"
           ]
-        }      
+        }
       ]
     },
     {
@@ -753,72 +753,72 @@
       ],
       "Input": "asd 1 jsdfk 4234! F",
       "Want": [
-         {
-           "SubString": "s",
-           "Span": {
-             "From": 1,
-             "To": 1,
-             "Empty": false
-           },
-           "Expressions": [
-             "\\H"
-           ]
-         },
-         {
-           "SubString": " ",
-           "Span": {
-             "From": 3,
-             "To": 3,
-             "Empty": false
-           },
-           "Expressions": [
-             "\\H"
-           ]
-         },         
-         {
-           "SubString": "k",
-           "Span": {
-             "From": 10,
-             "To": 10,
-             "Empty": false
-           },
-           "Expressions": [
-             "\\H"
-           ]
-         },
-         {
-           "SubString": " ",
-           "Span": {
-             "From": 11,
-             "To": 11,
-             "Empty": false
-           },
-           "Expressions": [
-             "\\H"
-           ]
-         },
-         {
-           "SubString": "!",
-           "Span": {
-             "From": 16,
-             "To": 16,
-             "Empty": false
-           },
-           "Expressions": [
-             "\\H"
-           ]
-         },
-         {
-           "SubString": " ",
-           "Span": {
-             "From": 17,
-             "To": 17,
-             "Empty": false
-           },
-           "Expressions": [
-             "\\H"
-           ]
-         },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\H"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\H"
+          ]
+        },
+        {
+          "SubString": "k",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\H"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\H"
+          ]
+        },
+        {
+          "SubString": "!",
+          "Span": {
+            "From": 16,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\H"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 17,
+            "To": 17,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\H"
+          ]
+        },
         {
           "SubString": " ",
           "Span": {

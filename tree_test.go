@@ -83,7 +83,7 @@ func TestTree_New(t *testing.T) {
 func TestTree_Match(t *testing.T) {
 	t.Parallel()
 
-	files, err := tableTests.LoadAllTestFiles("/Users/andi/dev/golang/regular/testdata/base/")
+	files, err := tableTests.LoadAllTestFiles("./testdata/base/")
 	if err != nil {
 		t.Fatal(err)
 	}

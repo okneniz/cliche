@@ -61,7 +61,7 @@
               "From": 7,
               "To": 9,
               "Empty": false
-            }            
+            }
           ]
         }
       ]
@@ -96,7 +96,7 @@
               "From": 4,
               "To": 6,
               "Empty": false
-            }    
+            }
           ]
         }
       ]
@@ -123,7 +123,7 @@
               "From": 0,
               "To": 2,
               "Empty": false
-            }    
+            }
           ]
         }
       ]
@@ -131,7 +131,7 @@
     {
       "Name": "case 5",
       "Expressions": [
-        "<([^<>]+)>([^<>]+)<\/\\1>"
+        "<([^<>]+)>([^<>]+)</\\1>"
       ],
       "Input": "<!DOCTYPE html><html><body><h1>My First Heading</h1><p>My first paragraph.</p></body></html>",
       "Want": [
@@ -143,7 +143,7 @@
             "Empty": false
           },
           "Expressions": [
-            "<([^<>]+)>([^<>]+)<\/\\1>"
+            "<([^<>]+)>([^<>]+)</\\1>"
           ],
           "Groups": [
             {
@@ -155,7 +155,7 @@
               "From": 31,
               "To": 46,
               "Empty": false
-            }    
+            }
           ]
         },
         {
@@ -166,23 +166,22 @@
             "Empty": false
           },
           "Expressions": [
-            "<([^<>]+)>([^<>]+)<\/\\1>"
+            "<([^<>]+)>([^<>]+)</\\1>"
           ],
           "Groups": [
             {
               "From": 53,
               "To": 53,
               "Empty": false
-            },            
+            },
             {
               "From": 55,
               "To": 73,
               "Empty": false
-            }    
+            }
           ]
-        }        
+        }
       ]
-    }    
+    }
   ]
 }
-
