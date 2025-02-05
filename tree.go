@@ -108,40 +108,9 @@ func (t *tree) Match(text string) []*scanner.Match {
 
 	input := buf.NewRunesBuffer(text)
 	output := scanner.NewOutput()
-	scanner := scanner.NewFullScanner(input, output)
+	scanner := scanner.NewFullScanner(input, output, t.nodes)
 
-	t.Scan(scanner, 0, input.Size()-1, input, output)
+	scanner.Scan(0, input.Size()-1)
 
 	return output.Slice()
-}
-
-func (t *tree) Scan(
-	scanner node.Scanner,
-	from, to int,
-	input node.Input,
-	output node.Output,
-) {
-	// Rewrite to scanner.Scan()
-	// move logic about scanning to scanner
-
-	skip := func(_ node.Node, _, _ int, _ bool) {}
-
-	for _, n := range t.nodes {
-		nextFrom := from
-
-		for nextFrom <= to {
-			lastFrom := nextFrom
-			n.Visit(scanner, input, nextFrom, to, skip)
-
-			if pos, ok := output.LastPosOf(n); ok && pos >= nextFrom {
-				nextFrom = pos
-			}
-
-			if lastFrom == nextFrom {
-				nextFrom++
-			}
-
-			scanner.Rewind(0)
-		}
-	}
 }

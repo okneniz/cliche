@@ -10,17 +10,13 @@ import (
 )
 
 type FullScanner struct {
-	input       Input
+	input       node.Input
 	output      node.Output
 	expression  *structs.TruncatedList[nodeMatch]
 	groups      Captures
 	namedGroups NamedCaptures
 	holes       *structs.TruncatedList[span.Interface]
-}
-
-type Input interface {
-	ReadAt(int) rune
-	Size() int
+	roots       map[string]node.Node
 }
 
 type Captures interface {
@@ -51,10 +47,15 @@ var (
 	_ NamedCaptures = structs.NewOrderedMap[string, span.Interface](0)
 )
 
-func NewFullScanner(input Input, output node.Output) *FullScanner {
+func NewFullScanner(
+	input node.Input,
+	output node.Output,
+	roots map[string]node.Node, // add traverse method for tree
+) *FullScanner {
 	s := new(FullScanner)
 	s.input = input
 	s.output = output
+	s.roots = roots
 
 	// TODO : capacity = max count of captured groups in expression
 	s.groups = structs.NewTruncatedList[span.Interface](10)
@@ -67,6 +68,30 @@ func NewFullScanner(input Input, output node.Output) *FullScanner {
 	s.holes = structs.NewTruncatedList[span.Interface](3)
 
 	return s
+}
+
+func (s *FullScanner) Scan(from, to int) {
+	skip := func(_ node.Node, _, _ int, _ bool) {}
+
+	// TODO : rewrite to traverse
+	for _, root := range s.roots {
+		nextFrom := from
+
+		for nextFrom <= to {
+			lastFrom := nextFrom
+			root.Visit(s, s.input, nextFrom, to, skip)
+
+			if pos, ok := s.output.LastPosOf(root); ok && pos >= nextFrom {
+				nextFrom = pos
+			}
+
+			if lastFrom == nextFrom {
+				nextFrom++
+			}
+
+			s.Rewind(0)
+		}
+	}
 }
 
 func (s *FullScanner) String() string {

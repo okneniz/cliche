@@ -11,6 +11,9 @@ import (
 func TestTreeCompaction(t *testing.T) {
 	t.Parallel()
 
+	// TODO : написать тесты которые проверяют структуру дерева и его сжатие с помощью конструкторов node и дереве
+	// то есть без json и прочих строк
+
 	examples := [][]string{
 		{
 			"[a-z1-2]",

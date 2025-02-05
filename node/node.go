@@ -37,6 +37,7 @@ type Table interface {
 	String() string
 }
 
+// TODO : rename to Visitor?
 type Scanner interface {
 	Match(n Node, from, to int, isLeaf, isEmpty bool)
 	Position() int
