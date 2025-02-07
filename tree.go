@@ -39,21 +39,34 @@ func New(parser Parser) *tree {
 
 func (t *tree) Add(expressions ...string) error {
 	for _, expression := range expressions {
-		node, err := t.parser.Parse(expression)
+		newNode, err := t.parser.Parse(expression)
 		if err != nil {
 			return err
 		}
 
-		key := node.GetKey()
+		key := newNode.GetKey()
 
-		if prev, exists := t.nodes[key]; exists {
-			prev.Merge(node)
+		if oldNode, exists := t.nodes[key]; exists {
+			t.merge(oldNode, newNode)
 		} else {
-			t.nodes[key] = node
+			t.nodes[key] = newNode
 		}
 	}
 
 	return nil
+}
+
+func (t *tree) merge(oldNode, newNode node.Node) {
+	for key, newNestedNode := range newNode.GetNestedNodes() {
+		if oldNestedNode, exists := oldNode.GetNestedNodes()[key]; exists {
+			t.merge(oldNestedNode, newNestedNode)
+		} else {
+			oldNode.GetNestedNodes()[key] = newNestedNode
+		}
+	}
+
+	// TODO : remove AddTo because Node have AddExpression method?
+	newNode.GetExpressions().AddTo(oldNode.GetExpressions())
 }
 
 func (t *tree) Size() int {

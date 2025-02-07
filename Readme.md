@@ -519,6 +519,10 @@ TODO : js linter for test data
 // add test for "123$ 231€ 321₽"
 // (((123)))
 
+// add test for
+// RUBY - /.{2}|abc|\s/.match("abc").to_a
+// может так можно убрать интерфейс node.Alternation?
+
 // Добавить метод Nonsence который говорит какие выражения никогда не заматчатся
 // - например из-за пустой range table
 // - или из-за якоря \z после \A
@@ -569,3 +573,4 @@ TODO : js linter for test data
 // Property tests 
 
 - size нод не должно меняться при изменениях дерева
+- элементы для NewUnicodeTableFor всегда дают одинковый результата

@@ -13,7 +13,6 @@ type Node interface {
 	IsLeaf() bool
 
 	Visit(Scanner, Input, int, int, Callback)
-	Merge(Node) // remove, implement Merge(Node, Node) method in parser or tree
 
 	// Add parent to travers
 	// Should return bool to interupt traversing?

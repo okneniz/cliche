@@ -38,19 +38,6 @@ func (n *base) IsLeaf() bool {
 	return n.Expressions.Size() > 0
 }
 
-// TODO : move it to tree
-func (n *base) Merge(other Node) {
-	for key, newNode := range other.GetNestedNodes() {
-		if prev, exists := n.Nested[key]; exists {
-			prev.Merge(newNode)
-		} else {
-			n.Nested[key] = newNode
-		}
-	}
-
-	other.GetExpressions().AddTo(n.Expressions)
-}
-
 func (n *base) VisitNested(
 	scanner Scanner,
 	input Input,
