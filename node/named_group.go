@@ -5,14 +5,14 @@ import "fmt"
 type namedGroup struct {
 	Name  string      `json:"name,omitempty"`
 	Value Alternation `json:"value,omitempty"`
-	*nestedNode
+	*base
 }
 
 func NewNamedGroup(name string, expression Alternation) Node {
 	g := &namedGroup{
-		Name:       name,
-		nestedNode: newNestedNode(),
-		Value:      expression,
+		Name:  name,
+		base:  newBase(),
+		Value: expression,
 	}
 
 	return g
@@ -42,9 +42,9 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 			// TODO : why to? what about empty captures
 			scanner.MatchNamedGroup(n.Name, from, vTo)
-			scanner.Match(n, from, vTo, n.IsEnd(), false)
+			scanner.Match(n, from, vTo, n.IsLeaf(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.VisitNested(scanner, input, vTo+1, to, onMatch)
+			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
 
 			scanner.Rewind(pos)
 			scanner.RewindNamedGroups(groupsPos)
@@ -54,7 +54,7 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 func (n *namedGroup) Size() (int, bool) {
 	if size, fixedSize := n.Value.Size(); fixedSize {
-		if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}
 	}

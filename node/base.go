@@ -4,38 +4,35 @@ import (
 	"github.com/okneniz/cliche/structs"
 )
 
-// TODO : rename to base?
-type nestedNode struct {
+type base struct {
 	Expressions structs.Set[string] `json:"expressions,omitempty"`
-
-	// TODO : rename to Next?
-	Nested map[string]Node `json:"nested,omitempty"`
+	Nested      map[string]Node     `json:"nested,omitempty"`
 }
 
-func newNestedNode() *nestedNode {
-	n := new(nestedNode)
+func newBase() *base {
+	n := new(base)
 	n.Nested = make(map[string]Node)
 	n.Expressions = structs.NewMapSet[string]()
 	return n
 }
 
-func (n *nestedNode) GetNestedNodes() map[string]Node {
+func (n *base) GetNestedNodes() map[string]Node {
 	return n.Nested
 }
 
-func (n *nestedNode) GetExpressions() structs.Set[string] {
+func (n *base) GetExpressions() structs.Set[string] {
 	return n.Expressions
 }
 
-func (n *nestedNode) AddExpression(exp string) {
+func (n *base) AddExpression(exp string) {
 	n.Expressions.Add(exp)
 }
 
-func (n *nestedNode) IsEnd() bool {
+func (n *base) IsLeaf() bool {
 	return n.Expressions.Size() > 0
 }
 
-func (n *nestedNode) Merge(other Node) {
+func (n *base) Merge(other Node) {
 	for key, newNode := range other.GetNestedNodes() {
 		if prev, exists := n.Nested[key]; exists {
 			prev.Merge(newNode)
@@ -47,7 +44,7 @@ func (n *nestedNode) Merge(other Node) {
 	other.GetExpressions().AddTo(n.Expressions)
 }
 
-func (n *nestedNode) VisitNested(
+func (n *base) VisitNested(
 	scanner Scanner,
 	input Input,
 	from, to int,
@@ -58,7 +55,7 @@ func (n *nestedNode) VisitNested(
 	}
 }
 
-func (n *nestedNode) NestedSize() (int, bool) {
+func (n *base) NestedSize() (int, bool) {
 	if len(n.Nested) == 0 {
 		return 0, true
 	}

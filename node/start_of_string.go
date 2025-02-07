@@ -1,12 +1,12 @@
 package node
 
 type startOfString struct {
-	*nestedNode
+	*base
 }
 
 func NewStartOfString() Node {
 	return &startOfString{
-		nestedNode: newNestedNode(),
+		base: newBase(),
 	}
 }
 
@@ -23,13 +23,15 @@ func (n *startOfString) Traverse(f func(Node)) {
 }
 
 func (n *startOfString) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from == 0 {
-		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), true)
-		onMatch(n, from, from, true)
-		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
-		scanner.Rewind(pos)
+	if from != 0 {
+		return
 	}
+
+	pos := scanner.Position()
+	scanner.Match(n, from, from, n.IsLeaf(), true)
+	onMatch(n, from, from, true)
+	n.base.VisitNested(scanner, input, from, to, onMatch)
+	scanner.Rewind(pos)
 }
 
 func (n *startOfString) Size() (int, bool) {

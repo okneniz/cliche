@@ -5,14 +5,14 @@ package node
 type quantifier struct {
 	Quantity *Quantity `json:"quantity"`
 	Value    Node      `json:"value,omitempty"`
-	*nestedNode
+	*base
 }
 
 func NewQuantifier(q *Quantity, value Node) Node {
 	return &quantifier{
-		Quantity:   q,
-		Value:      value,
-		nestedNode: newNestedNode(),
+		Quantity: q,
+		Value:    value,
+		base:     newBase(),
 	}
 }
 
@@ -33,9 +33,9 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 	n.recursiveVisit(1, scanner, input, from, to, func(_ Node, _, mTo int, empty bool) {
 		pos := scanner.Position()
-		scanner.Match(n, from, mTo, n.IsEnd(), false)
+		scanner.Match(n, from, mTo, n.IsLeaf(), false)
 		onMatch(n, from, mTo, empty)
-		n.nestedNode.VisitNested(scanner, input, mTo+1, to, onMatch)
+		n.base.VisitNested(scanner, input, mTo+1, to, onMatch)
 		scanner.Rewind(pos)
 	})
 
@@ -43,8 +43,8 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.Quantity.Optional() {
-		scanner.Match(n, from, from, n.IsEnd(), true)
-		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+		scanner.Match(n, from, from, n.IsLeaf(), true)
+		n.base.VisitNested(scanner, input, from, to, onMatch)
 	}
 
 	scanner.Rewind(start)
@@ -73,7 +73,7 @@ func (n *quantifier) Size() (int, bool) {
 	// TODO : fix it
 	// TODO : size * quantity
 	if size, fixedSize := n.Value.Size(); fixedSize {
-		if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}
 	}

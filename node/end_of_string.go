@@ -1,12 +1,12 @@
 package node
 
 type endOfString struct {
-	*nestedNode
+	*base
 }
 
 func NewEndOfString() Node {
 	return &endOfString{
-		nestedNode: newNestedNode(),
+		base: newBase(),
 	}
 }
 
@@ -25,15 +25,15 @@ func (n *endOfString) Traverse(f func(Node)) {
 func (n *endOfString) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from == input.Size() {
 		pos := scanner.Position()
-		scanner.Match(n, from, from, n.IsEnd(), true)
+		scanner.Match(n, from, from, n.IsLeaf(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+		n.base.VisitNested(scanner, input, from, to, onMatch)
 		scanner.Rewind(pos)
 	}
 }
 
 func (n *endOfString) Size() (int, bool) {
-	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 		return nestedSize, true
 	}
 

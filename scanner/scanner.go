@@ -70,6 +70,23 @@ func NewFullScanner(
 	return s
 }
 
+func (s *FullScanner) String() string {
+	return fmt.Sprintf(
+		"Scanner(\n\toutput=%s,\n\tgroups=%s,\n\tholes=%v\n)",
+		s.output.String(),
+		s.groups,
+		s.holes,
+	)
+}
+
+func (s *FullScanner) Position() int {
+	return s.expression.Size()
+}
+
+func (s *FullScanner) Rewind(pos int) {
+	s.expression.Truncate(pos)
+}
+
 func (s *FullScanner) Scan(from, to int) {
 	skip := func(_ node.Node, _, _ int, _ bool) {}
 
@@ -92,23 +109,6 @@ func (s *FullScanner) Scan(from, to int) {
 			s.Rewind(0)
 		}
 	}
-}
-
-func (s *FullScanner) String() string {
-	return fmt.Sprintf(
-		"Scanner(\n\toutput=%s,\n\tgroups=%s,\n\tholes=%v\n)",
-		s.output.String(),
-		s.groups,
-		s.holes,
-	)
-}
-
-func (s *FullScanner) Position() int {
-	return s.expression.Size()
-}
-
-func (s *FullScanner) Rewind(pos int) {
-	s.expression.Truncate(pos)
 }
 
 func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {

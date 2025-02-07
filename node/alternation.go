@@ -21,14 +21,14 @@ type alternation struct {
 	// TODO : maybe to keep variant uniq?
 	Value     map[string]Node `json:"value,omitempty"`
 	lastNodes map[Node]struct{}
-	*nestedNode
+	*base
 }
 
 func NewAlternation(variants []Node) Alternation {
 	n := new(alternation)
 	n.Value = make(map[string]Node, len(variants))
 	n.lastNodes = make(map[Node]struct{}, len(variants))
-	n.nestedNode = newNestedNode()
+	n.base = newBase()
 
 	variantKey := bytes.NewBuffer(nil)
 
@@ -69,7 +69,7 @@ func (n *alternation) Traverse(f func(Node)) {
 	}
 }
 
-// TODO : check it without groups too
+// Visit - visit like node
 func (n *alternation) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	n.visitVariants(
 		scanner,
@@ -78,15 +78,15 @@ func (n *alternation) Visit(scanner Scanner, input Input, from, to int, onMatch 
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) {
 			pos := scanner.Position()
-			scanner.Match(n, from, vTo, n.IsEnd(), false)
+			scanner.Match(n, from, vTo, n.IsLeaf(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.VisitNested(scanner, input, vTo+1, to, onMatch)
+			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
 			scanner.Rewind(pos)
 		},
 	)
 }
 
-// TODO : как бы удалить и оставить только Visit?
+// VisitAlternation - visit like group values
 func (n *alternation) VisitAlternation(
 	scanner Scanner,
 	input Input,
@@ -130,7 +130,7 @@ func (n *alternation) Size() (int, bool) {
 		return 0, false
 	}
 
-	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 		return *size + nestedSize, true
 	}
 

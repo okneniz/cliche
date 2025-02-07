@@ -10,7 +10,7 @@ type Node interface {
 	GetExpressions() structs.Set[string]
 	AddExpression(string)
 	GetNestedNodes() map[string]Node
-	IsEnd() bool
+	IsLeaf() bool
 
 	Visit(Scanner, Input, int, int, Callback)
 	Merge(Node) // remove, implement Merge(Node, Node) method in parser or tree
@@ -22,7 +22,7 @@ type Node interface {
 	// TODO : works only for fixed chain with one end node?
 	// don't work for tree?
 
-	// TODO : it's improtanto for group too have chain in Value instead tree
+	// TODO : it's improtant for group too have chain in Value instead tree
 	// make special type for this case?
 
 	// TODO : what about alternation of chains?

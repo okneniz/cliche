@@ -5,7 +5,7 @@ import "fmt"
 type lookBehind struct {
 	Value             Alternation `json:"value,omitempty"`
 	subExpressionSize int
-	*nestedNode
+	*base
 }
 
 func NewLookBehind(expression Alternation) (*lookBehind, error) {
@@ -17,7 +17,7 @@ func NewLookBehind(expression Alternation) (*lookBehind, error) {
 	return &lookBehind{
 		Value:             expression,
 		subExpressionSize: size,
-		nestedNode:        newNestedNode(),
+		base:              newBase(),
 	}, nil
 }
 
@@ -49,9 +49,9 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		func(_ Node, vFrom, vTo int, empty bool) {
 			scanner.Rewind(pos)
 
-			scanner.Match(n, from, from, n.IsEnd(), true)
+			scanner.Match(n, from, from, n.IsLeaf(), true)
 			onMatch(n, from, from, true)
-			n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+			n.base.VisitNested(scanner, input, from, to, onMatch)
 
 			scanner.Rewind(pos)
 		},

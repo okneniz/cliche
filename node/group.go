@@ -4,13 +4,13 @@ import "fmt"
 
 type group struct {
 	Value Alternation `json:"value,omitempty"`
-	*nestedNode
+	*base
 }
 
 func NewGroup(expression Alternation) Node {
 	g := &group{
-		nestedNode: newNestedNode(),
-		Value:      expression,
+		base:  newBase(),
+		Value: expression,
 	}
 
 	return g
@@ -40,9 +40,9 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 
 			// TODO : why to? what about empty captures
 			scanner.MatchGroup(from, vTo)
-			scanner.Match(n, from, vTo, n.IsEnd(), false)
+			scanner.Match(n, from, vTo, n.IsLeaf(), false)
 			onMatch(n, from, vTo, empty)
-			n.nestedNode.VisitNested(scanner, input, vTo+1, to, onMatch)
+			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
 
 			scanner.Rewind(pos)
 			scanner.RewindGroups(groupsPos)
@@ -52,7 +52,7 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 
 func (n *group) Size() (int, bool) {
 	if size, fixedSize := n.Value.Size(); fixedSize {
-		if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}
 	}

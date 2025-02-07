@@ -4,7 +4,7 @@ package node
 type simpleNode struct {
 	key       string
 	predicate func(rune) bool
-	*nestedNode
+	*base
 }
 
 func NewForTable(table Table) Node {
@@ -13,7 +13,7 @@ func NewForTable(table Table) Node {
 		predicate: func(r rune) bool {
 			return table.Include(r)
 		},
-		nestedNode: newNestedNode(),
+		base: newBase(),
 	}
 }
 
@@ -38,9 +38,9 @@ func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		pos := scanner.Position()
 		groupsPos := scanner.GroupsPosition()
 
-		scanner.Match(n, from, from, n.IsEnd(), false)
+		scanner.Match(n, from, from, n.IsLeaf(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.VisitNested(scanner, input, from+1, to, onMatch)
+		n.base.VisitNested(scanner, input, from+1, to, onMatch)
 
 		scanner.Rewind(pos)
 		scanner.RewindGroups(groupsPos)
@@ -48,7 +48,7 @@ func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch C
 }
 
 func (n *simpleNode) Size() (int, bool) {
-	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 		return 1 + nestedSize, true
 	}
 

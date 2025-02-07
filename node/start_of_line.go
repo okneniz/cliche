@@ -1,12 +1,12 @@
 package node
 
 type startOfLine struct {
-	*nestedNode
+	*base
 }
 
 func NewStartOfLine() Node {
 	return &startOfLine{
-		nestedNode: newNestedNode(),
+		base: newBase(),
 	}
 }
 
@@ -30,9 +30,9 @@ func (n *startOfLine) Visit(scanner Scanner, input Input, from, to int, onMatch 
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := scanner.Position()
 
-		scanner.Match(n, from, from, n.IsEnd(), true)
+		scanner.Match(n, from, from, n.IsLeaf(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+		n.base.VisitNested(scanner, input, from, to, onMatch)
 
 		scanner.Rewind(pos)
 	}
@@ -60,7 +60,7 @@ func (n *startOfLine) isEndOfLine(input Input, idx int) bool {
 }
 
 func (n *startOfLine) Size() (int, bool) {
-	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 		return nestedSize, true
 	}
 

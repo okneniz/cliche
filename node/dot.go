@@ -3,12 +3,12 @@ package node
 // not simple node with table because §diferent behaviour for different scan options
 // TODO : add something to empty json value, and in another spec symbols
 type dot struct {
-	*nestedNode
+	*base
 }
 
 func NewDot() Node {
 	return &dot{
-		nestedNode: newNestedNode(),
+		base: newBase(),
 	}
 }
 
@@ -32,16 +32,16 @@ func (n *dot) Visit(scanner Scanner, input Input, from, to int, onMatch Callback
 	if input.ReadAt(from) != '\n' {
 		pos := scanner.Position()
 
-		scanner.Match(n, from, from, n.IsEnd(), false)
+		scanner.Match(n, from, from, n.IsLeaf(), false)
 		onMatch(n, from, from, false)
-		n.nestedNode.VisitNested(scanner, input, from+1, to, onMatch)
+		n.base.VisitNested(scanner, input, from+1, to, onMatch)
 
 		scanner.Rewind(pos)
 	}
 }
 
 func (n *dot) Size() (int, bool) {
-	if nestedSize, fixedSize := n.nestedNode.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 		return 1 + nestedSize, true
 	}
 

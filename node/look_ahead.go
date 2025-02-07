@@ -4,13 +4,13 @@ import "fmt"
 
 type lookAhead struct {
 	Value Alternation `json:"value,omitempty"`
-	*nestedNode
+	*base
 }
 
 func NewLookAhead(expression Alternation) Node {
 	return &lookAhead{
-		Value:      expression,
-		nestedNode: newNestedNode(),
+		Value: expression,
+		base:  newBase(),
 	}
 }
 
@@ -38,11 +38,11 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 
 			// what about empty spans, just skip it?
 			scanner.MarkAsHole(from, vTo) // or just scanner rewind to "FROM" pos without holes?
-			scanner.Match(n, from, from, n.IsEnd(), true)
+			scanner.Match(n, from, from, n.IsLeaf(), true)
 			onMatch(n, from, from, true)
 
 			scanner.RewindHoles(holesPos)
-			n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+			n.base.VisitNested(scanner, input, from, to, onMatch)
 
 			scanner.Rewind(pos)
 		},

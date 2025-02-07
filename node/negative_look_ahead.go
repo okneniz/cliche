@@ -4,13 +4,13 @@ import "fmt"
 
 type negativeLookAhead struct {
 	Value Alternation `json:"value,omitempty"`
-	*nestedNode
+	*base
 }
 
 func NewNegativeLookAhead(expression Alternation) Node {
 	return &negativeLookAhead{
-		Value:      expression,
-		nestedNode: newNestedNode(),
+		Value: expression,
+		base:  newBase(),
 	}
 }
 
@@ -47,10 +47,10 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 	if !matched {
 		scanner.Rewind(pos)
 
-		scanner.Match(n, from, from, n.IsEnd(), true)
+		scanner.Match(n, from, from, n.IsLeaf(), true)
 		onMatch(n, from, from, true)
 
-		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+		n.base.VisitNested(scanner, input, from, to, onMatch)
 	}
 
 	scanner.Rewind(pos)

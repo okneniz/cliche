@@ -6,14 +6,14 @@ import "fmt"
 type referenceNode struct {
 	key   string
 	index int
-	*nestedNode
+	*base
 }
 
 func NodeForReference(index int) Node {
 	return &referenceNode{
-		key:        fmt.Sprintf("\\%d", index),
-		index:      index,
-		nestedNode: newNestedNode(),
+		key:   fmt.Sprintf("\\%d", index),
+		index: index,
+		base:  newBase(),
 	}
 }
 
@@ -45,9 +45,9 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 	pos := scanner.Position()
 
 	if !exists || matchSpan.Empty() {
-		scanner.Match(n, from, from, n.IsEnd(), true)
+		scanner.Match(n, from, from, n.IsLeaf(), true)
 		onMatch(n, from, from, true)
-		n.nestedNode.VisitNested(scanner, input, from, to, onMatch)
+		n.base.VisitNested(scanner, input, from, to, onMatch)
 
 		scanner.Rewind(pos)
 	} else {
@@ -73,10 +73,10 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 			current++
 		}
 
-		scanner.Match(n, from, current-1, n.IsEnd(), false)
+		scanner.Match(n, from, current-1, n.IsLeaf(), false)
 		onMatch(n, from, current-1, false)
 
-		n.nestedNode.VisitNested(scanner, input, current, to, onMatch)
+		n.base.VisitNested(scanner, input, current, to, onMatch)
 		scanner.Rewind(pos)
 	}
 }
