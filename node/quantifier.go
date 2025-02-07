@@ -3,21 +3,17 @@ package node
 // https://www.regular-expressions.info/repeat.html
 
 type quantifier struct {
-	Quantity *Quantity `json:"quantity"`
-	Value    Node      `json:"value,omitempty"`
+	quantity *Quantity
+	Value    Node `json:"value,omitempty"`
 	*base
 }
 
 func NewQuantifier(q *Quantity, value Node) Node {
 	return &quantifier{
-		Quantity: q,
+		quantity: q,
 		Value:    value,
-		base:     newBase(),
+		base:     newBase(value.GetKey() + q.String()),
 	}
-}
-
-func (n *quantifier) GetKey() string {
-	return n.Value.GetKey() + n.Quantity.String()
 }
 
 func (n *quantifier) Traverse(f func(Node)) {
@@ -42,7 +38,7 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 	scanner.Rewind(start)
 
 	// for zero matches like .? or .* or .{0,X}
-	if n.Quantity.Optional() {
+	if n.quantity.Optional() {
 		scanner.Match(n, from, from, n.IsLeaf(), true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 	}
@@ -58,8 +54,8 @@ func (n *quantifier) recursiveVisit(
 	onMatch Callback,
 ) {
 	n.Value.Visit(scanner, input, from, to, func(match Node, mFrom, mTo int, empty bool) {
-		if n.Quantity.Gt(count) {
-			if n.Quantity.Include(count) {
+		if n.quantity.Gt(count) {
+			if n.quantity.Include(count) {
 				onMatch(match, mFrom, mTo, empty)
 			}
 

@@ -6,12 +6,8 @@ type startOfString struct {
 
 func NewStartOfString() Node {
 	return &startOfString{
-		base: newBase(),
+		base: newBase("\\A"),
 	}
-}
-
-func (n *startOfString) GetKey() string {
-	return "\\A"
 }
 
 func (n *startOfString) Traverse(f func(Node)) {

@@ -3,26 +3,22 @@ package node
 import "fmt"
 
 type negativeLookBehind struct {
-	Value             Alternation `json:"value,omitempty"`
 	subExpressionSize int
+	Value             Alternation `json:"value,omitempty"`
 	*base
 }
 
-func NewNegativeLookBehind(expression Alternation) (*negativeLookBehind, error) {
-	size, fixedSize := expression.Size()
+func NewNegativeLookBehind(alt Alternation) (*negativeLookBehind, error) {
+	size, fixedSize := alt.Size()
 	if !fixedSize {
 		return nil, fmt.Errorf("Invalid pattern in negative look-behind, must be fixed size")
 	}
 
 	return &negativeLookBehind{
-		Value:             expression,
 		subExpressionSize: size,
-		base:              newBase(),
+		Value:             alt,
+		base:              newBase(fmt.Sprintf("(?<!%s)", alt.GetKey())),
 	}, nil
-}
-
-func (n *negativeLookBehind) GetKey() string {
-	return fmt.Sprintf("(?<!%s)", n.Value.GetKey())
 }
 
 func (n *negativeLookBehind) Traverse(f func(Node)) {

@@ -1,7 +1,6 @@
 package node
 
 import (
-	"bytes"
 	"strings"
 )
 
@@ -17,48 +16,42 @@ type Alternation interface {
 }
 
 type alternation struct {
-	// TODO : not list, order is important
-	// TODO : maybe to keep variant uniq?
-	Value     map[string]Node `json:"value,omitempty"`
+	// order of variants is important
+	Value     []Node `json:"value,omitempty"`
 	lastNodes map[Node]struct{}
 	*base
 }
 
 func NewAlternation(variants []Node) Alternation {
-	n := new(alternation)
-	n.Value = make(map[string]Node, len(variants))
-	n.lastNodes = make(map[Node]struct{}, len(variants))
-	n.base = newBase()
-
-	variantKey := bytes.NewBuffer(nil)
+	keys := make([]string, 0, len(variants))
+	uniqVariants := make([]Node, 0, len(variants))
+	cache := make(map[string]struct{})
 
 	for _, variant := range variants {
-		variant.Traverse(func(x Node) {
-			variantKey.WriteString(x.GetKey())
+		key := variant.GetKey()
 
+		if _, exists := cache[key]; exists {
+			continue
+		}
+
+		uniqVariants = append(uniqVariants, variant)
+		keys = append(keys, key)
+	}
+
+	n := new(alternation)
+	n.base = newBase(strings.Join(keys, "|"))
+	n.Value = uniqVariants
+	n.lastNodes = make(map[Node]struct{}, len(uniqVariants))
+
+	for _, variant := range uniqVariants {
+		variant.Traverse(func(x Node) {
 			if len(x.GetNestedNodes()) == 0 {
 				n.lastNodes[x] = struct{}{}
 			}
 		})
-
-		x := variantKey.String()
-		n.Value[x] = variant
-		variantKey.Reset()
 	}
-
-	variantKey.Reset()
 
 	return n
-}
-
-func (n *alternation) GetKey() string {
-	variantKeys := make([]string, 0, len(n.Value))
-
-	for _, variant := range n.Value {
-		variantKeys = append(variantKeys, variant.GetKey())
-	}
-
-	return strings.Join(variantKeys, ",")
 }
 
 func (n *alternation) Traverse(f func(Node)) {

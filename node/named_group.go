@@ -8,18 +8,14 @@ type namedGroup struct {
 	*base
 }
 
-func NewNamedGroup(name string, expression Alternation) Node {
+func NewNamedGroup(name string, alt Alternation) Node {
 	g := &namedGroup{
 		Name:  name,
-		base:  newBase(),
-		Value: expression,
+		Value: alt,
+		base:  newBase(fmt.Sprintf("(?<%s>%s)", name, alt.GetKey())),
 	}
 
 	return g
-}
-
-func (n *namedGroup) GetKey() string {
-	return fmt.Sprintf("(?<%s>%s)", n.Name, n.Value.GetKey())
 }
 
 func (n *namedGroup) Traverse(f func(Node)) {

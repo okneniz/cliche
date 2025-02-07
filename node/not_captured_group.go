@@ -7,17 +7,13 @@ type notCapturedGroup struct {
 	*base
 }
 
-func NewNotCapturedGroup(expression Alternation) Node {
+func NewNotCapturedGroup(alt Alternation) Node {
 	g := &notCapturedGroup{
-		Value: expression,
-		base:  newBase(),
+		Value: alt,
+		base:  newBase(fmt.Sprintf("(?:%s)", alt.GetKey())),
 	}
 
 	return g
-}
-
-func (n *notCapturedGroup) GetKey() string {
-	return fmt.Sprintf("(?:%s)", n.Value.GetKey())
 }
 
 func (n *notCapturedGroup) Traverse(f func(Node)) {

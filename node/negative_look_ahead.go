@@ -7,15 +7,11 @@ type negativeLookAhead struct {
 	*base
 }
 
-func NewNegativeLookAhead(expression Alternation) Node {
+func NewNegativeLookAhead(alt Alternation) Node {
 	return &negativeLookAhead{
-		Value: expression,
-		base:  newBase(),
+		Value: alt,
+		base:  newBase(fmt.Sprintf("(?!%s)", alt.GetKey())),
 	}
-}
-
-func (n *negativeLookAhead) GetKey() string {
-	return fmt.Sprintf("(?!%s)", n.Value.GetKey())
 }
 
 func (n *negativeLookAhead) Traverse(f func(Node)) {

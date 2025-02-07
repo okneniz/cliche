@@ -6,12 +6,8 @@ type startOfLine struct {
 
 func NewStartOfLine() Node {
 	return &startOfLine{
-		base: newBase(),
+		base: newBase("^"),
 	}
-}
-
-func (n *startOfLine) GetKey() string {
-	return "^"
 }
 
 func (n *startOfLine) Traverse(f func(Node)) {

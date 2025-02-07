@@ -7,17 +7,11 @@ type group struct {
 	*base
 }
 
-func NewGroup(expression Alternation) Node {
-	g := &group{
-		base:  newBase(),
-		Value: expression,
+func NewGroup(alt Alternation) Node {
+	return &group{
+		Value: alt,
+		base:  newBase(fmt.Sprintf("(%s)", alt.GetKey())),
 	}
-
-	return g
-}
-
-func (n *group) GetKey() string {
-	return fmt.Sprintf("(%s)", n.Value.GetKey())
 }
 
 func (n *group) Traverse(f func(Node)) {

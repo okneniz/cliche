@@ -5,21 +5,15 @@ import "fmt"
 // named back reference \k<name>
 
 type nameReferenceNode struct {
-	key  string
 	name string
 	*base
 }
 
 func NewForNameReference(name string) Node {
 	return &nameReferenceNode{
-		key:  fmt.Sprintf("\\k<%s>", name),
 		name: name,
-		base: newBase(),
+		base: newBase(fmt.Sprintf("\\k<%s>", name)),
 	}
-}
-
-func (n *nameReferenceNode) GetKey() string {
-	return n.key
 }
 
 func (n *nameReferenceNode) Traverse(f func(Node)) {

@@ -2,23 +2,17 @@ package node
 
 // https://www.regular-expressions.info/charclass.html
 type simpleNode struct {
-	key       string
 	predicate func(rune) bool
 	*base
 }
 
 func NewForTable(table Table) Node {
 	return &simpleNode{
-		key: table.String(),
 		predicate: func(r rune) bool {
 			return table.Include(r)
 		},
-		base: newBase(),
+		base: newBase(table.String()),
 	}
-}
-
-func (n *simpleNode) GetKey() string {
-	return n.key
 }
 
 func (n *simpleNode) Traverse(f func(Node)) {

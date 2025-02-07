@@ -6,12 +6,8 @@ type endOfString struct {
 
 func NewEndOfString() Node {
 	return &endOfString{
-		base: newBase(),
+		base: newBase("\\z"),
 	}
-}
-
-func (n *endOfString) GetKey() string {
-	return "\\z"
 }
 
 func (n *endOfString) Traverse(f func(Node)) {

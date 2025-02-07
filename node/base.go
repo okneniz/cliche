@@ -5,15 +5,21 @@ import (
 )
 
 type base struct {
+	key         string
 	Expressions structs.Set[string] `json:"expressions,omitempty"`
 	Nested      map[string]Node     `json:"nested,omitempty"`
 }
 
-func newBase() *base {
+func newBase(key string) *base {
 	n := new(base)
+	n.key = key
 	n.Nested = make(map[string]Node)
 	n.Expressions = structs.NewMapSet[string]()
 	return n
+}
+
+func (n *base) GetKey() string {
+	return n.key
 }
 
 func (n *base) GetNestedNodes() map[string]Node {
@@ -32,6 +38,7 @@ func (n *base) IsLeaf() bool {
 	return n.Expressions.Size() > 0
 }
 
+// TODO : move it to tree
 func (n *base) Merge(other Node) {
 	for key, newNode := range other.GetNestedNodes() {
 		if prev, exists := n.Nested[key]; exists {

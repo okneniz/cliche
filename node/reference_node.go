@@ -4,21 +4,15 @@ import "fmt"
 
 // back reference \1, \2 or \9
 type referenceNode struct {
-	key   string
 	index int
 	*base
 }
 
 func NodeForReference(index int) Node {
 	return &referenceNode{
-		key:   fmt.Sprintf("\\%d", index),
 		index: index,
-		base:  newBase(),
+		base:  newBase(fmt.Sprintf("\\%d", index)),
 	}
-}
-
-func (n *referenceNode) GetKey() string {
-	return n.key
 }
 
 func (n *referenceNode) Traverse(f func(Node)) {

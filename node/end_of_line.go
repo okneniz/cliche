@@ -6,12 +6,8 @@ type endOfLine struct {
 
 func NewEndOfLine() Node {
 	return &endOfLine{
-		base: newBase(),
+		base: newBase("$"),
 	}
-}
-
-func (n *endOfLine) GetKey() string {
-	return "$"
 }
 
 func (n *endOfLine) Traverse(f func(Node)) {

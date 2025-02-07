@@ -8,21 +8,17 @@ type lookBehind struct {
 	*base
 }
 
-func NewLookBehind(expression Alternation) (*lookBehind, error) {
-	size, fixedSize := expression.Size()
+func NewLookBehind(alt Alternation) (*lookBehind, error) {
+	size, fixedSize := alt.Size()
 	if !fixedSize {
 		return nil, fmt.Errorf("Invalid pattern in look-behind, must be fixed size")
 	}
 
 	return &lookBehind{
-		Value:             expression,
+		Value:             alt,
 		subExpressionSize: size,
-		base:              newBase(),
+		base:              newBase(fmt.Sprintf("(?<=%s)", alt.GetKey())),
 	}, nil
-}
-
-func (n *lookBehind) GetKey() string {
-	return fmt.Sprintf("(?<=%s)", n.Value.GetKey())
 }
 
 func (n *lookBehind) Traverse(f func(Node)) {

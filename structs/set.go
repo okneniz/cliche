@@ -1,11 +1,17 @@
 package structs
 
+import (
+	"bytes"
+	"encoding/json"
+)
+
 type Set[T comparable] interface {
 	Add(item ...T)
 	AddTo(other Set[T])
 	Size() int
 	Slice() []T
 	Clone() Set[T]
+	MarshalJSON() ([]byte, error)
 }
 
 type mapSet[T comparable] struct {
@@ -60,4 +66,18 @@ func (s *mapSet[T]) Clone() Set[T] {
 	s.AddTo(newSet)
 
 	return newSet
+}
+
+func (s *mapSet[T]) MarshalJSON() ([]byte, error) {
+	data := bytes.NewBuffer(nil)
+
+	encoder := json.NewEncoder(data)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", " ")
+
+	if err := encoder.Encode(s.Slice()); err != nil {
+		return nil, err
+	}
+
+	return data.Bytes(), nil
 }

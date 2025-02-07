@@ -498,6 +498,8 @@ TODO : js linter for test data
 
 // TODO: remove onMatch Callback params (required only for quantifier?)
 // pass quantifier as scanner?
+// or maybe just reduce calls of onMatch() (only if it's leaf?)
+
 
 // JAVASCRIPT - /(a)\2/u; // SyntaxError: Invalid regular expression: Invalid escape
 
@@ -559,3 +561,11 @@ TODO : js linter for test data
 
 // TODO : add more tests for back references
 // with all kind of groups
+
+// проверять что группы с одинковыми именами но разным выражением - не жмутся
+// проверять что альтернативы с одинаковыми вариантами жмутся в обычную ноду (на уровне ключа)
+
+
+// Property tests 
+
+- size нод не должно меняться при изменениях дерева

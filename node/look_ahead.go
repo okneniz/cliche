@@ -7,15 +7,11 @@ type lookAhead struct {
 	*base
 }
 
-func NewLookAhead(expression Alternation) Node {
+func NewLookAhead(alt Alternation) Node {
 	return &lookAhead{
-		Value: expression,
-		base:  newBase(),
+		Value: alt,
+		base:  newBase(fmt.Sprintf("(?=%s)", alt.GetKey())),
 	}
-}
-
-func (n *lookAhead) GetKey() string {
-	return fmt.Sprintf("(?=%s)", n.Value.GetKey())
 }
 
 func (n *lookAhead) Traverse(f func(Node)) {

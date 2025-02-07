@@ -8,12 +8,8 @@ type dot struct {
 
 func NewDot() Node {
 	return &dot{
-		base: newBase(),
+		base: newBase("."),
 	}
-}
-
-func (n *dot) GetKey() string {
-	return "."
 }
 
 func (n *dot) Traverse(f func(Node)) {
