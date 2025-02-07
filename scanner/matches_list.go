@@ -8,6 +8,13 @@ import (
 
 // TODO : add unit tests too
 
+// https://www.regular-expressions.info/engine.html
+// This is a very important point to understand:
+// a regex engine always returns the leftmost match,
+// even if a “better” match could be found later.
+
+// https://www.regular-expressions.info/posix.html
+
 type matchesList struct {
 	list []*Match
 }

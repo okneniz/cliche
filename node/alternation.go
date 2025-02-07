@@ -100,6 +100,43 @@ func (n *alternation) VisitAlternation(
 }
 
 func (n *alternation) visitVariants(scanner Scanner, input Input, from, to int, onMatch Callback) {
+	// TODO : interup after first match?
+
+	// POSIX ERE Alternation Returns The Longest Match
+	//
+	// In the tutorial topic about alternation, I explained that the regex engine will stop
+	// as soon as it finds a matching alternative.
+	// The POSIX standard, however, mandates that the longest match be returned.
+	// When applying Set|SetValue to SetValue, a POSIX-compliant regex engine will
+	// match SetValue entirely.
+	// Even if the engine is a regex-directed NFA engine, POSIX requires that it
+	// simulates DFA text-directed matching by trying all alternatives,
+	// and returning the longest match, in this case SetValue.
+	// A traditional NFA engine would match Set, as do all other regex flavors discussed
+	// on this website.
+
+	// A POSIX-compliant engine will still find the leftmost match.
+	// If you apply Set|SetValue to Set or SetValue once, it will match Set.
+	// The first position in the string is the leftmost position where our regex can find a
+	//  valid match.
+	// The fact that a longer match can be found further in the string is irrelevant.
+	// If you apply the regex a second time, continuing at the first space in the string,
+	// then SetValue will be matched.
+	// A traditional NFA engine would match Set at the start of the string as the first match,
+	// and Set at the start of the 3rd word in the string as the second match.
+
+	// BUT
+
+	// https://www.regular-expressions.info/alternation.html
+	//
+	// Remember That The Regex Engine Is Eager
+	//
+	// The consequence is that in certain situations, the order of the alternatives matters.
+	// With expression "Get|GetValue|Set|SetValue" and string SetValue,
+	// should be matched third variant - "Set"
+	//
+	// TODO : add test for if it possible
+
 	for _, variant := range n.Value {
 		variant.Visit(scanner, input, from, to, onMatch)
 	}

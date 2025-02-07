@@ -195,7 +195,7 @@ When we say "backreference a group," it actually means, "re-match the same text 
 
 ### Asertions
  
- https://www.regular-expressions.info/lookaround.html
+https://www.regular-expressions.info/lookaround.html
 
 The difference is that lookaround actually matches characters, but then gives up the match, 
 returning only the result: match or no match. That is why they are called “assertions”.
@@ -389,29 +389,7 @@ A-2. Original extensions
 
 // TODO : return error for invalid escaped chars like '\x' (check on rubular)
 
-
-https://github.com/rsms/go-immutable
-
-// https://www.regular-expressions.info/repeat.html
-
-// bnf / ebnf
-//
-// https://www2.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html
-
-// do a lot of methods for different scanning
-// - for match without allocations
-// - for replacements
-// - for data extractions
-//
-// and scanner for all of them?
-//
-// try to copy official API
-//
-// https://pkg.go.dev/regexp#Regexp.FindString
-//
-// https://swtch.com/~rsc/regexp/regexp2.html#posix
-//
-// https://www.rfc-editor.org/rfc/rfc9485.html#name-multi-character-escapes
+## Features
 
 для выражений типа [:printed:]
 
@@ -424,54 +402,40 @@ https://github.com/rsms/go-immutable
 - так пример можно будет расширить для других кодировок и range table-ов
 - возможны регулярные выражения для бинарных данных
 
-TODO : js linter for test data
-
-// https://www.regular-expressions.info/engine.html
-// This is a very important point to understand:
-// a regex engine always returns the leftmost match,
-// even if a “better” match could be found later.
-
-// https://www.regular-expressions.info/posix.html
-//
-// - what is better behaviour, first match or longest match?
-// - it's important for compaction
+// custom:
+// - brackets [[:cyrilic:]]
+// - meta chars \ѣ
+// - custom anything
 
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
 
-// https://www.regular-expressions.info/alternation.html
+
+// Добавить метод Nonsence который говорит какие выражения никогда не заматчатся
+// - например из-за пустой range table
+// - или из-за якоря \z после \A
+// - или странного assertion / lookahead, например 1(?=3)2
+
+// do a lot of methods for different scanning
+// - for match without allocations
+// - for replacements
+// - for data extractions
 //
-// Remember That The Regex Engine Is Eager
+// and scanner for all of them?
 //
-// The consequence is that in certain situations, the order of the alternatives matters.
-// With expression "Get|GetValue|Set|SetValue" and string SetValue,
-// should be matched third variant - "Set"
+// try to copy official API
 //
-// TODO : add test for if it possible
+// https://pkg.go.dev/regexp#Regexp.FindString
 
-// BUT
+## Differences
 
-// POSIX ERE Alternation Returns The Longest Match
+// bnf / ebnf
+//
+// https://www2.cs.sfu.ca/~cameron/Teaching/384/99-3/regexp-plg.html
+//
+// https://swtch.com/~rsc/regexp/regexp2.html#posix
+//
+// https://www.rfc-editor.org/rfc/rfc9485.html#name-multi-character-escapes
 
-// In the tutorial topic about alternation, I explained that the regex engine will stop
-// as soon as it finds a matching alternative.
-// The POSIX standard, however, mandates that the longest match be returned.
-// When applying Set|SetValue to SetValue, a POSIX-compliant regex engine will
-// match SetValue entirely.
-// Even if the engine is a regex-directed NFA engine, POSIX requires that it
-// simulates DFA text-directed matching by trying all alternatives,
-// and returning the longest match, in this case SetValue.
-// A traditional NFA engine would match Set, as do all other regex flavors discussed
-// on this website.
-
-// A POSIX-compliant engine will still find the leftmost match.
-// If you apply Set|SetValue to Set or SetValue once, it will match Set.
-// The first position in the string is the leftmost position where our regex can find a
-//  valid match.
-// The fact that a longer match can be found further in the string is irrelevant.
-// If you apply the regex a second time, continuing at the first space in the string,
-// then SetValue will be matched.
-// A traditional NFA engine would match Set at the start of the string as the first match,
-// and Set at the start of the 3rd word in the string as the second match.
 
 // GROUPS name collision
 
@@ -479,12 +443,7 @@ TODO : js linter for test data
 // JS - report about error
 
 
-// custom:
-// - brackets [[:cyrilic:]]
-// - meta chars \ѣ
-// - custom anything
-
-// TODO : в тестах проверять, что groups входят в span строки
+## Need check
 
 // TODO :
 //
@@ -500,14 +459,21 @@ TODO : js linter for test data
 // pass quantifier as scanner?
 // or maybe just reduce calls of onMatch() (only if it's leaf?)
 
-
 // JAVASCRIPT - /(a)\2/u; // SyntaxError: Invalid regular expression: Invalid escape
-
 
 // проверить как парсятся ключи в alternation + groups
 // внутри <([^<>]+)>[^<>]+(<(span|em|i|b)>([^<>]+)<\/\3>)[^<>]+<\/\1>
 // находил <(b,s,e,i)>
 // кажется баг где-то
+
+// TODO : использовть bitset для ключей Node
+// для utf нужен make([]byte, unicode.MaxRune / sozeOf(byte))
+// если predicate сработал, то ставить bit = 1, иначе bit = 0
+
+// проверять что группы с одинковыми именами но разным выражением - не жмутся
+// проверять что альтернативы с одинаковыми вариантами жмутся в обычную ноду (на уровне ключа)
+
+## Need tests
 
 // add test for
 // <([^<>]+)>[^<>]*(<(span|em|i|b)>([^<>]+)<\/\\3>)[^<>]*<\/\\1>
@@ -523,24 +489,6 @@ TODO : js linter for test data
 // RUBY - /.{2}|abc|\s/.match("abc").to_a
 // может так можно убрать интерфейс node.Alternation?
 
-// Добавить метод Nonsence который говорит какие выражения никогда не заматчатся
-// - например из-за пустой range table
-// - или из-за якоря \z после \A
-// - или странного assertion / lookahead, например 1(?=3)2
-
-// https://www.regular-expressions.info/lookaround.html 
-// Regex Engine Internals
-// - The regex q(?=u)i can never match anything. 
-
-// Добавить тесты на утверждения типа "никогд не заматчится"
-// https://www.regular-expressions.info/lookaround.html
-//
-// Lookaround Is Atomic
-//
-// For this reason, the regex (?=(\d+))\w+\1 never matches 123x12.
-//
-// But the regex (?=(\d+))\w+\1 does match 56x56 in 456x56
-
 // cost is /\$(?<=\$)10/ match "cost is $10"
 
 // TODO : check this
@@ -555,22 +503,28 @@ TODO : js linter for test data
 // rubular render something strange - https://rubular.com
 // problem copy euro symbol to irb
 
-// TODO : использовть bitset для ключей Node
-// для utf нужен make([]byte, unicode.MaxRune / sozeOf(byte))
-// если predicate сработал, то ставить bit = 1, иначе bit = 0
+// TODO : add more tests for back references
+// with all kind of groups
+
+##  Property tests 
+
+- size нод не должно меняться при изменениях дерева
+- элементы для NewUnicodeTableFor всегда дают одинковый результата
+
+// https://www.regular-expressions.info/lookaround.html 
+// Regex Engine Internals
+// - The regex q(?=u)i can never match anything. 
+
+// Добавить тесты на утверждения типа "никогд не заматчится"
+// https://www.regular-expressions.info/lookaround.html
+//
+// Lookaround Is Atomic
+//
+// For this reason, the regex (?=(\d+))\w+\1 never matches 123x12.
+//
+// But the regex (?=(\d+))\w+\1 does match 56x56 in 456x56
 
 // ((?<=(^))(.+)(?=($)))
 //
 // must match any string
 
-// TODO : add more tests for back references
-// with all kind of groups
-
-// проверять что группы с одинковыми именами но разным выражением - не жмутся
-// проверять что альтернативы с одинаковыми вариантами жмутся в обычную ноду (на уровне ключа)
-
-
-// Property tests 
-
-- size нод не должно меняться при изменениях дерева
-- элементы для NewUnicodeTableFor всегда дают одинковый результата
