@@ -36,14 +36,12 @@ func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 	if n.predicate(input.ReadAt(from)) {
 		pos := scanner.Position()
-		groupsPos := scanner.GroupsPosition()
 
 		scanner.Match(n, from, from, n.IsLeaf(), false)
 		onMatch(n, from, from, false)
 		n.base.VisitNested(scanner, input, from+1, to, onMatch)
 
 		scanner.Rewind(pos)
-		scanner.RewindGroups(groupsPos)
 	}
 }
 
