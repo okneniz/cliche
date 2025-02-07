@@ -137,7 +137,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			table := unicodeEncoding.NewUnicodeTableFor(r)
+			table := unicodeEncoding.NewTableFor(r)
 			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\x", func(buf c.Buffer[rune, int]) (node.Table, error) {
@@ -149,7 +149,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			return unicodeEncoding.NewUnicodeTableFor(r), nil
+			return unicodeEncoding.NewTableFor(r), nil
 		}),
 		parser.WithPrefix("\\o", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			num, err := parseOctalChar(buf)
@@ -160,7 +160,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			table := unicodeEncoding.NewUnicodeTableFor(r)
+			table := unicodeEncoding.NewTableFor(r)
 			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\o", func(buf c.Buffer[rune, int]) (node.Table, error) {
@@ -172,7 +172,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			return unicodeEncoding.NewUnicodeTableFor(r), nil
+			return unicodeEncoding.NewTableFor(r), nil
 		}),
 		parser.WithPrefix("\\u", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			num, err := parseUnicodeChar(buf)
@@ -183,7 +183,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			table := unicodeEncoding.NewUnicodeTableFor(r)
+			table := unicodeEncoding.NewTableFor(r)
 			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\u", func(buf c.Buffer[rune, int]) (node.Table, error) {
@@ -195,7 +195,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			return unicodeEncoding.NewUnicodeTableFor(r), nil
+			return unicodeEncoding.NewTableFor(r), nil
 		}),
 		parser.WithPrefix("\\k", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			parse := parser.Angles( // TODO : prebuild it by closure
@@ -319,17 +319,17 @@ func parsePropertyName() c.Combinator[rune, int, node.Table] {
 
 	for k, v := range unicode.Categories {
 		x := v
-		allProperties[k] = unicodeEncoding.NewUnicodeTable(x)
+		allProperties[k] = unicodeEncoding.NewTable(x)
 	}
 
 	for k, v := range unicode.Properties {
 		x := v
-		allProperties[k] = unicodeEncoding.NewUnicodeTable(x)
+		allProperties[k] = unicodeEncoding.NewTable(x)
 	}
 
 	for k, v := range unicode.Scripts {
 		x := v
-		allProperties[k] = unicodeEncoding.NewUnicodeTable(x)
+		allProperties[k] = unicodeEncoding.NewTable(x)
 	}
 
 	cases := make([]c.Combinator[rune, int, node.Table], 0, len(allProperties))

@@ -11,19 +11,17 @@ import (
 
 // TODO : add interface Ecoder?
 
-// TODO : move it to special package too (encoding)
-
 type UnicodeTable struct {
 	tbl *unicode.RangeTable
 }
 
-func NewUnicodeTable(tbl *unicode.RangeTable) *UnicodeTable {
+func NewTable(tbl *unicode.RangeTable) *UnicodeTable {
 	return &UnicodeTable{
 		tbl: tbl,
 	}
 }
 
-func MergeUnicodeTables(tbls ...node.Table) node.Table {
+func MergeTables(tbls ...node.Table) node.Table {
 	runes := make([]rune, 0)
 
 	for x := rune(0); x <= unicode.MaxRune; x++ {
@@ -34,14 +32,14 @@ func MergeUnicodeTables(tbls ...node.Table) node.Table {
 		}
 	}
 
-	return NewUnicodeTableFor(runes...)
+	return NewTableFor(runes...)
 }
 
-func NewUnicodeTableFor(items ...rune) *UnicodeTable {
-	return NewUnicodeTable(rangetable.New(items...))
+func NewTableFor(items ...rune) *UnicodeTable {
+	return NewTable(rangetable.New(items...))
 }
 
-func NewUnicodeTableByPredicate(p func(rune) bool) *UnicodeTable {
+func NewTableByPredicate(p func(rune) bool) *UnicodeTable {
 	runes := make([]rune, 0)
 
 	for x := rune(0); x <= unicode.MaxRune; x++ {
@@ -50,7 +48,7 @@ func NewUnicodeTableByPredicate(p func(rune) bool) *UnicodeTable {
 		}
 	}
 
-	return NewUnicodeTable(rangetable.New(runes...))
+	return NewTable(rangetable.New(runes...))
 }
 
 func (t *UnicodeTable) Include(x rune) bool {
@@ -66,7 +64,7 @@ func (t *UnicodeTable) Invert() node.Table {
 		}
 	}
 
-	return NewUnicodeTable(rangetable.New(runes...))
+	return NewTable(rangetable.New(runes...))
 }
 
 func (t *UnicodeTable) String() string {

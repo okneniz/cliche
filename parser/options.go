@@ -11,7 +11,7 @@ func WithBracket(
 ) Option[*CustomParser] {
 	// TODO : validate name to avoid conflicts with default spec symbols ".?+*^$[]{}()"
 
-	table := unicode.NewUnicodeTableByPredicate(predicate)
+	table := unicode.NewTableByPredicate(predicate)
 	negatiatedTable := table.Invert()
 
 	parseNode := func(buf c.Buffer[rune, int]) (node.Node, error) {
@@ -45,7 +45,7 @@ func WithEscapedMetaChar(
 ) Option[*CustomParser] {
 	// TODO : validate char
 
-	table := unicode.NewUnicodeTableByPredicate(predicate)
+	table := unicode.NewTableByPredicate(predicate)
 	parse := func(buf c.Buffer[rune, int]) (node.Node, error) {
 		return node.NewForTable(table), nil
 	}

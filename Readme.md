@@ -509,7 +509,7 @@ A-2. Original extensions
 ##  Property tests 
 
 - size нод не должно меняться при изменениях дерева
-- элементы для NewUnicodeTableFor всегда дают одинковый результата
+- элементы для encoding/unicode.NewTableFor всегда дают одинковый результата
 
 // https://www.regular-expressions.info/lookaround.html 
 // Regex Engine Internals
