@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/unicode/rangetable"
 )
 
-// move it to special package too? (encoding)
+// TODO : move it to special package too (encoding)
 
 type UnicodeTable struct {
 	tbl *unicode.RangeTable
@@ -70,25 +70,16 @@ func (t *UnicodeTable) Invert() node.Table {
 }
 
 func (t *UnicodeTable) String() string {
-	return rangeTableKey(t.tbl)
-}
-
-// конвертить в BitSet
-func rangeTableKey(table *unicode.RangeTable) string {
-	if getCharsCount(table) == 1 { // TODO : not really good
-		return string(getAllChars(table))
-	}
-
 	b := new(strings.Builder)
 
 	b.WriteString("[")
 
 	comma := false
 
-	if len(table.R16) > 0 {
+	if len(t.tbl.R16) > 0 {
 		b.WriteString("R16(")
 
-		for i, r := range table.R16 {
+		for i, r := range t.tbl.R16 {
 			b.WriteString(fmt.Sprintf("%d", r.Lo))
 			b.WriteString("-")
 			b.WriteString(fmt.Sprintf("%d", r.Hi))
@@ -98,7 +89,7 @@ func rangeTableKey(table *unicode.RangeTable) string {
 				b.WriteString(fmt.Sprintf("%d", r.Stride))
 			}
 
-			if i != len(table.R16)-1 {
+			if i != len(t.tbl.R16)-1 {
 				b.WriteString(",")
 			}
 		}
@@ -107,14 +98,14 @@ func rangeTableKey(table *unicode.RangeTable) string {
 		comma = true
 	}
 
-	if len(table.R32) > 0 {
+	if len(t.tbl.R32) > 0 {
 		if comma {
 			b.WriteString(",")
 		}
 
 		b.WriteString("R32(")
 
-		for i, r := range table.R32 {
+		for i, r := range t.tbl.R32 {
 			b.WriteString(fmt.Sprintf("%d", r.Lo))
 			b.WriteString("-")
 			b.WriteString(fmt.Sprintf("%d", r.Hi))
@@ -124,7 +115,7 @@ func rangeTableKey(table *unicode.RangeTable) string {
 				b.WriteString(fmt.Sprintf("%d", r.Stride))
 			}
 
-			if i != len(table.R32)-1 {
+			if i != len(t.tbl.R32)-1 {
 				b.WriteString(",")
 			}
 		}
@@ -135,42 +126,4 @@ func rangeTableKey(table *unicode.RangeTable) string {
 	b.WriteString("]")
 
 	return b.String()
-}
-
-func getCharsCount(table *unicode.RangeTable) int {
-	var charsSum int
-
-	for _, r := range table.R16 {
-		charsSum += charsInR16(r)
-	}
-	for _, r := range table.R32 {
-		charsSum += charsInR32(r)
-	}
-
-	return charsSum
-}
-
-func charsInR16(r unicode.Range16) int {
-	return int((r.Hi-r.Lo)/r.Stride + 1)
-}
-
-func charsInR32(r unicode.Range32) int {
-	return int((r.Hi-r.Lo)/r.Stride + 1)
-}
-
-func getAllChars(table *unicode.RangeTable) []rune {
-	res := make([]rune, 0)
-
-	for _, r := range table.R16 {
-		for c := r.Lo; c <= r.Hi; c += r.Stride {
-			res = append(res, rune(c))
-		}
-	}
-	for _, r := range table.R32 {
-		for c := r.Lo; c <= r.Hi; c += r.Stride {
-			res = append(res, rune(c))
-		}
-	}
-
-	return res
 }
