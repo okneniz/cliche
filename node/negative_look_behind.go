@@ -8,7 +8,7 @@ type negativeLookBehind struct {
 	*base
 }
 
-func NewNegativeLookBehind(alt Alternation) (*negativeLookBehind, error) {
+func NewNegativeLookBehind(alt Alternation) (Node, error) {
 	size, fixedSize := alt.Size()
 	if !fixedSize {
 		return nil, fmt.Errorf("Invalid pattern in negative look-behind, must be fixed size")

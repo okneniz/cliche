@@ -8,7 +8,7 @@ type lookBehind struct {
 	*base
 }
 
-func NewLookBehind(alt Alternation) (*lookBehind, error) {
+func NewLookBehind(alt Alternation) (Node, error) {
 	size, fixedSize := alt.Size()
 	if !fixedSize {
 		return nil, fmt.Errorf("Invalid pattern in look-behind, must be fixed size")
