@@ -2,8 +2,6 @@ package node
 
 // https://www.regular-expressions.info/repeat.html
 
-// TODO : rename to repeat?
-
 type quantifier struct {
 	Quantity *Quantity `json:"quantity"`
 	Value    Node      `json:"value,omitempty"`
@@ -60,8 +58,8 @@ func (n *quantifier) recursiveVisit(
 	onMatch Callback,
 ) {
 	n.Value.Visit(scanner, input, from, to, func(match Node, mFrom, mTo int, empty bool) {
-		if n.Quantity.Gt(count) { // TODO : why not just inlude?
-			if n.Quantity.Include(count) { // TODO : why?, maybe remove it?
+		if n.Quantity.Gt(count) {
+			if n.Quantity.Include(count) {
 				onMatch(match, mFrom, mTo, empty)
 			}
 

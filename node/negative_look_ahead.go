@@ -7,7 +7,7 @@ type negativeLookAhead struct {
 	*nestedNode
 }
 
-func NewNegativeLookAhead(expression Alternation) *negativeLookAhead {
+func NewNegativeLookAhead(expression Alternation) Node {
 	return &negativeLookAhead{
 		Value:      expression,
 		nestedNode: newNestedNode(),

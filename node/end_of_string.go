@@ -4,7 +4,7 @@ type endOfString struct {
 	*nestedNode
 }
 
-func EndOfString() Node {
+func NewEndOfString() Node {
 	return &endOfString{
 		nestedNode: newNestedNode(),
 	}

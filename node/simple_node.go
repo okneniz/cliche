@@ -7,7 +7,7 @@ type simpleNode struct {
 	*nestedNode
 }
 
-func NodeForTable(table Table) *simpleNode {
+func NewForTable(table Table) Node {
 	return &simpleNode{
 		key: table.String(),
 		predicate: func(r rune) bool {

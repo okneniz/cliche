@@ -4,7 +4,7 @@ type startOfString struct {
 	*nestedNode
 }
 
-func StartOfString() Node {
+func NewStartOfString() Node {
 	return &startOfString{
 		nestedNode: newNestedNode(),
 	}

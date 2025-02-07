@@ -23,8 +23,6 @@ func (n *endOfLine) Traverse(f func(Node)) {
 }
 
 func (n *endOfLine) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	// TODO : precache new line positions in buffer?
-
 	if n.isEndOfLine(input, from) {
 		pos := scanner.Position()
 

@@ -553,3 +553,6 @@ TODO : js linter for test data
 // ((?<=(^))(.+)(?=($)))
 //
 // must match any string
+
+// TODO : add more tests for back references
+// with all kind of groups

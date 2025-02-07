@@ -14,11 +14,11 @@ func WithBracket(
 	negatiatedTable := table.Invert()
 
 	parseNode := func(buf c.Buffer[rune, int]) (node.Node, error) {
-		return node.NodeForTable(table), nil
+		return node.NewForTable(table), nil
 	}
 
 	parseNegatedNode := func(buf c.Buffer[rune, int]) (node.Node, error) {
-		return node.NodeForTable(negatiatedTable), nil
+		return node.NewForTable(negatiatedTable), nil
 	}
 
 	parseTable := func(buf c.Buffer[rune, int]) (node.Table, error) {
@@ -46,7 +46,7 @@ func WithEscapedMetaChar(
 
 	table := NewUnicodeTableByPredicate(predicate)
 	parse := func(buf c.Buffer[rune, int]) (node.Node, error) {
-		return node.NodeForTable(table), nil
+		return node.NewForTable(table), nil
 	}
 	parseTable := func(buf c.Buffer[rune, int]) (node.Table, error) {
 		return table, nil

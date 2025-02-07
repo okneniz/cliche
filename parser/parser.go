@@ -43,7 +43,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		x := r
 
 		p.prefixes["\\"+string(r)] = func(buf c.Buffer[rune, int]) (node.Node, error) {
-			return node.NodeForTable(NewUnicodeTableFor(x)), nil
+			return node.NewForTable(NewUnicodeTableFor(x)), nil
 		}
 	}
 
@@ -400,7 +400,7 @@ func (p *CustomParser) parseCharacter(
 			return nil, err
 		}
 
-		return node.NodeForTable(NewUnicodeTableFor(x)), nil
+		return node.NewForTable(NewUnicodeTableFor(x)), nil
 	}
 }
 
@@ -589,7 +589,7 @@ func (p *CustomParser) parseCharacterClass(
 		}
 
 		table := MergeUnicodeTables(tables...)
-		return node.NodeForTable(table), nil
+		return node.NewForTable(table), nil
 	}
 }
 
@@ -611,7 +611,7 @@ func (p *CustomParser) parseNegatedCharacterClass(
 		}
 
 		table := MergeUnicodeTables(tables...).Invert()
-		return node.NodeForTable(table), nil
+		return node.NewForTable(table), nil
 	}
 }
 

@@ -88,10 +88,10 @@ var (
 			return node.NewEndOfLine(), nil
 		}),
 		parser.WithPrefix("\\A", func(buf c.Buffer[rune, int]) (node.Node, error) {
-			return node.StartOfString(), nil
+			return node.NewStartOfString(), nil
 		}),
 		parser.WithPrefix("\\z", func(buf c.Buffer[rune, int]) (node.Node, error) {
-			return node.EndOfString(), nil
+			return node.NewEndOfString(), nil
 		}),
 		parser.WithPrefix("\\p", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			table, err := propertyTable(buf)
@@ -99,7 +99,7 @@ var (
 				return nil, err
 			}
 
-			return node.NodeForTable(table), nil
+			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\p", func(buf c.Buffer[rune, int]) (node.Table, error) {
 			table, err := propertyTable(buf)
@@ -115,7 +115,7 @@ var (
 				return nil, err
 			}
 
-			return node.NodeForTable(table.Invert()), nil
+			return node.NewForTable(table.Invert()), nil
 		}),
 		parser.WithInClassPrefix("\\P", func(buf c.Buffer[rune, int]) (node.Table, error) {
 			table, err := propertyTable(buf)
@@ -135,7 +135,7 @@ var (
 			r := rune(num)
 
 			table := parser.NewUnicodeTableFor(r)
-			return node.NodeForTable(table), nil
+			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\x", func(buf c.Buffer[rune, int]) (node.Table, error) {
 			num, err := parseHexChar(buf)
@@ -158,7 +158,7 @@ var (
 			r := rune(num)
 
 			table := parser.NewUnicodeTableFor(r)
-			return node.NodeForTable(table), nil
+			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\o", func(buf c.Buffer[rune, int]) (node.Table, error) {
 			num, err := parseOctalChar(buf)
@@ -181,7 +181,7 @@ var (
 			r := rune(num)
 
 			table := parser.NewUnicodeTableFor(r)
-			return node.NodeForTable(table), nil
+			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\u", func(buf c.Buffer[rune, int]) (node.Table, error) {
 			num, err := parseUnicodeChar(buf)
@@ -207,7 +207,7 @@ var (
 				return nil, err
 			}
 
-			return node.NodeForNameReference(string(name)), nil
+			return node.NewForNameReference(string(name)), nil
 		}),
 		parser.WithParser(parseBackReference),
 	}

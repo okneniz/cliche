@@ -2,15 +2,12 @@ package node
 
 import "fmt"
 
-// TODO : add more tests for back references
-// with all kind of groups
-
 type notCapturedGroup struct {
 	Value Alternation `json:"value,omitempty"`
 	*nestedNode
 }
 
-func NewNotCapturedGroup(expression Alternation) *notCapturedGroup {
+func NewNotCapturedGroup(expression Alternation) Node {
 	g := &notCapturedGroup{
 		Value:      expression,
 		nestedNode: newNestedNode(),

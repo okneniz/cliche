@@ -9,7 +9,7 @@ type referenceNode struct {
 	*nestedNode
 }
 
-func NodeForReference(index int) *referenceNode {
+func NodeForReference(index int) Node {
 	return &referenceNode{
 		key:        fmt.Sprintf("\\%d", index),
 		index:      index,

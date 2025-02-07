@@ -10,7 +10,7 @@ type nameReferenceNode struct {
 	*nestedNode
 }
 
-func NodeForNameReference(name string) *nameReferenceNode {
+func NewForNameReference(name string) Node {
 	return &nameReferenceNode{
 		key:        fmt.Sprintf("\\k<%s>", name),
 		name:       name,

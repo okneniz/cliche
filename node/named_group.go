@@ -8,7 +8,7 @@ type namedGroup struct {
 	*nestedNode
 }
 
-func NewNamedGroup(name string, expression Alternation) *namedGroup {
+func NewNamedGroup(name string, expression Alternation) Node {
 	g := &namedGroup{
 		Name:       name,
 		nestedNode: newNestedNode(),

@@ -7,7 +7,7 @@ type group struct {
 	*nestedNode
 }
 
-func NewGroup(expression Alternation) *group {
+func NewGroup(expression Alternation) Node {
 	g := &group{
 		nestedNode: newNestedNode(),
 		Value:      expression,

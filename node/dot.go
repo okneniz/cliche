@@ -6,7 +6,7 @@ type dot struct {
 	*nestedNode
 }
 
-func NewDot() *dot {
+func NewDot() Node {
 	return &dot{
 		nestedNode: newNestedNode(),
 	}

@@ -54,15 +54,7 @@ func (n *nestedNode) VisitNested(
 	onMatch Callback,
 ) {
 	for _, nested := range n.Nested {
-		// pos := scanner.Position()
-		// groupsPos := scanner.GroupsPosition()
-		// namedGroupPos := scanner.NamedGroupsPosition()
-
 		nested.Visit(scanner, input, from, to, onMatch)
-
-		// scanner.Rewind(pos)
-		// scanner.RewindGroups(groupsPos)
-		// scanner.RewindNamedGroups(namedGroupPos)
 	}
 }
 

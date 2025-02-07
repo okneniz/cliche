@@ -17,13 +17,14 @@ type Alternation interface {
 }
 
 type alternation struct {
-	// TODO : why not list, order is important
-	Value     map[string]Node   `json:"value,omitempty"`
-	lastNodes map[Node]struct{} // TODO : interface like key, is it ok?
+	// TODO : not list, order is important
+	// TODO : maybe to keep variant uniq?
+	Value     map[string]Node `json:"value,omitempty"`
+	lastNodes map[Node]struct{}
 	*nestedNode
 }
 
-func NewAlternation(variants []Node) *alternation {
+func NewAlternation(variants []Node) Alternation {
 	n := new(alternation)
 	n.Value = make(map[string]Node, len(variants))
 	n.lastNodes = make(map[Node]struct{}, len(variants))

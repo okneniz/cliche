@@ -7,7 +7,7 @@ type lookAhead struct {
 	*nestedNode
 }
 
-func NewLookAhead(expression Alternation) *lookAhead {
+func NewLookAhead(expression Alternation) Node {
 	return &lookAhead{
 		Value:      expression,
 		nestedNode: newNestedNode(),
