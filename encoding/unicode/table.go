@@ -1,21 +1,21 @@
-package parser
+package unicode
 
 import (
 	"fmt"
 	"strings"
 	"unicode"
 
-	"github.com/okneniz/cliche/node"
+	"github.com/okneniz/cliche/node" // вывернуть в обратную сторону, не должно быть такой зависимости
 	"golang.org/x/text/unicode/rangetable"
 )
+
+// TODO : add interface Ecoder?
 
 // TODO : move it to special package too (encoding)
 
 type UnicodeTable struct {
 	tbl *unicode.RangeTable
 }
-
-var _ node.Table = new(UnicodeTable)
 
 func NewUnicodeTable(tbl *unicode.RangeTable) *UnicodeTable {
 	return &UnicodeTable{

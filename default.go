@@ -5,10 +5,13 @@ import (
 	"strings"
 	"unicode"
 
+	unicodeEncoding "github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/parser"
 	c "github.com/okneniz/parsec/common"
 )
+
+var _ node.Table = new(unicodeEncoding.UnicodeTable)
 
 var (
 	DefaultOptions = []parser.Option[*parser.CustomParser]{
@@ -134,7 +137,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			table := parser.NewUnicodeTableFor(r)
+			table := unicodeEncoding.NewUnicodeTableFor(r)
 			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\x", func(buf c.Buffer[rune, int]) (node.Table, error) {
@@ -146,7 +149,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			return parser.NewUnicodeTableFor(r), nil
+			return unicodeEncoding.NewUnicodeTableFor(r), nil
 		}),
 		parser.WithPrefix("\\o", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			num, err := parseOctalChar(buf)
@@ -157,7 +160,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			table := parser.NewUnicodeTableFor(r)
+			table := unicodeEncoding.NewUnicodeTableFor(r)
 			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\o", func(buf c.Buffer[rune, int]) (node.Table, error) {
@@ -169,7 +172,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			return parser.NewUnicodeTableFor(r), nil
+			return unicodeEncoding.NewUnicodeTableFor(r), nil
 		}),
 		parser.WithPrefix("\\u", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			num, err := parseUnicodeChar(buf)
@@ -180,7 +183,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			table := parser.NewUnicodeTableFor(r)
+			table := unicodeEncoding.NewUnicodeTableFor(r)
 			return node.NewForTable(table), nil
 		}),
 		parser.WithInClassPrefix("\\u", func(buf c.Buffer[rune, int]) (node.Table, error) {
@@ -192,7 +195,7 @@ var (
 			// TODO : check bounds
 			r := rune(num)
 
-			return parser.NewUnicodeTableFor(r), nil
+			return unicodeEncoding.NewUnicodeTableFor(r), nil
 		}),
 		parser.WithPrefix("\\k", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			parse := parser.Angles( // TODO : prebuild it by closure
@@ -316,17 +319,17 @@ func parsePropertyName() c.Combinator[rune, int, node.Table] {
 
 	for k, v := range unicode.Categories {
 		x := v
-		allProperties[k] = parser.NewUnicodeTable(x)
+		allProperties[k] = unicodeEncoding.NewUnicodeTable(x)
 	}
 
 	for k, v := range unicode.Properties {
 		x := v
-		allProperties[k] = parser.NewUnicodeTable(x)
+		allProperties[k] = unicodeEncoding.NewUnicodeTable(x)
 	}
 
 	for k, v := range unicode.Scripts {
 		x := v
-		allProperties[k] = parser.NewUnicodeTable(x)
+		allProperties[k] = unicodeEncoding.NewUnicodeTable(x)
 	}
 
 	cases := make([]c.Combinator[rune, int, node.Table], 0, len(allProperties))

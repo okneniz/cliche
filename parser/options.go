@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
 )
@@ -10,7 +11,7 @@ func WithBracket(
 ) Option[*CustomParser] {
 	// TODO : validate name to avoid conflicts with default spec symbols ".?+*^$[]{}()"
 
-	table := NewUnicodeTableByPredicate(predicate)
+	table := unicode.NewUnicodeTableByPredicate(predicate)
 	negatiatedTable := table.Invert()
 
 	parseNode := func(buf c.Buffer[rune, int]) (node.Node, error) {
@@ -44,7 +45,7 @@ func WithEscapedMetaChar(
 ) Option[*CustomParser] {
 	// TODO : validate char
 
-	table := NewUnicodeTableByPredicate(predicate)
+	table := unicode.NewUnicodeTableByPredicate(predicate)
 	parse := func(buf c.Buffer[rune, int]) (node.Node, error) {
 		return node.NewForTable(table), nil
 	}

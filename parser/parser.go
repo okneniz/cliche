@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/okneniz/cliche/buf"
+	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
 )
@@ -43,7 +44,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		x := r
 
 		p.prefixes["\\"+string(r)] = func(buf c.Buffer[rune, int]) (node.Node, error) {
-			return node.NewForTable(NewUnicodeTableFor(x)), nil
+			return node.NewForTable(unicode.NewUnicodeTableFor(x)), nil
 		}
 	}
 
@@ -51,7 +52,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		x := r
 
 		p.inClassPrefixes["\\"+string(r)] = func(buf c.Buffer[rune, int]) (node.Table, error) {
-			return NewUnicodeTableFor(x), nil
+			return unicode.NewUnicodeTableFor(x), nil
 		}
 	}
 
@@ -400,7 +401,7 @@ func (p *CustomParser) parseCharacter(
 			return nil, err
 		}
 
-		return node.NewForTable(NewUnicodeTableFor(x)), nil
+		return node.NewForTable(unicode.NewUnicodeTableFor(x)), nil
 	}
 }
 
@@ -588,7 +589,7 @@ func (p *CustomParser) parseCharacterClass(
 			return nil, err
 		}
 
-		table := MergeUnicodeTables(tables...)
+		table := unicode.MergeUnicodeTables(tables...)
 		return node.NewForTable(table), nil
 	}
 }
@@ -610,7 +611,7 @@ func (p *CustomParser) parseNegatedCharacterClass(
 			return nil, err
 		}
 
-		table := MergeUnicodeTables(tables...).Invert()
+		table := unicode.MergeUnicodeTables(tables...).Invert()
 		return node.NewForTable(table), nil
 	}
 }
@@ -645,7 +646,7 @@ func (p *CustomParser) parseRange(
 			runes = append(runes, r)
 		}
 
-		return NewUnicodeTableFor(runes...), nil
+		return unicode.NewUnicodeTableFor(runes...), nil
 	}
 }
 
@@ -660,7 +661,7 @@ func (p *CustomParser) parseCharacterTable(
 			return nil, err
 		}
 
-		return NewUnicodeTableFor(c), nil
+		return unicode.NewUnicodeTableFor(c), nil
 	}
 }
 
