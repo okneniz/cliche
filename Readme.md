@@ -458,6 +458,11 @@ A-2. Original extensions
 // How to automate it?
 // Is it posssible? https://www.regular-expressions.info/alternation.html
 
+// What is OnePass?
+// https://github.com/golang/go/blob/master/src/regexp/onepass_test.go
+//
+// Is it optimization too? Or just compaction?
+
 ## Differences
 
 // bnf / ebnf
