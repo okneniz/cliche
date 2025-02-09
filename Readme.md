@@ -376,7 +376,35 @@ A-2. Original extensions
 
 ## Roadmap
 
-## Octal character defenitions can conflic with quantifiers
+- add atomic groups
+- add keep \K
+- add recursive calls \g
+- add conditions
+- add comments (?#...)
+- add options
+  - case insensetive
+  - multi line
+  - named groups
+- refactor traverse
+- split tests to different groups (maybe by tags), for example:
+  - POSIX
+  - ERE
+  - BRE
+  - RE2 / golang
+  - Ruby / onigma
+  - V8 / JS?
+- use testdata from another libs
+  - RE2 / golang - https://github.com/golang/go/tree/master/src/regexp/testdata
+  - Onigmo / ruby - https://github.com/k-takata/Onigmo/blob/master/test.rb
+- more tests
+  - complex tests
+  - property-based testing
+- more compactions
+  - quatifiers to sequence \w{3} -> \w\w\w
+  - anchors to assertions / look-behind / look-aheads
+- think about Reluctant and Reluctant quantifiers (Is it possible with this architecture?)
+
+## Octal character defenitions can conflict with quantifiers
 
 - `\o{nnn}` - 
 
@@ -425,6 +453,10 @@ A-2. Original extensions
 // try to copy official API
 //
 // https://pkg.go.dev/regexp#Regexp.FindString
+
+// What about expressions optimizations?
+// How to automate it?
+// Is it posssible? https://www.regular-expressions.info/alternation.html
 
 ## Differences
 

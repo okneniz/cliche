@@ -25,9 +25,21 @@ type Node interface {
 	// make special type for this case?
 
 	// TODO : what about alternation of chains?
+	// Iterate over all sizes in asserts (lookaheads / lookbehinds)
 	Size() (int, bool)
 
 	// TODO : what about anchors, is it endless or zero sized?
+}
+
+type Alternation interface {
+	Node
+
+	VisitAlternation(
+		scanner Scanner,
+		input Input,
+		from, to int,
+		onMatch Callback,
+	)
 }
 
 type Table interface {
@@ -36,7 +48,6 @@ type Table interface {
 	String() string
 }
 
-// TODO : rename to Visitor?
 type Scanner interface {
 	Match(n Node, from, to int, isLeaf, isEmpty bool)
 	Position() int

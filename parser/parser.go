@@ -95,7 +95,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 
 		// TODO : check length and eof
 
-		return node.NewAlternation(variants), nil
+		return node.NewLeftmostAlternation(variants), nil
 	}
 
 	// parse node
@@ -230,7 +230,7 @@ func (p *CustomParser) parseAlternationOrExpression(
 		variants = append(variants, expression)
 	}
 
-	return node.NewAlternation(variants), nil
+	return node.NewLeftmostAlternation(variants), nil
 }
 
 func (p *CustomParser) parseCharacterClasses(
