@@ -26,10 +26,15 @@ type Node interface {
 
 	// TODO : what about alternation of chains?
 	// Iterate over all sizes in asserts (lookaheads / lookbehinds)
+
+	// TODO : trie have few size / heights (leafs)
+	// TODO : node with different sizes must have chain value instead trie to simpliy this moment
 	Size() (int, bool)
 
 	// TODO : what about anchors, is it endless or zero sized?
 }
+
+type Callback func(x Node, from int, to int, empty bool)
 
 type Alternation interface {
 	Node
@@ -38,9 +43,11 @@ type Alternation interface {
 		scanner Scanner,
 		input Input,
 		from, to int,
-		onMatch Callback,
+		onMatch AlternationCallback,
 	)
 }
+
+type AlternationCallback func(x Node, from int, to int, empty bool) (stop bool)
 
 type Table interface {
 	Include(rune) bool
@@ -86,5 +93,3 @@ type Output interface {
 	LastPosOf(n Node) (int, bool)
 	String() string
 }
-
-type Callback func(x Node, from int, to int, empty bool)

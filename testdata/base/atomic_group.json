@@ -1,0 +1,72 @@
+{
+  "Name": "atomic groups",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "a(bc|b)c",
+        "a(?>bc|b)c"
+      ],
+      "Input": "abcc",
+      "Want": [
+        {
+          "SubString": "abcc",
+          "Span": {
+            "From": 0,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(bc|b)c"
+          ],
+          "Groups": [
+            {
+              "From": 1,
+              "To": 2,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "abcc",
+          "Span": {
+            "From": 0,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(?>bc|b)c"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "a(bc|b)c",
+        "a(?>bc|b)c"
+      ],
+      "Input": "abc",
+      "Want": [
+        {
+          "SubString": "abc",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(bc|b)c"
+          ],
+          "Groups": [
+            {
+              "From": 1,
+              "To": 1,
+              "Empty": false
+            }
+          ]          
+        }
+      ]
+    }    
+  ]
+}

@@ -95,7 +95,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 
 		// TODO : check length and eof
 
-		return node.NewLeftmostAlternation(variants), nil
+		return node.NewAlternation(variants), nil
 	}
 
 	// parse node
@@ -103,6 +103,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		TryAll(
 			p.parseNotCapturedGroup(alternation),
 			p.parseNamedGroup(alternation),
+			p.parseAtomicGroup(alternation),
 			p.parseLookAhead(alternation),
 			p.parseNegativeLookAhead(alternation),
 			p.parseLookBehind(alternation),
@@ -121,6 +122,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 		TryAll(
 			p.parseNotCapturedGroup(alternation),
 			p.parseNamedGroup(alternation),
+			p.parseAtomicGroup(alternation),
 			p.parseLookAhead(alternation),
 			p.parseNegativeLookAhead(alternation),
 			p.parseLookBehind(alternation),
@@ -230,7 +232,7 @@ func (p *CustomParser) parseAlternationOrExpression(
 		variants = append(variants, expression)
 	}
 
-	return node.NewLeftmostAlternation(variants), nil
+	return node.NewAlternation(variants), nil
 }
 
 func (p *CustomParser) parseCharacterClasses(
@@ -471,6 +473,29 @@ func (p *CustomParser) parseNamedGroup(
 			}
 
 			return node.NewNamedGroup(string(name), variants), nil
+		},
+	)
+}
+
+// TODO : parse not captured group by prefix '(' too?
+func (p *CustomParser) parseAtomicGroup(
+	parse c.Combinator[rune, int, node.Alternation],
+) c.Combinator[rune, int, node.Node] {
+	before := SkipString("?>")
+
+	return Parens(
+		func(buf c.Buffer[rune, int]) (node.Node, error) {
+			_, err := before(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			value, err := parse(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return node.NewAtomicGroup(value), nil
 		},
 	)
 }

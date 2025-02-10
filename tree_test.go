@@ -125,7 +125,7 @@ func TestTree_Match(t *testing.T) {
 					expectedStr, err := json.MarshalIndent(test.Want, "", "  ")
 					require.NoError(t, err)
 
-					require.JSONEq(t, string(expectedStr), string(actualStr))
+					require.Equal(t, string(expectedStr), string(actualStr))
 
 					for _, expectation := range actual {
 						for _, group := range expectation.Groups {

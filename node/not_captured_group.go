@@ -30,7 +30,7 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onM
 		input,
 		from,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) {
+		func(_ Node, vFrom, vTo int, empty bool) bool {
 			pos := scanner.Position()
 
 			scanner.Match(n, from, vTo, n.IsLeaf(), false)
@@ -38,6 +38,7 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onM
 			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
 
 			scanner.Rewind(pos)
+			return false
 		},
 	)
 }

@@ -31,21 +31,18 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 		input,
 		from,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) {
+		func(_ Node, vFrom, vTo int, empty bool) bool {
 			matched = true
 			scanner.Rewind(pos)
-			// TODO : stop here
+			return true
 		},
 	)
 
 	scanner.Rewind(pos)
 
 	if !matched {
-		scanner.Rewind(pos)
-
 		scanner.Match(n, from, from, n.IsLeaf(), true)
 		onMatch(n, from, from, true)
-
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 	}
 

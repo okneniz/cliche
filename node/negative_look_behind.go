@@ -48,10 +48,10 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 		input,
 		from-n.subExpressionSize,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) {
+		func(_ Node, vFrom, vTo int, empty bool) bool {
 			scanner.Rewind(pos)
 			matched = true
-			// TODO : stop here
+			return true
 		},
 	)
 

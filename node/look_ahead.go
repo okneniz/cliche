@@ -28,7 +28,7 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 		input,
 		from,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) {
+		func(_ Node, vFrom, vTo int, empty bool) bool {
 			pos := scanner.Position()
 			holesPos := scanner.HolesPosition()
 
@@ -41,6 +41,8 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			n.base.VisitNested(scanner, input, from, to, onMatch)
 
 			scanner.Rewind(pos)
+
+			return false
 		},
 	)
 }

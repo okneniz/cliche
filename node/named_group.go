@@ -32,7 +32,7 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		input,
 		from,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) {
+		func(_ Node, vFrom, vTo int, empty bool) bool {
 			pos := scanner.Position()
 			groupsPos := scanner.NamedGroupsPosition()
 
@@ -44,6 +44,8 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 			scanner.Rewind(pos)
 			scanner.RewindNamedGroups(groupsPos)
+
+			return false
 		},
 	)
 }

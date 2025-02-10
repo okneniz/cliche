@@ -4,32 +4,24 @@ import (
 	"strings"
 )
 
-// longestMatchAlternation - POSIX compliant alternation.
-// It has to continue trying all alternatives even after a match is found,
-// in order to find the longest one.
-type longestMatchAlternation struct {
+type alternation struct {
 	Value     []Node `json:"value,omitempty"`
 	lastNodes map[Node]struct{}
 	*base
 }
 
-func NewLongestMatchAlternation(variants []Node) Alternation {
+func NewAlternation(variants []Node) Alternation {
 	keys := make([]string, 0, len(variants))
 	uniqVariants := make([]Node, 0, len(variants))
-	cache := make(map[string]struct{})
 
 	for _, variant := range variants {
-		key := variant.GetKey()
-
-		if _, exists := cache[key]; exists {
-			continue
-		}
-
+		key := ""
+		variant.Traverse(func(x Node) { key += x.GetKey() })
 		uniqVariants = append(uniqVariants, variant)
 		keys = append(keys, key)
 	}
 
-	n := new(longestMatchAlternation)
+	n := new(alternation)
 	n.base = newBase(strings.Join(keys, "|"))
 	n.Value = uniqVariants
 	n.lastNodes = make(map[Node]struct{}, len(uniqVariants))
@@ -45,7 +37,7 @@ func NewLongestMatchAlternation(variants []Node) Alternation {
 	return n
 }
 
-func (n *longestMatchAlternation) Traverse(f func(Node)) {
+func (n *alternation) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.Value {
@@ -54,24 +46,7 @@ func (n *longestMatchAlternation) Traverse(f func(Node)) {
 }
 
 // Visit - visit like node
-func (n *longestMatchAlternation) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	n.visitVariants(
-		scanner,
-		input,
-		from,
-		to,
-		func(_ Node, vFrom, vTo int, empty bool) {
-			pos := scanner.Position()
-			scanner.Match(n, from, vTo, n.IsLeaf(), false)
-			onMatch(n, from, vTo, empty)
-			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
-			scanner.Rewind(pos)
-		},
-	)
-}
-
-// VisitAlternation - visit like group values
-func (n *longestMatchAlternation) VisitAlternation(
+func (n *alternation) Visit(
 	scanner Scanner,
 	input Input,
 	from, to int,
@@ -82,27 +57,66 @@ func (n *longestMatchAlternation) VisitAlternation(
 		input,
 		from,
 		to,
-		func(variant Node, vFrom, vTo int, empty bool) {
-			if _, exists := n.lastNodes[variant]; exists {
-				onMatch(variant, vFrom, vTo, empty)
-			}
+		func(_ Node, vFrom, vTo int, empty bool) bool {
+			pos := scanner.Position()
+			scanner.Match(n, from, vTo, n.IsLeaf(), false)
+			onMatch(n, from, vTo, empty)
+			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
+			scanner.Rewind(pos)
+			return false
 		},
 	)
 }
 
-func (n *longestMatchAlternation) visitVariants(
+// VisitAlternation - visit like group values
+func (n *alternation) VisitAlternation(
+	scanner Scanner,
+	input Input,
+	from, to int,
+	onMatchVariant AlternationCallback,
+) {
+	n.visitVariants(
+		scanner,
+		input,
+		from,
+		to,
+		func(variant Node, vFrom, vTo int, empty bool) bool {
+			if _, exists := n.lastNodes[variant]; exists {
+				return onMatchVariant(variant, vFrom, vTo, empty)
+			}
+
+			return false
+		},
+	)
+}
+
+func (n *alternation) visitVariants(
 	scanner Scanner,
 	input Input,
 	from,
 	to int,
-	onMatch Callback,
+	onMatch AlternationCallback,
 ) {
 	for _, variant := range n.Value {
-		variant.Visit(scanner, input, from, to, onMatch)
+		stop := false
+
+		variant.Visit(
+			scanner,
+			input,
+			from,
+			to,
+			func(variant Node, vFrom, vTo int, empty bool) {
+				stop = onMatch(variant, vFrom, vTo, empty)
+			},
+		)
+
+		if stop {
+			break
+		}
 	}
 }
 
-func (n *longestMatchAlternation) Size() (int, bool) {
+func (n *alternation) Size() (int, bool) {
 	var size *int
 	for _, variant := range n.Value {
 		if x, fixedSize := variant.Size(); fixedSize {

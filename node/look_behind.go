@@ -42,7 +42,7 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		input,
 		from-n.subExpressionSize,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) {
+		func(_ Node, vFrom, vTo int, empty bool) bool {
 			scanner.Rewind(pos)
 
 			scanner.Match(n, from, from, n.IsLeaf(), true)
@@ -50,6 +50,8 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 			n.base.VisitNested(scanner, input, from, to, onMatch)
 
 			scanner.Rewind(pos)
+
+			return false
 		},
 	)
 }
