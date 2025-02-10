@@ -208,6 +208,7 @@ returning only the result: match or no match. That is why they are called “ass
 |✅| `(?<!subexp)` | negative look-behind |
 |✅| `(?>subexp)` | atomic group |
 |❌| `(?~subexp)` | absence operator |
+|❌| `prefix\Ksubexp` | Another expression of look-behind. Keep the stuff left of the \K, don't include it in the result. |
 
 ```
 Subexp of look-behind must be fixed-width.
@@ -242,10 +243,6 @@ Atomic group no backtracks in subexp.
                       (?~abc) matches "ab".
 
                       (?~) never matches.
-
-  \K  keep
-      Another expression of look-behind. Keep the stuff left
-      of the \K, don't include it in the result.
 
   Theoretical backgrounds are discussed in Tanaka Akira's
   paper and slide (both Japanese):
@@ -376,10 +373,9 @@ A-2. Original extensions
 
 ## Roadmap
 
-- add atomic groups
 - add keep \K
-- add recursive calls \g
 - add conditions
+- add recursive calls \g
 - add comments (?#...)
 - add options
   - case insensetive
