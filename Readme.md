@@ -459,6 +459,9 @@ A-2. Original extensions
 //
 // Is it optimization too? Or just compaction?
 
+Определение яп или версии чего-то по регулярным выражениеям.
+Или ошибкам парсера регулярных выражений.
+
 ## Differences
 
 // bnf / ebnf
