@@ -46,7 +46,6 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, on
 
 		scanner.Rewind(pos)
 	} else {
-		// TODO : what about empty matches?
 		current := from
 
 		// match the same string
@@ -67,8 +66,11 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, on
 			current++
 		}
 
-		scanner.Match(n, from, current-1, n.IsLeaf(), false)
-		onMatch(n, from, current-1, false)
+		// TODO : what about empty matches?
+		empty := false // current == from
+
+		scanner.Match(n, from, current-1, n.IsLeaf(), empty)
+		onMatch(n, from, current-1, empty)
 
 		n.base.VisitNested(scanner, input, current, to, onMatch)
 		scanner.Rewind(pos)

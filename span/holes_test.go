@@ -1,0 +1,76 @@
+package span
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+func Test_Get(t *testing.T) {
+	type example struct {
+		span Interface
+		skip []Interface
+		want Interface
+	}
+
+	examples := []example{
+		{
+			span: New(0, 5),
+			skip: []Interface{
+				New(1, 4),
+			},
+			want: New(0, 5),
+		},
+		{
+			span: New(0, 5),
+			skip: []Interface{
+				New(2, 5),
+			},
+			want: New(0, 1),
+		},
+		{
+			span: New(0, 5),
+			skip: []Interface{
+				New(0, 1),
+			},
+			want: New(2, 5),
+		},
+	}
+
+	for i := range examples {
+		test := examples[i]
+		name := fmt.Sprintf("case %d", i)
+
+		t.Run(name, func(t *testing.T) {
+			t.Log("span", test.span)
+			t.Log("skip", test.skip)
+
+			actual := Get(
+				test.span,
+				newTestList(test.skip),
+			)
+
+			require.Equal(t, test.want.String(), actual.String())
+		})
+	}
+
+}
+
+type testList struct {
+	data []Interface
+}
+
+func newTestList(data []Interface) *testList {
+	return &testList{
+		data: data,
+	}
+}
+
+func (l *testList) Size() int {
+	return len(l.data)
+}
+
+func (l *testList) At(idx int) (Interface, bool) {
+	return l.data[idx], true
+}

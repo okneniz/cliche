@@ -59,9 +59,15 @@ func (n *alternation) Visit(
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) bool {
 			pos := scanner.Position()
-			scanner.Match(n, from, vTo, n.IsLeaf(), false)
+			scanner.Match(n, from, vTo, n.IsLeaf(), empty)
 			onMatch(n, from, vTo, empty)
-			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
+
+			nextFrom := vTo
+			if !empty {
+				nextFrom++
+			}
+
+			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
 			scanner.Rewind(pos)
 			return false
 		},

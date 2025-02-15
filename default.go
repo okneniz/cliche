@@ -96,6 +96,9 @@ var (
 		parser.WithPrefix("\\z", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			return node.NewEndOfString(), nil
 		}),
+		parser.WithPrefix("\\K", func(buf c.Buffer[rune, int]) (node.Node, error) {
+			return node.NewKeep(), nil
+		}),
 		parser.WithPrefix("\\p", func(buf c.Buffer[rune, int]) (node.Node, error) {
 			table, err := propertyTable(buf)
 			if err != nil {

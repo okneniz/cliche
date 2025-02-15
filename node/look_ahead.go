@@ -23,25 +23,24 @@ func (n *lookAhead) Traverse(f func(Node)) {
 }
 
 func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+	pos := scanner.Position()
+	holesPos := scanner.HolesPosition()
+
 	n.Value.VisitAlternation(
 		scanner,
 		input,
 		from,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) bool {
-			pos := scanner.Position()
-			holesPos := scanner.HolesPosition()
-
-			// what about empty spans, just skip it?
-			scanner.MarkAsHole(from, vTo) // or just scanner rewind to "FROM" pos without holes?
-			scanner.Match(n, from, from, n.IsLeaf(), true)
-			onMatch(n, from, from, true)
-
-			scanner.RewindHoles(holesPos)
-			n.base.VisitNested(scanner, input, from, to, onMatch)
-
+		func(_ Node, vFrom, vTo int, _ bool) bool {
 			scanner.Rewind(pos)
+			scanner.MarkAsHole(vFrom, vTo)
 
+			scanner.Match(n, vFrom, vTo, n.IsLeaf(), true)
+			onMatch(n, vFrom, vTo, true)
+			scanner.RewindHoles(holesPos)
+
+			n.base.VisitNested(scanner, input, from, to, onMatch)
+			scanner.Rewind(pos)
 			return false
 		},
 	)

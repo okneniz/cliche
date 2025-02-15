@@ -29,7 +29,7 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 	n.recursiveVisit(1, scanner, input, from, to, func(_ Node, _, mTo int, empty bool) {
 		pos := scanner.Position()
-		scanner.Match(n, from, mTo, n.IsLeaf(), false)
+		scanner.Match(n, from, mTo, n.IsLeaf(), empty)
 		onMatch(n, from, mTo, empty)
 		n.base.VisitNested(scanner, input, mTo+1, to, onMatch)
 		scanner.Rewind(pos)

@@ -1,0 +1,113 @@
+{
+  "Name": "keep",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "1\\K2"
+      ],
+      "Input": "123",
+      "Want": [
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "1\\K2"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "\\K2"
+      ],
+      "Input": "123",
+      "Want": [
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\K2"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "(1)\\K2"
+      ],
+      "Input": "123",
+      "Want": [
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "(1)\\K2"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 0,
+              "Empty": false,
+              "OutOfString": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 4",
+      "Expressions": [
+        "(?:1)\\K2"
+      ],
+      "Input": "123",
+      "Want": [
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?:1)\\K2"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 5",
+      "Expressions": [
+        "^(?:1)\\K2.*$"
+      ],
+      "Input": "123456",
+      "Want": [
+        {
+          "SubString": "23456",
+          "Span": {
+            "From": 1,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "^(?:1)\\K2.*$"
+          ]
+        }
+      ]
+    }    
+  ]
+}

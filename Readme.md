@@ -163,6 +163,7 @@ When we say "backreference a group," it actually means, "re-match the same text 
 |✅| `(exp)\1` | backrefernces by index |
 |✅| `(?<name>exp)\k<name>` | backreferences by name |
 
+❌ backreference with recursion level
 
 ```
   \n  \k<n>     \k'n'     (n >= 1) backreference the nth group in the regexp
@@ -208,7 +209,7 @@ returning only the result: match or no match. That is why they are called “ass
 |✅| `(?<!subexp)` | negative look-behind |
 |✅| `(?>subexp)` | atomic group |
 |❌| `(?~subexp)` | absence operator |
-|❌| `prefix\Ksubexp` | Another expression of look-behind. Keep the stuff left of the \K, don't include it in the result. |
+|✅| `prefix\Ksubexp` | another expression of look-behind. Keep the stuff left of the \K, don't include it in the result. |
 
 ```
 Subexp of look-behind must be fixed-width.
@@ -373,32 +374,33 @@ A-2. Original extensions
 
 ## Roadmap
 
-- add keep \K
 - add conditions
 - add recursive calls \g
+- matches list test
 - add comments (?#...)
+- tests:
+  - split tests to different groups (maybe by tags), for example:
+    - POSIX
+    - ERE
+    - BRE
+    - RE2 / golang
+    - Ruby / onigma
+    - V8 / JS?
+  - use testdata from another libs
+    - RE2 / golang - https://github.com/golang/go/tree/master/src/regexp/testdata
+    - Onigmo / ruby - https://github.com/k-takata/Onigmo/blob/master/test.rb
+  - more tests
+    - complex tests
+    - property-based testing
+- more compactions
+  - quatifiers to sequence \w{3} -> \w\w\w
+  - anchors to assertions / look-behind / look-aheads
 - add options
   - case insensetive
   - multi line
   - named groups
 - refactor traverse
-- split tests to different groups (maybe by tags), for example:
-  - POSIX
-  - ERE
-  - BRE
-  - RE2 / golang
-  - Ruby / onigma
-  - V8 / JS?
-- use testdata from another libs
-  - RE2 / golang - https://github.com/golang/go/tree/master/src/regexp/testdata
-  - Onigmo / ruby - https://github.com/k-takata/Onigmo/blob/master/test.rb
-- more tests
-  - complex tests
-  - property-based testing
-- more compactions
-  - quatifiers to sequence \w{3} -> \w\w\w
-  - anchors to assertions / look-behind / look-aheads
-- think about Reluctant and Reluctant quantifiers (Is it possible with this architecture?)
+- think about Reluctant and Possessive quantifiers (Is it possible with this architecture?)
 
 ## Octal character defenitions can conflict with quantifiers
 
@@ -459,8 +461,10 @@ A-2. Original extensions
 //
 // Is it optimization too? Or just compaction?
 
-Определение яп или версии чего-то по регулярным выражениеям.
-Или ошибкам парсера регулярных выражений.
+// Определение яп или версии чего-то по регулярным выражениеям.
+// Или ошибкам парсера регулярных выражений.
+
+// Merge Node.VisitVariant and Node.Visit to slice.Seq (interface like iterator) 
 
 ## Differences
 
