@@ -376,9 +376,12 @@ A-2. Original extensions
 
 - add conditions
 - add recursive calls \g
+- add another simple chars for compabilities with another engines
 - matches list test
-- add comments (?#...)
 - tests:
+  - more tests
+    - complex tests
+    - property-based testing
   - split tests to different groups (maybe by tags), for example:
     - POSIX
     - ERE
@@ -389,18 +392,16 @@ A-2. Original extensions
   - use testdata from another libs
     - RE2 / golang - https://github.com/golang/go/tree/master/src/regexp/testdata
     - Onigmo / ruby - https://github.com/k-takata/Onigmo/blob/master/test.rb
-  - more tests
-    - complex tests
-    - property-based testing
-- more compactions
-  - quatifiers to sequence \w{3} -> \w\w\w
-  - anchors to assertions / look-behind / look-aheads
+- add comments (?#...)
 - add options
   - case insensetive
   - multi line
-  - named groups
+  - named groups      
+- more compactions
+  - quatifiers to sequence \w{3} -> \w\w\w
+  - anchors to assertions / look-behind / look-aheads
 - refactor traverse
-- think about Reluctant and Possessive quantifiers (Is it possible with this architecture?)
+- think about reluctant and possessive quantifiers (Is it possible with this architecture?)
 
 ## Octal character defenitions can conflict with quantifiers
 
