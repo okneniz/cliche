@@ -129,7 +129,7 @@ Possesive - greedy and does not backtrack once match.
 
 ### Bracket ([:xxxxx:], negate [:^xxxxx:])
 
-| support | characters | match |
+| support | construction | match |
 |--|--|--|
 |✅| `[:alnum:]` | `Letter \| Mark \| Decimal_Number` |
 |✅| `[:alpha:]` | `Letter \| Mark` |
@@ -148,7 +148,7 @@ Possesive - greedy and does not backtrack once match.
 
 ### Extended groups
 
-| support | characters | match |
+| support | construction | match |
 |--|--|--|
 |✅| `(?:subexp)` | non-capturing group |
 |✅| `(subexp)` | capturing group |
@@ -158,7 +158,7 @@ Possesive - greedy and does not backtrack once match.
 
 When we say "backreference a group," it actually means, "re-match the same text matched by the subexp in that group."
 
-| support | characters | match |
+| support | construction | match |
 |--|--|--|
 |✅| `(exp)\1` | backrefernces by index |
 |✅| `(?<name>exp)\k<name>` | backreferences by name |
@@ -201,7 +201,7 @@ https://www.regular-expressions.info/lookaround.html
 The difference is that lookaround actually matches characters, but then gives up the match, 
 returning only the result: match or no match. That is why they are called “assertions”.
 
-| support | characters | match |
+| support | construction | match |
 |--|--|--|
 |✅| `(?=subexp)` | look-ahead |
 |✅| `(?<=subexp)` | look-behind |
@@ -244,37 +244,21 @@ Atomic group no backtracks in subexp.
                       (?~abc) matches "ab".
 
                       (?~) never matches.
-
-  Theoretical backgrounds are discussed in Tanaka Akira's
-  paper and slide (both Japanese):
-
-    * Absent Operator for Regular Expression
-      https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-paper.pdf
-    * 正規表現における非包含オペレータの提案
-      https://staff.aist.go.jp/tanaka-akira/pub/prosym49-akr-presen.pdf
 ```
 
 ### Condition
 
-```
-  (?(cond)yes-subexp), (?(cond)yes-subexp|no-subexp)
-    conditional expression
-    Matches yes-subexp if (cond) yields a true value, matches
-    no-subexp otherwise.
-    Following (cond) can be used:
+Matches yes-subexp if (cond) yields a true value, matches no-subexp otherwise.
 
-    (n)  (n >= 1)
-        Checks if the numbered capturing group has matched
-        something.
+https://www.regular-expressions.info/conditional.html
 
-    (<name>), ('name')
-        Checks if a group with the given name has matched
-        something.
+| support | construction | description |
+|--|--|--|
+|✅| `(?(cond)yes-subexp|no-subexp)` | checks if the numbered capturing group has matched something (n >= 1) |
+|✅| `(?(<cond>)yes-subexp|no-subexp)` | checks if a group with the given name has matched something |
+|✅| `(?(n)yes-subexp)` | condition with one branch (n >= 1)|
+|✅| `(?(<cond>)yes-subexp)` | condition with one branch |
 
-        BUG: If the name is defined more than once, the
-        left-most group is checked, but it should be the
-        same as \k<name>.
-```
 
 ### Subexp calls ("Tanaka Akira special")
 
@@ -374,7 +358,6 @@ A-2. Original extensions
 
 ## Roadmap
 
-- add conditions
 - add recursive calls \g
 - add another simple chars for compabilities with another engines
 - matches list test

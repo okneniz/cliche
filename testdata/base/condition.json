@@ -1,0 +1,183 @@
+{
+  "Name": "condition",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "(USD)(?(1)\\d+)"
+      ],
+      "Input": "USD123",
+      "Want": [
+        {
+          "SubString": "USD123",
+          "Span": {
+            "From": 0,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "(USD)(?(1)\\d+)"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 2,
+              "Empty": false
+            }
+          ]     
+        }
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "(?(1)(\\d+)|(\\D+))"
+      ],
+      "Input": "100USD",
+      "Want": [
+        {
+          "SubString": "USD",
+          "Span": {
+            "From": 3,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?(1)(\\d+)|(\\D+))"
+          ],
+          "Groups": [
+            {
+              "From": 3,
+              "To": 5,
+              "Empty": false,
+              "OutOfString": false
+            }
+          ]     
+        }
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "(a)?b(?(1)c|d)"
+      ],
+      "Input": "abc",
+      "Want": [
+        {
+          "SubString": "abc",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(a)?b(?(1)c|d)"
+          ],
+          "Groups": [
+            {
+              "From": 0,
+              "To": 0,
+              "Empty": false
+            }
+          ]     
+        }
+      ]
+    },
+    {
+      "Name": "case 4",
+      "Expressions": [
+        "(a)?b(?(1)c|d)"
+      ],
+      "Input": "bd",
+      "Want": [
+        {
+          "SubString": "bd",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "(a)?b(?(1)c|d)"
+          ]    
+        }
+      ]
+    },
+    {
+      "Name": "case 5",
+      "Expressions": [
+        "(a)?b(?(1)c|d)"
+      ],
+      "Input": "bc",
+      "Want": []
+    },
+    {
+      "Name": "case 6",
+      "Expressions": [
+        "(a)?b(?(1)c|d)"
+      ],
+      "Input": "abd",
+      "Want": []
+    },
+    {
+      "Name": "case 7",
+      "Expressions": [
+        "(?<test>USD)(?(<test>)\\d+)"
+      ],
+      "Input": "USD123",
+      "Want": [
+        {
+          "SubString": "USD123",
+          "Span": {
+            "From": 0,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<test>USD)(?(<test>)\\d+)"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "test",
+              "Span": {
+                "From": 0,
+                "To": 2,
+                "Empty": false
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 8",
+      "Expressions": [
+        "(?<test>a)?b(?(<test>)c|d)"
+      ],
+      "Input": "abc",
+      "Want": [
+        {
+          "SubString": "abc",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?<test>a)?b(?(<test>)c|d)"
+          ],
+          "NamedGroups": [
+            {
+              "Name": "test",
+              "Span": {
+                "From": 0,
+                "To": 0,
+                "Empty": false
+              }
+            }
+          ]              
+        }
+      ]
+    }
+  ]
+}

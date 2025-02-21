@@ -2,6 +2,9 @@ package parser
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/encoding/unicode"
@@ -108,6 +111,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseNegativeLookAhead(alternation),
 			p.parseLookBehind(alternation),
 			p.parseNegativeLookBehind(alternation),
+			p.parseCondition(),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|'),
@@ -127,6 +131,7 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 			p.parseNegativeLookAhead(alternation),
 			p.parseLookBehind(alternation),
 			p.parseNegativeLookBehind(alternation),
+			p.parseCondition(),
 			p.parseGroup(alternation),
 			p.parseInvalidQuantifier(),
 			p.parseNodeByPrefixes('|', ')'),
@@ -598,6 +603,100 @@ func (p *CustomParser) parseNegativeLookBehind(
 			}
 
 			return n, nil
+		},
+	)
+}
+
+func (p *CustomParser) parseCondition(
+	except ...rune,
+) c.Combinator[rune, int, node.Node] {
+	digits := []rune("0123456789")
+	backReference := Quantifier(1, 2, c.OneOf[rune, int](digits...))
+	nameReference := Angles(c.Some(0, c.Try(c.NoneOf[rune, int]('>'))))
+
+	parseBackReference := func(buf c.Buffer[rune, int]) (*node.Predicate, error) {
+		runes, err := backReference(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		str := strings.ToLower(string(runes))
+
+		index, err := strconv.ParseInt(str, 16, 64)
+		if err != nil {
+			return nil, err
+		}
+
+		return node.NewPredicate(
+			fmt.Sprintf("%d", index),
+			func(s node.Scanner) bool {
+				_, matched := s.GetGroup(int(index))
+				return matched
+			},
+		), nil
+	}
+
+	parseNameReference := func(buf c.Buffer[rune, int]) (*node.Predicate, error) {
+		name, err := nameReference(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		str := string(name)
+
+		return node.NewPredicate(
+			str,
+			func(s node.Scanner) bool {
+				_, matched := s.GetNamedGroup(str)
+				return matched
+			},
+		), nil
+
+	}
+
+	reference := TryAll(
+		parseBackReference,
+		parseNameReference,
+	)
+
+	condition := Parens(reference)
+	otherwise := c.Try(
+		c.Skip(
+			c.Eq[rune, int]('|'),
+			func(buf c.Buffer[rune, int]) (node.Node, error) {
+				return p.parseNestedExpression(buf)
+			},
+		),
+	)
+
+	before := SkipString("?")
+
+	return Parens(
+		func(buf c.Buffer[rune, int]) (node.Node, error) {
+			_, err := before(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			cond, err := condition(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			yes, err := p.parseNestedExpression(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			no, err := otherwise(buf)
+			if err != nil {
+				return node.NewGuard(
+					cond,
+					yes,
+				), nil
+			}
+
+			return node.NewCondition(cond, yes, no), nil
 		},
 	)
 }
