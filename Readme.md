@@ -342,12 +342,6 @@ https://www.regular-expressions.info/conditional.html
      numbered-backref/call is allowed.
 
   ('g' and 'G' options are argued in ruby-dev ML)
-
-A-2. Original extensions
-
-   + named group                  (?<name>...), (?'name'...)
-   + named backref                \k<name>
-   + subexp call                  \g<name>, \g<group-num>
 ```
 
 ### Other
