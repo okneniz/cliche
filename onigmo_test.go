@@ -138,13 +138,15 @@ func TestOnigmo(t *testing.T) {
 	// n(t, /az\A/, 'az')
 	// n(t, /a\Az/, 'az')
 	x(t, `\^\$`, "^$", 0, 2)
-	// x(t, /^x?y/, 'xy', 0, 2)
-	// x(t, /^(x?y)/, 'xy', 0, 2)
-	// x(t, /\w/, '_', 0, 1)
+	x(t, `^x?y`, "xy", 0, 2)
+	x(t, `^(x?y)`, "xy", 0, 2)
+	x(t, `\w`, "_", 0, 1)
 	// n(t, /\W/, '_')
-	// x(t, /(?=z)z/, 'z', 0, 1)
+	x(t, `(?=z)z`, "z", 0, 1)
 	// n(t, /(?=z)./, 'a')
-	// x(t, /(?!z)a/, 'a', 0, 1)
+	x(t, `(?!z)a`, "a", 0, 1)
+
+	// not implemented yet
 	// n(t, /(?!z)a/, 'z')
 	// x(t, /(?i:a)/, 'a', 0, 1)
 	// x(t, /(?i:a)/, 'A', 0, 1)
@@ -155,10 +157,12 @@ func TestOnigmo(t *testing.T) {
 	// x(t, /(?i:[f-m])/, 'h', 0, 1)
 	// n(t, /(?i:[f-m])/, 'e')
 	// x(t, /(?i:[A-c])/, 'D', 0, 1)
+
 	// #n(/(?i:[a-C])/, 'D')   # changed spec.(error) 2003/09/17
 	// #n(/(?i:[b-C])/, 'A')
 	// #x(/(?i:[a-C])/, 'B', 0, 1)
 	// #n(/(?i:[c-X])/, '[')
+
 	// n(/(?i:[^a-z])/, 'A')
 	// n(/(?i:[^a-z])/, 'a')
 	// x(/(?i:[!-k])/, 'Z', 0, 1)
@@ -167,51 +171,61 @@ func TestOnigmo(t *testing.T) {
 	// x(/(?i:[T-}])/, '{', 0, 1)
 	// x(/(?i:\?a)/, '?A', 0, 2)
 	// x(/(?i:\*A)/, '*a', 0, 2)
-	// n(/./, "\n")
+
+	// n(/./, "\n") // important
 	// x(/(?m:.)/, "\n", 0, 1)
 	// x(/(?m:a.)/, "a\n", 0, 2)
 	// x(/(?m:.b)/, "a\nb", 1, 3)
+
 	// x(/.*abc/, "dddabdd\nddabc", 8, 13)
 	// x(/(?m:.*abc)/, "dddabddabc", 0, 10)
 	// n(/(?i)(?-i)a/, "A")
 	// n(/(?i)(?-i:a)/, "A")
-	// x(/a?/, '', 0, 0)
-	// x(/a?/, 'b', 0, 0)
-	// x(/a?/, 'a', 0, 1)
-	// x(/a*/, '', 0, 0)
-	// x(/a*/, 'a', 0, 1)
-	// x(/a*/, 'aaa', 0, 3)
-	// x(/a*/, 'baaaa', 0, 0)
+
+	// x(t, `a?`, "", 0, 0)
+	x(t, `a?`, "b", 0, 0)
+	x(t, `a?`, "a", 0, 1)
+	// x(t, `a*`, "", 0, 0)
+	x(t, `a*`, "a", 0, 1)
+	x(t, `a*`, "aaa", 0, 3)
+	// x(t, `a*`, "baaaa", 0, 0) // wtf
+
 	// n(/a+/, '')
-	// x(/a+/, 'a', 0, 1)
-	// x(/a+/, 'aaaa', 0, 4)
-	// x(/a+/, 'aabbb', 0, 2)
-	// x(/a+/, 'baaaa', 1, 5)
+	x(t, `a+`, "a", 0, 1)
+	x(t, `a+`, "aaaa", 0, 4)
+	x(t, `a+`, "aabbb", 0, 2)
+	// x(t, `a+`, "baaaa", 1, 5)
+
 	// x(/.?/, '', 0, 0)
-	// x(/.?/, 'f', 0, 1)
-	// x(/.?/, "\n", 0, 0)
-	// x(/.*/, '', 0, 0)
-	// x(/.*/, 'abcde', 0, 5)
-	// x(/.+/, 'z', 0, 1)
-	// x(/.+/, "zdswer\n", 0, 6)
-	// x(/(.*)a\1f/, "babfbac", 0, 4)
+	x(t, `.?`, "f", 0, 1)
+	x(t, `.?`, "\n", 0, 0)
+	// x(t, `.*`, "", 0, 0)
+	x(t, `.*`, "abcde", 0, 5)
+	x(t, `.+`, "z", 0, 1)
+	x(t, `.+`, "zdswer\n", 0, 6)
+	x(t, `(.*)a\1f`, "babfbac", 0, 4)
 	// x(/(.*)a\1f/, "bacbabf", 3, 7)
 	// x(/((.*)a\2f)/, "bacbabf", 3, 7)
 	// x(/(.*)a\1f/, "baczzzzzz\nbazz\nzzzzbabf", 19, 23)
-	// x(/a|b/, 'a', 0, 1)
-	// x(/a|b/, 'b', 0, 1)
-	// x(/|a/, 'a', 0, 0)
-	// x(/(|a)/, 'a', 0, 0)
-	// x(/ab|bc/, 'ab', 0, 2)
-	// x(/ab|bc/, 'bc', 0, 2)
-	// x(/z(?:ab|bc)/, 'zbc', 0, 3)
-	// x(/a(?:ab|bc)c/, 'aabc', 0, 4)
-	// x(/ab|(?:ac|az)/, 'az', 0, 2)
-	// x(/a|b|c/, 'dc', 1, 2)
-	// x(/a|b|cd|efg|h|ijk|lmn|o|pq|rstuvwx|yz/, 'pqr', 0, 2)
-	// n(/a|b|cd|efg|h|ijk|lmn|o|pq|rstuvwx|yz/, 'mn')
-	// x(/a|^z/, 'ba', 1, 2)
-	// x(/a|^z/, 'za', 0, 1)
+	x(t, `a|b`, "a", 0, 1)
+	x(t, `a|b`, "b", 0, 1)
+
+	// x(t, `|a`, "a", 0, 0) // wtf (check bnf / ebnf)
+	// x(t `(|a)`, 'a', 0, 0)
+
+	x(t, `ab|bc`, "ab", 0, 2)
+	x(t, `ab|bc`, "bc", 0, 2)
+
+	x(t, `z(?:ab|bc)`, "zbc", 0, 3)
+	x(t, `a(?:ab|bc)c`, "aabc", 0, 4)
+	x(t, `ab|(?:ac|az)`, "az", 0, 2)
+	// x(t, `a|b|c`, "dc", 1, 2)
+	x(t, `a|b|cd|efg|h|ijk|lmn|o|pq|rstuvwx|yz`, "pqr", 0, 2)
+	// n(t, `a|b|cd|efg|h|ijk|lmn|o|pq|rstuvwx|yz`, 'mn')
+
+	// x(t, `a|^z`, "ba", 1, 2)
+	// x(t, `a|^z`, "za", 0, 1) // important
+
 	// x(/a|\Gz/, 'bza', 2, 3)
 	// x(/a|\Gz/, 'za', 0, 1)
 	// x(/a|\Az/, 'bza', 2, 3)
@@ -220,23 +234,28 @@ func TestOnigmo(t *testing.T) {
 	// x(/a|b\Z/, 'b', 0, 1)
 	// x(/a|b\z/, 'ba', 1, 2)
 	// x(/a|b\z/, 'b', 0, 1)
-	// x(/\w|\s/, ' ', 0, 1)
+
+	x(t, `\w|\s`, " ", 0, 1)
 	// n(/\w|\w/, ' ')
-	// x(/\w|%/, '%', 0, 1)
-	// x(/\w|[&$]/, '&', 0, 1)
-	// x(/[b-d]|[^e-z]/, 'a', 0, 1)
-	// x(/(?:a|[c-f])|bz/, 'dz', 0, 1)
-	// x(/(?:a|[c-f])|bz/, 'bz', 0, 2)
-	// x(/abc|(?=zz)..f/, 'zzf', 0, 3)
-	// x(/abc|(?!zz)..f/, 'abf', 0, 3)
-	// x(/(?=za)..a|(?=zz)..a/, 'zza', 0, 3)
+	x(t, `\w|%`, "%", 0, 1)
+	x(t, `\w|[&$]`, "&", 0, 1)
+	x(t, `[b-d]|[^e-z]`, "a", 0, 1)
+	x(t, `(?:a|[c-f])|bz`, "dz", 0, 1)
+	// x(t, `(?:a|[c-f])|bz`, "bz", 0, 2) // pass, but why? [0-2]
+
+	// x(t, `abc|(?=zz)..f`, "zzf", 0, 3) // TODO : panic
+	// x(t, `abc|(?!zz)..f`, "abf", 0, 3) // pass, but why (bound)
+
+	// x(t, `(?=za)..a|(?=zz)..a`, "zza", 0, 3) // TODO : panic
+
 	// n(/(?>a|abd)c/, 'abdc')
-	// x(/(?>abd|a)c/, 'abdc', 0, 4)
+	// x(t, `(?>abd|a)c`, "abdc", 0, 4) // pass, but why? (bound)
+
 	// x(/a?|b/, 'a', 0, 1)
-	// x(/a?|b/, 'b', 0, 0)
+	x(t, `a?|b`, "b", 0, 0)
 	// x(/a?|b/, '', 0, 0)
 	// x(/a*|b/, 'aa', 0, 2)
-	// x(/a*|b*/, 'ba', 0, 0)
+	// x(t, `a*|b*`, "ba", 0, 0)
 	// x(/a*|b*/, 'ab', 0, 1)
 	// x(/a+|b*/, '', 0, 0)
 	// x(/a+|b*/, 'bbb', 0, 3)
@@ -245,7 +264,9 @@ func TestOnigmo(t *testing.T) {
 	// x(/(a|b)?/, 'b', 0, 1)
 	// x(/(a|b)*/, 'ba', 0, 2)
 	// x(/(a|b)+/, 'bab', 0, 3)
-	// x(/(ab|ca)+/, 'caabbc', 0, 4)
+
+	// x(t, `(ab|ca)+`, "caabbc", 0, 4) // pass but why
+
 	// x(/(ab|ca)+/, 'aabca', 1, 5)
 	// x(/(ab|ca)+/, 'abzca', 0, 2)
 	// x(/(a|bab)+/, 'ababa', 0, 5)
@@ -267,11 +288,15 @@ func TestOnigmo(t *testing.T) {
 	// n(/(?:a+|\Ab*)cc/, 'abcc')
 	// x(/(?:^a+|b+)*c/, 'aabbbabc', 6, 8)
 	// x(/(?:^a+|b+)*c/, 'aabbbbc', 0, 7)
+
+	// options not implemented yet
 	// x(/a|(?i)c/, 'C', 0, 1)
 	// x(/(?i)c|a/, 'C', 0, 1)
 	// i(/(?i)c|a/, 'A', 0, 1)  # different spec.
 	// x(/(?i:c)|a/, 'C', 0, 1)
 	// n(/(?i:c)|a/, 'A')
+
+	// advanced quantifiers not implemented yet
 	// x(/[abc]?/, 'abc', 0, 1)
 	// x(/[abc]*/, 'abc', 0, 3)
 	// x(/[^abc]*/, 'abc', 0, 0)
@@ -393,6 +418,7 @@ func TestOnigmo(t *testing.T) {
 	// x(/(?<!a|bc)b/, 'bbb', 0, 1)
 	// n(/(?<!a|bc)z/, 'bcz')
 	// x(/(?<name1>a)/, 'a', 0, 1)
+
 	// x(/(?<name_2>ab)\g<name_2>/, 'abab', 0, 4)
 	// x(/(?<name_3>.zv.)\k<name_3>/, 'azvbazvb', 0, 8)
 	// x(/(?<=\g<ab>)|-\zEND (?<ab>XyZ)/, 'XyZ', 3, 3)
@@ -423,7 +449,9 @@ func TestOnigmo(t *testing.T) {
 	// x(/(?<n>(a|b\g<n>c){3,5})/, 'baaaaca', 1, 5)
 	// x(/(?<n>(a|b\g<n>c){3,5})/, 'baaaacaaaaa', 0, 10)
 	// x(/(?<pare>\(([^\(\)]++|\g<pare>)*+\))/, '((a))', 0, 5)
-	// x(/()*\1/, '', 0, 0)
+
+	// x(/()*\1/, '', 0, 0) // important =)
+
 	// x(/(?:()|())*\1\2/, '', 0, 0)
 	// x(/(?:\1a|())*/, 'a', 0, 0, 1)
 	// x(/x((.)*)*x/, '0x1x2x3', 1, 6)
@@ -458,14 +486,10 @@ func TestOnigmo(t *testing.T) {
 	// r(/\000a/, "b\000a", 1)
 	// r(/ff\xfe/, "fff\xfe", 1)
 	// r(/...abcdefghijklmnopqrstuvwxyz/, 'zzzzzabcdefghijklmnopqrstuvwxyz', 2)
-	// end
-
-	// def test_euc(enc)
-	// $KCODE = enc
 
 	// x(/\xED\xF2/, "\xed\xf2", 0, 2)
 	// x(//, 'あ', 0, 0)
-	// x(/あ/, 'あ', 0, 2)
+	// x(t, `あ`, "あ", 0, 2)
 	// n(/い/, 'あ')
 	// x(/うう/, 'うう', 0, 4)
 	// x(/あいう/, 'あいう', 0, 6)
