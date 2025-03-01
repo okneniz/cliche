@@ -1,4 +1,7 @@
-default: test lint
+default: test-report lint
+
+test-report:
+	go run gotest.tools/gotestsum@latest --format standard-verbose
 
 test:
 	go test -v -timeout 60s -coverprofile=coverage.out ./...

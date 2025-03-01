@@ -288,11 +288,6 @@ https://www.regular-expressions.info/conditional.html
   * The option status of the called group is always effective.
 
     ex. /(?-i:\g<name>)(?i:(?<name>a)){0}/.match("A")
-
-  * ONIG_SYNTAX_PERL:
-    Use (?&name), (?n), (?-n), (?+n), (?R) or (?0) instead of \g<>.
-    Calls with a name that is assigned to more than one groups are allowed,
-    and the left-most subexp is used.
 ```
 
 ### Options
@@ -364,8 +359,8 @@ https://www.regular-expressions.info/conditional.html
     - ERE
     - BRE
     - RE2 / golang
-    - Ruby / onigma
-    - V8 / JS?
+    - Onigmo / ruby
+    - V8 / JS
   - use testdata from another libs
     - RE2 / golang - https://github.com/golang/go/tree/master/src/regexp/testdata
     - Onigmo / ruby - https://github.com/k-takata/Onigmo/blob/master/test.rb
@@ -389,7 +384,7 @@ https://www.regular-expressions.info/conditional.html
 - \w{3} -> \w\w\w
 
 - можно якоря / anchor типа \b жать как (?<!subexp)` / negative look-behind
-- типа границы слова это что-то, что до слова и после слова (пробелы или знки препинания)
+- типа границы слова это что-то, что до слова и после слова (пробелы или знаки препинания)
 
 // TODO : return error for invalid escaped chars like '\x' (check on rubular)
 
@@ -409,7 +404,7 @@ https://www.regular-expressions.info/conditional.html
 // custom:
 // - brackets [[:cyrilic:]]
 // - meta chars \ѣ
-// - custom anything
+// - custom anything for binary data
 
 // https://www.rfc-editor.org/rfc/rfc9485.html#name-implementing-i-regexp
 
