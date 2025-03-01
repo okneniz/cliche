@@ -36,7 +36,7 @@ func (p pair) Empty() bool {
 }
 
 func (p pair) Size() int {
-	return p.to - p.from
+	return p.to - p.from + 1
 }
 
 func (p pair) Include(x int) bool {
