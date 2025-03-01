@@ -254,8 +254,8 @@ https://www.regular-expressions.info/conditional.html
 
 | support | construction | description |
 |--|--|--|
-|✅| `(?(cond)yes-subexp|no-subexp)` | checks if the numbered capturing group has matched something (n >= 1) |
-|✅| `(?(<cond>)yes-subexp|no-subexp)` | checks if a group with the given name has matched something |
+|✅| `(?(cond)yes-subexp\|no-subexp)` | checks if the numbered capturing group has matched something (n >= 1) |
+|✅| `(?(<cond>)yes-subexp\|no-subexp)` | checks if a group with the given name has matched something |
 |✅| `(?(n)yes-subexp)` | condition with one branch (n >= 1)|
 |✅| `(?(<cond>)yes-subexp)` | condition with one branch |
 
