@@ -24,7 +24,7 @@
               "To": 2,
               "Empty": false
             }
-          ]     
+          ]
         }
       ]
     },
@@ -52,7 +52,7 @@
               "Empty": false,
               "OutOfString": false
             }
-          ]     
+          ]
         }
       ]
     },
@@ -79,7 +79,7 @@
               "To": 0,
               "Empty": false
             }
-          ]     
+          ]
         }
       ]
     },
@@ -99,7 +99,7 @@
           },
           "Expressions": [
             "(a)?b(?(1)c|d)"
-          ]    
+          ]
         }
       ]
     },
@@ -175,7 +175,7 @@
                 "Empty": false
               }
             }
-          ]              
+          ]
         }
       ]
     }

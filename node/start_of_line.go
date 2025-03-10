@@ -19,10 +19,6 @@ func (n *startOfLine) Traverse(f func(Node)) {
 }
 
 func (n *startOfLine) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if from >= input.Size() {
-		return
-	}
-
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := scanner.Position()
 

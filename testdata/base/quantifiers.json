@@ -58,6 +58,17 @@
             "....?",
             "...?."
           ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": true
+          },
+          "Expressions": [
+            "c?"
+          ]
         }
       ]
     },
@@ -163,6 +174,18 @@
             "x.{0,}",
             "x*",
             "x*x"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 7,
+            "To": 7,
+            "Empty": true
+          },
+          "Expressions": [
+            "x{0,}",
+            "x*"
           ]
         }
       ]

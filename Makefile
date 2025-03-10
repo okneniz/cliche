@@ -14,7 +14,7 @@ lint: fmt json_fmt
 	golangci-lint run ./...
 
 json_fmt:
-	for file in $(find ./testdata/base -name '*.json'); do jq -M -e . < $file > $file.out && mv $file.out $file; done
+	bash -c "for file in $(find ./testdata/base -name '*.json'); do jq -M -e . < $file > $file.out && mv $file.out $file; done"
 
 fmt:
 	gofmt -w -s .

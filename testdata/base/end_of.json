@@ -65,6 +65,17 @@
           "Expressions": [
             ".$"
           ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": true
+          },
+          "Expressions": [
+            "$"
+          ]
         }
       ]
     },

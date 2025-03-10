@@ -82,15 +82,11 @@ func (t *tree) Size() int {
 }
 
 func (t *tree) Match(text string) []*scanner.Match {
-	if len(text) == 0 {
-		return nil
-	}
-
 	input := buf.NewRunesBuffer(text)
 	output := scanner.NewOutput()
 	scanner := scanner.NewFullScanner(input, output, t.nodes)
 
-	scanner.Scan(0, input.Size()-1)
+	scanner.Scan(0, input.Size())
 
 	return output.Slice()
 }
