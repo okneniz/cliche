@@ -835,7 +835,7 @@ func n(t *testing.T, expression, str string) {
 	t.Helper()
 
 	t.Run("must not match "+expression+" and "+str, func(t *testing.T) {
-		tr := New(DefaultParser)
+		tr := New(OnigmoParser)
 
 		err := tr.Add(expression)
 		if err != nil {
@@ -862,7 +862,7 @@ func x(t *testing.T, expression, str string, start, size int) {
 	n := 0 // what?
 
 	t.Run("must match "+expression+" and "+str, func(t *testing.T) {
-		tr := New(DefaultParser)
+		tr := New(OnigmoParser)
 
 		err := tr.Add(expression)
 		if err != nil {
