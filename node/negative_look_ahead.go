@@ -3,13 +3,13 @@ package node
 import "fmt"
 
 type negativeLookAhead struct {
-	Value Alternation `json:"value,omitempty"`
+	value Alternation
 	*base
 }
 
 func NewNegativeLookAhead(alt Alternation) Node {
 	return &negativeLookAhead{
-		Value: alt,
+		value: alt,
 		base:  newBase(fmt.Sprintf("(?!%s)", alt.GetKey())),
 	}
 }
@@ -17,7 +17,7 @@ func NewNegativeLookAhead(alt Alternation) Node {
 func (n *negativeLookAhead) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }
@@ -26,7 +26,7 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 	matched := false
 	pos := scanner.Position()
 
-	n.Value.VisitAlternation(
+	n.value.VisitAlternation(
 		scanner,
 		input,
 		from,

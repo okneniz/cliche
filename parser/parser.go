@@ -1,10 +1,9 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
-	"strings"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/encoding/unicode"
@@ -12,182 +11,237 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-var (
-	InvalidQuantifierError = errors.New("target of repeat operator is not specified")
-)
+// TODO : можно давать комбинаторам имена чтобы генерировать
+// красивую ошибку с пояснением (что ожидается и что на самом деле)
+//
+// тогда комбинаторы должны быть или структурой или обернуты в структуру
+//
+// move prefixes parser to special builder
+// to simplify Config to list of combinators
+// (usefull for orders of combinators - apply in same orders as added)
+//
+// move it to parsec in future
+
+// Что в итоге должно быть
+//
+// ### Basic syntax
+//
+//   - `\` escape (enable or disable meta character)
+//   - `|` alternation
+//   - `(...)` group
+//   - `[...]` character class
+
+// TODO : improve names (remove "Parser" prefixes)
+
+type CustomParser struct {
+	config *ParserConfig
+	parse  c.Combinator[rune, int, node.Alternation]
+}
+
+type ParserConfig struct {
+	nonClassConfig *NonClassParserConfig
+	groupConfig    *GroupParserConfig
+	classConfig    *ClassParserConfig
+}
 
 type Option[T any] func(T)
 
-type CustomParser struct {
-	parseExpression       c.Combinator[rune, int, node.Node]
-	parseNestedExpression c.Combinator[rune, int, node.Node]
-	alternationSep        c.Combinator[rune, int, rune]
+func NewConfig() *ParserConfig {
+	cfg := new(ParserConfig)
 
-	prefixes      map[string]c.Combinator[rune, int, node.Node]
-	prefixParsers *branch[node.Node]
+	cfg.nonClassConfig = new(NonClassParserConfig)
+	cfg.nonClassConfig.items = NewParserScope[node.Node]()
 
-	inClassPrefixes      map[string]c.Combinator[rune, int, node.Table]
-	inClassPrefixParsers *branch[node.Table]
+	cfg.groupConfig = new(GroupParserConfig)
+	cfg.groupConfig.prefixes = make(map[string]GroupParserBuilder[node.Node], 0)
+	cfg.groupConfig.parsers = make([]GroupParserBuilder[node.Node], 0)
 
-	parsers        []func(except ...rune) c.Combinator[rune, int, node.Node]
-	inClassParsers []func(except ...rune) c.Combinator[rune, int, node.Table]
+	cfg.classConfig = new(ClassParserConfig)
+	cfg.classConfig.runes = NewParserScope[rune]()
+	cfg.classConfig.items = NewParserScope[node.Table]()
+
+	return cfg
 }
 
-// передавать два метод
-// table to key
-// invert table / negatiate table
+func (cfg *ParserConfig) Groups() *GroupParserConfig {
+	return cfg.groupConfig
+}
 
-func NewParser(options ...Option[*CustomParser]) *CustomParser {
+func (cfg *ParserConfig) Class() *ClassParserConfig {
+	return cfg.classConfig
+}
+
+func (cfg *ParserConfig) NonClass() *NonClassParserConfig {
+	return cfg.nonClassConfig
+}
+
+type ParserScope[T any] struct {
+	prefixes map[string]ParserBuilder[T]
+	parsers  []ParserBuilder[T]
+}
+
+func NewParserScope[T any]() *ParserScope[T] {
+	scope := new(ParserScope[T])
+	scope.prefixes = make(map[string]ParserBuilder[T], 0)
+	scope.parsers = make([]ParserBuilder[T], 0)
+	return scope
+}
+
+func (scope *ParserScope[T]) Parse(
+	builders ...ParserBuilder[T],
+) *ParserScope[T] {
+	scope.parsers = append(scope.parsers, builders...)
+	return scope
+}
+
+func (scope *ParserScope[T]) WithPrefix(
+	prefix string, builder ParserBuilder[T],
+) *ParserScope[T] {
+	scope.prefixes[prefix] = builder
+	return scope
+}
+
+func (scope *ParserScope[T]) StringAsValue(
+	prefix string, value T,
+) *ParserScope[T] {
+	return scope.WithPrefix(prefix, Const(value))
+}
+
+func (scope *ParserScope[T]) StringAsFunc(
+	prefix string, nodeBuilder func() T,
+) *ParserScope[T] {
+	return scope.WithPrefix(
+		prefix,
+		func(_ ...rune) c.Combinator[rune, int, T] {
+			return func(_ c.Buffer[rune, int]) (T, error) {
+				return nodeBuilder(), nil
+			}
+		},
+	)
+}
+
+func (scope *ParserScope[T]) parser(except ...rune) c.Combinator[rune, int, T] {
+	parseAny := c.Any[rune, int]() // to parse prefix rune by rune
+
+	parseScopeByPrefix := NewParserTree(
+		parseAny,
+		scope.prefixes,
+		except...,
+	)
+
+	parsers := make([]c.Combinator[rune, int, T], 0, len(scope.parsers)+1)
+	parsers = append(parsers, c.Try(parseScopeByPrefix))
+
+	for _, buildParser := range scope.parsers {
+		parser := buildParser(except...)
+		parsers = append(parsers, c.Try(parser))
+	}
+
+	return c.Choice(parsers...)
+}
+
+func (scope *ParserScope[T]) String() string {
+	return fmt.Sprintf("%T{%v}", scope, scope.prefixes)
+}
+
+type NonClassParserConfig struct {
+	// escaped char (\u{123}, \A, \z)
+	// escaped range of char (\d, \w, \p{Property})
+	items *ParserScope[node.Node]
+}
+
+func (cfg *NonClassParserConfig) Items() *ParserScope[node.Node] {
+	return cfg.items
+}
+
+// as in NonClass, but some char have another meaning (for example $, ^)
+// don't have anchors
+type ClassParserConfig struct {
+	// \u{00E0}, \A, \z
+	runes *ParserScope[rune]
+	items *ParserScope[node.Table]
+}
+
+func (cfg *ClassParserConfig) Runes() *ParserScope[rune] {
+	return cfg.runes
+}
+
+func (cfg *ClassParserConfig) Items() *ParserScope[node.Table] {
+	return cfg.items
+}
+
+func (cfg *ClassParserConfig) String() string {
+	return fmt.Sprintf("%T{%v}", cfg, cfg.items)
+}
+
+// can use parser from common, need only for named group, captured group, etc
+type GroupParserConfig struct {
+	prefixes map[string]GroupParserBuilder[node.Node]
+	parsers  []GroupParserBuilder[node.Node] // alternation wrapped to node
+}
+
+type GroupParserBuilder[T any] func(
+	parseAlternation c.Combinator[rune, int, node.Alternation],
+	except ...rune,
+) c.Combinator[rune, int, T]
+
+func (cfg *GroupParserConfig) Parse(
+	builders ...GroupParserBuilder[node.Node],
+) *GroupParserConfig {
+	cfg.parsers = append(cfg.parsers, builders...)
+	return cfg
+}
+
+func (cfg *GroupParserConfig) ParsePrefix(
+	prefix string, builder GroupParserBuilder[node.Node],
+) *GroupParserConfig {
+	cfg.prefixes[prefix] = builder
+	return cfg
+}
+
+func (cfg *GroupParserConfig) parser(
+	parseAlternation c.Combinator[rune, int, node.Alternation],
+	except ...rune,
+) c.Combinator[rune, int, node.Node] {
+	parseAny := c.NoneOf[rune, int](except...) // to parse prefix rune by rune
+
+	parseScopeByPrefix := NewGroupsParserTree(
+		parseAny,
+		parseAlternation,
+		cfg.prefixes,
+		except...,
+	)
+
+	parsers := make([]c.Combinator[rune, int, node.Node], 0, len(cfg.parsers)+1)
+	parsers = append(parsers, c.Try(parseScopeByPrefix))
+
+	for _, buildParser := range cfg.parsers {
+		parser := buildParser(parseAlternation, except...)
+		parsers = append(parsers, c.Try(parser))
+	}
+
+	return c.Choice(parsers...)
+}
+
+// var RequireDebug fmt.Stringer
+//
+// func debug(message string, args ...interface{}) {
+// 	if RequireDebug != nil {
+// 		fmt.Printf(message, args...)
+// 		fmt.Println(RequireDebug.String())
+// 	}
+// }
+
+func New(opts ...Option[*ParserConfig]) *CustomParser {
 	p := new(CustomParser)
-	p.prefixes = make(map[string]c.Combinator[rune, int, node.Node])
-	p.inClassPrefixes = make(map[string]c.Combinator[rune, int, node.Table])
 
-	// TODO : remove close parens and bracket from escaped chars?
-	for _, r := range ".?+*^$[]{}()" { // spec symbols for expression
-		x := r
-
-		p.prefixes["\\"+string(r)] = func(buf c.Buffer[rune, int]) (node.Node, error) {
-			return node.NewForTable(unicode.NewTableFor(x)), nil
-		}
+	cfg := NewConfig()
+	for _, apply := range opts {
+		apply(cfg)
 	}
+	p.config = cfg
 
-	for _, r := range "^-]\\" { // spec symbols for classes
-		x := r
-
-		p.inClassPrefixes["\\"+string(r)] = func(buf c.Buffer[rune, int]) (node.Table, error) {
-			return unicode.NewTableFor(x), nil
-		}
-	}
-
-	for _, configure := range options {
-		configure(p)
-	}
-
-	p.prefixParsers = newParserBranches(p.prefixes)
-	p.inClassPrefixParsers = newParserBranches(p.inClassPrefixes)
-
-	p.alternationSep = c.Eq[rune, int]('|')
-
-	// parse alternation
-	alternation := func(buf c.Buffer[rune, int]) (node.Alternation, error) {
-		variant, err := p.parseNestedExpression(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		variants := make([]node.Node, 0, 1)
-		variants = append(variants, variant)
-
-		for !buf.IsEOF() {
-			pos := buf.Position()
-
-			_, err = p.alternationSep(buf)
-			if err != nil {
-				buf.Seek(pos)
-				break // return error instead break?
-			}
-
-			variant, err = p.parseNestedExpression(buf)
-			if err != nil {
-				buf.Seek(pos)
-				break // return error instead break?
-			}
-
-			variants = append(variants, variant)
-		}
-
-		// TODO : check length and eof
-
-		return node.NewAlternation(variants), nil
-	}
-
-	// parse node
-	parseNode := p.parseOptionalQuantifier(
-		TryAll(
-			p.parseNotCapturedGroup(alternation),
-			p.parseNamedGroup(alternation),
-			p.parseAtomicGroup(alternation),
-			p.parseLookAhead(alternation),
-			p.parseNegativeLookAhead(alternation),
-			p.parseLookBehind(alternation),
-			p.parseNegativeLookBehind(alternation),
-			p.parseCondition(),
-			p.parseGroup(alternation),
-			p.parseInvalidQuantifier(),
-			p.parseNodeByPrefixes('|'),
-			p.parseNodeByCustomParsers('|'),
-			p.parseCharacterClasses('|'),
-			p.parseCharacter('|'),
-		),
-	)
-
-	// parse node of nested expression
-	parseNestedNode := p.parseOptionalQuantifier(
-		TryAll(
-			p.parseNotCapturedGroup(alternation),
-			p.parseNamedGroup(alternation),
-			p.parseAtomicGroup(alternation),
-			p.parseLookAhead(alternation),
-			p.parseNegativeLookAhead(alternation),
-			p.parseLookBehind(alternation),
-			p.parseNegativeLookBehind(alternation),
-			p.parseCondition(),
-			p.parseGroup(alternation),
-			p.parseInvalidQuantifier(),
-			p.parseNodeByPrefixes('|', ')'),
-			p.parseNodeByCustomParsers(),
-			p.parseCharacterClasses(')'),
-			p.parseCharacter('|', ')'),
-		),
-	)
-
-	p.parseExpression = func(buf c.Buffer[rune, int]) (node.Node, error) {
-		first, err := parseNode(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		last := first
-
-		for !buf.IsEOF() {
-			pos := buf.Position()
-
-			next, err := parseNode(buf)
-			if err != nil {
-				buf.Seek(pos)
-				break
-			}
-
-			last.GetNestedNodes()[next.GetKey()] = next
-			last = next
-		}
-
-		return first, nil
-	}
-
-	p.parseNestedExpression = func(buf c.Buffer[rune, int]) (node.Node, error) {
-		first, err := parseNestedNode(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		last := first
-
-		for !buf.IsEOF() {
-			pos := buf.Position()
-
-			next, err := parseNestedNode(buf)
-			if err != nil {
-				buf.Seek(pos)
-				break
-			}
-
-			last.GetNestedNodes()[next.GetKey()] = next
-			last = next
-		}
-
-		return first, nil
-	}
+	p.parse = p.alternationParser('|')
 
 	return p
 }
@@ -195,10 +249,23 @@ func NewParser(options ...Option[*CustomParser]) *CustomParser {
 func (p *CustomParser) Parse(str string) (node.Node, error) {
 	buffer := buf.NewRunesBuffer(str)
 
-	newNode, err := p.parseAlternationOrExpression(buffer)
+	alt, err := p.parse(buffer)
 	if err != nil {
 		return nil, err
 	}
+
+	var newNode node.Node
+	newNode = alt
+
+	variants := alt.GetVariants()
+	if len(variants) == 1 {
+		newNode = variants[0]
+	}
+
+	// NOTE: translate one type node to another -> \d{3} -> \d\d\d ?
+	// NOTE: add specail error class with merge method
+	// (required to pretty errors (expected: char or class ... explanation))
+	// and merge expectations in choice
 
 	newNode.Traverse(func(x node.Node) {
 		if len(x.GetNestedNodes()) == 0 { // its leaf
@@ -209,664 +276,392 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 	return newNode, nil
 }
 
-func (p *CustomParser) parseAlternationOrExpression(
-	buf c.Buffer[rune, int],
-) (node.Node, error) {
-	expression, err := p.parseExpression(buf)
-	if err != nil {
-		return nil, err
-	}
-	if buf.IsEOF() {
-		return expression, nil
-	}
-
-	variants := make([]node.Node, 0, 1)
-	variants = append(variants, expression)
-
-	for !buf.IsEOF() {
-		_, err = p.alternationSep(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		expression, err = p.parseExpression(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		variants = append(variants, expression)
-	}
-
-	return node.NewAlternation(variants), nil
-}
-
-func (p *CustomParser) parseCharacterClasses(
+func (p *CustomParser) alternationParser(
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	except = append(except, ']')
+) c.Combinator[rune, int, node.Alternation] {
+	parseAny := c.NoneOf[rune, int](except...)
+	parseClass := c.Try(p.classParser(except...))
 
-	parseTable := c.Choice[rune, int, node.Table](
-		c.Try(p.parseRange(except...)),
-		c.Try(p.parseCustomTable(except...)),
-		c.Try(p.parseCharacterTable(except...)),
-		c.Try(p.parseTableByCustomParsers(except...)),
+	// TODO : simplify - remove c.Try
+	parseNonClass := c.Choice(
+		c.Try(p.config.nonClassConfig.items.parser(except...)),
+		c.Try(func(buf c.Buffer[rune, int]) (node.Node, error) {
+			x, err := parseAny(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return node.NewForTable(unicode.NewTableFor(x)), nil
+		}),
 	)
 
-	return TryAll(
-		p.parseNegatedCharacterClass(parseTable),
-		p.parseCharacterClass(parseTable),
-	)
-}
-
-func (p *CustomParser) parseInvalidQuantifier() c.Combinator[rune, int, node.Node] {
-	invalidChars := map[rune]struct{}{
-		'?': {},
-		'*': {},
-		'+': {},
-	}
-
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		x, err := buf.Read(false)
-		if err != nil {
-			return nil, err
-		}
-
-		if _, exists := invalidChars[x]; exists {
-			return nil, InvalidQuantifierError
-		}
-
-		return nil, c.NothingMatched
-	}
-}
-
-func (p *CustomParser) parseOptionalQuantifier(
-	expression c.Combinator[rune, int, node.Node],
-) c.Combinator[rune, int, node.Node] {
-	any := c.Any[rune, int]()
-	digit := c.Try(Number())
-	comma := c.Try(c.Eq[rune, int](','))
-	rightBrace := c.Eq[rune, int]('}')
-
-	parse := c.Try(
-		c.MapAs(
-			map[rune]c.Combinator[rune, int, *node.Quantity]{
-				'?': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
-					return node.NewQuantity(0, 1), nil
-				},
-				'+': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
-					return node.NewEndlessQuantity(1), nil
-				},
-				'*': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
-					return node.NewEndlessQuantity(0), nil
-				},
-				'{': c.Choice(
-					c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,1}
-						from, err := digit(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						_, err = comma(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						to, err := digit(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						if from > to {
-							return nil, c.NothingMatched
-						}
-
-						_, err = rightBrace(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						return node.NewQuantity(from, to), nil
-					}),
-					c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {,1}
-						_, err := comma(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						to, err := digit(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						_, err = rightBrace(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						return node.NewQuantity(0, to), nil
-					}),
-					c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,}
-						from, err := digit(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						_, err = comma(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						_, err = rightBrace(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						return node.NewEndlessQuantity(from), nil
-					}),
-					func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1}
-						from, err := digit(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						_, err = rightBrace(buf)
-						if err != nil {
-							return nil, err
-						}
-
-						return node.NewQuantity(from, from), nil
-					},
-				),
-			},
-			any,
-		),
+	var (
+		parseGroup c.Combinator[rune, int, node.Node]
 	)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		x, err := expression(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		q, err := parse(buf)
-		if err != nil {
-			return x, nil
-		}
-
-		return node.NewQuantifier(q, x), nil
-	}
-}
-
-func (p *CustomParser) parseCharacter(
-	except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	parse := c.NoneOf[rune, int](except...)
-
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		x, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewForTable(unicode.NewTableFor(x)), nil
-	}
-}
-
-// TODO : parse group by prefix '(' too?
-func (p *CustomParser) parseGroup(
-	parse c.Combinator[rune, int, node.Alternation],
-) c.Combinator[rune, int, node.Node] {
-	return Parens(
+	parseVariant := c.Try(p.chainParser(p.optionalQuantifierParser(
 		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			value, err := parse(buf)
-			if err != nil {
-				return nil, err
+			group, err := parseGroup(buf)
+			if err == nil {
+				return group, nil
 			}
 
-			return node.NewGroup(value), nil
+			class, err := parseClass(buf)
+			if err == nil {
+				return class, nil
+			}
+
+			nonClass, err := parseNonClass(buf)
+			if err == nil {
+				return nonClass, nil
+			}
+
+			return nil, err
 		},
-	)
-}
+		except...,
+	)))
 
-// TODO : parse not captured group by prefix '(' too?
-func (p *CustomParser) parseNotCapturedGroup(
-	parse c.Combinator[rune, int, node.Alternation],
-) c.Combinator[rune, int, node.Node] {
-	before := SkipString("?:")
+	parseSeparator := c.Eq[rune, int]('|')
 
-	return Parens(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			_, err := before(buf)
+	parseAlternation := func(buf c.Buffer[rune, int]) (node.Alternation, error) {
+		variant, err := parseVariant(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		variants := make([]node.Node, 0, 1)
+		variants = append(variants, variant)
+
+		for !buf.IsEOF() {
+			pos := buf.Position()
+
+			_, err = parseSeparator(buf)
 			if err != nil {
-				return nil, err
+				buf.Seek(pos)
+				break
 			}
 
-			value, err := parse(buf)
+			variant, err = parseVariant(buf)
 			if err != nil {
-				return nil, err
+				buf.Seek(pos)
+				break
 			}
 
-			return node.NewNotCapturedGroup(value), nil
-		},
-	)
-}
+			variants = append(variants, variant)
+		}
 
-// TODO : parse named group by prefix '(' too?
-func (p *CustomParser) parseNamedGroup(
-	parse c.Combinator[rune, int, node.Alternation], except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	groupName := c.Skip(
-		c.Eq[rune, int]('?'),
-		Angles(
-			c.Some(
-				0,
-				c.Try(c.NoneOf[rune, int](append(except, '>')...)),
+		return node.NewAlternation(variants), nil
+	}
+
+	groupAlternation := parseAlternation
+	if !slices.Contains(except, ')') {
+		groupAlternation = p.alternationParser(append(except, ')')...)
+	}
+
+	parseGroup = c.Try(
+		Parens(
+			p.config.groupConfig.parser(
+				groupAlternation,
+				append(except, ')')...,
 			),
 		),
 	)
 
-	return Parens(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			name, err := groupName(buf)
-			if err != nil {
-				return nil, err
-			}
+	return parseAlternation
+}
 
-			variants, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
+func (p *CustomParser) runeParser(
+	scope *ParserScope[rune],
+	except ...rune,
+) c.Combinator[rune, int, rune] {
+	parseRune := scope.parser(except...)
+	parseAny := c.NoneOf[rune, int](except...)
 
-			return node.NewNamedGroup(string(name), variants), nil
-		},
+	return c.Choice(
+		c.Try(parseRune),
+		parseAny,
 	)
 }
 
-// TODO : parse not captured group by prefix '(' too?
-func (p *CustomParser) parseAtomicGroup(
-	parse c.Combinator[rune, int, node.Alternation],
-) c.Combinator[rune, int, node.Node] {
-	before := SkipString("?>")
+func (p *CustomParser) rangeOrCharParser(
+	except ...rune,
+) c.Combinator[rune, int, node.Table] {
+	parseSeparator := c.Eq[rune, int]('-')
 
-	return Parens(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			_, err := before(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			value, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			return node.NewAtomicGroup(value), nil
-		},
+	parseRune := p.runeParser(
+		p.config.classConfig.runes,
+		except...,
 	)
+
+	return func(buf c.Buffer[rune, int]) (node.Table, error) {
+		from, err := parseRune(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		pos := buf.Position()
+
+		_, err = parseSeparator(buf)
+		if err != nil {
+			buf.Seek(pos)
+			return unicode.NewTableFor(from), nil
+		}
+
+		to, err := parseRune(buf)
+		if err != nil {
+			buf.Seek(pos)
+			return unicode.NewTableFor(from), nil
+		}
+
+		// TODO : check bounds
+
+		return unicode.NewTableByPredicate(func(x rune) bool {
+			return from <= x && x <= to
+		}), nil
+	}
 }
 
-func (p *CustomParser) parseLookAhead(
-	parse c.Combinator[rune, int, node.Alternation], except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	before := SkipString("?=")
-
-	return Parens(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			_, err := before(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			value, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			return node.NewLookAhead(value), nil
-		},
-	)
-}
-
-func (p *CustomParser) parseNegativeLookAhead(
-	parse c.Combinator[rune, int, node.Alternation], except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	before := SkipString("?!")
-
-	return Parens(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			_, err := before(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			value, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			return node.NewNegativeLookAhead(value), nil
-		},
-	)
-}
-
-func (p *CustomParser) parseLookBehind(
-	parse c.Combinator[rune, int, node.Alternation], except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	before := SkipString("?<=")
-
-	return Parens(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			_, err := before(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			value, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			n, err := node.NewLookBehind(value)
-			if err != nil {
-				// TODO : return explanation from parser
-				// handle not inly NothingMatched error
-				panic(err)
-			}
-
-			return n, nil
-		},
-	)
-}
-
-func (p *CustomParser) parseNegativeLookBehind(
-	parse c.Combinator[rune, int, node.Alternation], except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	before := SkipString("?<!")
-
-	return Parens(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			_, err := before(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			value, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			n, err := node.NewNegativeLookBehind(value)
-			if err != nil {
-				// TODO : return explanation from parser
-				// handle not inly NothingMatched error
-				panic(err)
-			}
-
-			return n, nil
-		},
-	)
-}
-
-func (p *CustomParser) parseCondition(
+func (p *CustomParser) classParser(
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	digits := []rune("0123456789")
-	backReference := Quantifier(1, 2, c.OneOf[rune, int](digits...))
-	nameReference := Angles(c.Some(0, c.Try(c.NoneOf[rune, int]('>'))))
-
-	parseBackReference := func(buf c.Buffer[rune, int]) (*node.Predicate, error) {
-		runes, err := backReference(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		str := strings.ToLower(string(runes))
-
-		index, err := strconv.ParseInt(str, 16, 64)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewPredicate(
-			fmt.Sprintf("%d", index),
-			func(s node.Scanner) bool {
-				_, matched := s.GetGroup(int(index))
-				return matched
-			},
-		), nil
-	}
-
-	parseNameReference := func(buf c.Buffer[rune, int]) (*node.Predicate, error) {
-		name, err := nameReference(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		str := string(name)
-
-		return node.NewPredicate(
-			str,
-			func(s node.Scanner) bool {
-				_, matched := s.GetNamedGroup(str)
-				return matched
-			},
-		), nil
-
-	}
-
-	reference := TryAll(
-		parseBackReference,
-		parseNameReference,
-	)
-
-	condition := Parens(reference)
-	otherwise := c.Try(
-		c.Skip(
-			c.Eq[rune, int]('|'),
-			func(buf c.Buffer[rune, int]) (node.Node, error) {
-				return p.parseNestedExpression(buf)
-			},
-		),
-	)
-
-	before := SkipString("?")
-
-	return Parens(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			_, err := before(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			cond, err := condition(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			yes, err := p.parseNestedExpression(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			no, err := otherwise(buf)
-			if err != nil {
-				return node.NewGuard(
-					cond,
-					yes,
-				), nil
-			}
-
-			return node.NewCondition(cond, yes, no), nil
-		},
-	)
-}
-
-// TODO : parse character class by prefix '[' too?
-func (p *CustomParser) parseCharacterClass(
-	parseTable c.Combinator[rune, int, node.Table],
-) c.Combinator[rune, int, node.Node] {
-	parse := Squares(c.Some(1, parseTable))
+	parseClass := p.classTableParser(except...)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		tables, err := parse(buf)
+		table, err := parseClass(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		table := unicode.MergeTables(tables...)
 		return node.NewForTable(table), nil
 	}
 }
 
-// TODO : parse negated character class by prefix '[' too?
-func (p *CustomParser) parseNegatedCharacterClass(
-	parseTable c.Combinator[rune, int, node.Table],
-) c.Combinator[rune, int, node.Node] {
-	parse := Squares(
-		c.Skip(
-			c.Eq[rune, int]('^'),
-			c.Some(1, parseTable),
+func (p *CustomParser) classTableParser(
+	except ...rune,
+) c.Combinator[rune, int, node.Table] {
+	var (
+		parseClass    c.Combinator[rune, int, node.Table]
+		parseSubClass c.Combinator[rune, int, node.Table]
+	)
+
+	newExcept := []rune{']'} //append(except, ']')
+	parseClassItem := c.Try(p.config.classConfig.items.parser(newExcept...))
+	parseClassChar := c.Try(p.rangeOrCharParser(newExcept...))
+
+	// hack : implementation without parsec.Try, parsec.Choice
+	// to avoid problems with references to func and recursive parsing
+	parseTable := func(buf c.Buffer[rune, int]) (node.Table, error) {
+		pos := buf.Position()
+
+		classItem, err := parseClassItem(buf)
+		if err == nil {
+			return classItem, nil
+		}
+
+		buf.Seek(pos)
+
+		subClass, err := parseSubClass(buf)
+		if err == nil {
+			return subClass, nil
+		}
+
+		buf.Seek(pos)
+
+		classChar, err := parseClassChar(buf)
+		if err == nil {
+			return classChar, nil
+		}
+
+		return nil, err
+	}
+
+	parseSequenceOfTables := c.Some(1, c.Try(parseTable))
+
+	parsePositive := func(buf c.Buffer[rune, int]) (node.Table, error) {
+		tables, err := parseSequenceOfTables(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		return unicode.MergeTables(tables...), nil
+	}
+
+	parseNegative := c.Skip(
+		c.Eq[rune, int]('^'),
+		func(buf c.Buffer[rune, int]) (node.Table, error) {
+			table, err := parsePositive(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return table.Invert(), nil
+		},
+	)
+
+	parseClass = Squares(
+		c.Choice(
+			c.Try(parseNegative),
+			parsePositive,
 		),
 	)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		tables, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		table := unicode.MergeTables(tables...).Invert()
-		return node.NewForTable(table), nil
+	if slices.Contains(except, ']') {
+		parseSubClass = parseClass
+	} else {
+		parseSubClass = p.classTableParser(newExcept...)
 	}
+
+	return parseClass
 }
 
-// TODO : what about ranges like \u{100}-\u{200} ?
-func (p *CustomParser) parseRange(
-	except ...rune,
-) c.Combinator[rune, int, node.Table] {
-	item := c.NoneOf[rune, int](except...)
-	sep := c.Eq[rune, int]('-')
-
-	return func(buf c.Buffer[rune, int]) (node.Table, error) {
-		from, err := item(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = sep(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		to, err := item(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		// TODO : check range
-
-		runes := make([]rune, 0, to-from)
-		for r := from; r <= to; r++ {
-			runes = append(runes, r)
-		}
-
-		return unicode.NewTableFor(runes...), nil
-	}
-}
-
-func (p *CustomParser) parseCharacterTable(
-	except ...rune,
-) c.Combinator[rune, int, node.Table] {
-	parse := c.NoneOf[rune, int](except...)
-
-	return func(buf c.Buffer[rune, int]) (node.Table, error) {
-		c, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return unicode.NewTableFor(c), nil
-	}
-}
-
-func (p *CustomParser) parseNodeByPrefixes(
+func (p *CustomParser) optionalQuantifierParser(
+	expression c.Combinator[rune, int, node.Node],
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	parse := c.NoneOf[rune, int](except...)
+	parseQuantity := c.Try(p.quantityParser(except...))
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		current := p.prefixParsers.Children
-
-		for len(current) > 0 {
-			r, err := parse(buf)
-			if err != nil {
-				return nil, c.NothingMatched
-			}
-
-			next, exists := current[r]
-			if !exists {
-				return nil, c.NothingMatched
-			}
-
-			if next.parser != nil {
-				return next.parser(buf)
-			}
-
-			current = next.Children
+		exp, err := expression(buf)
+		if err != nil {
+			return nil, err
 		}
 
-		return nil, c.NothingMatched
+		quantity, err := parseQuantity(buf)
+		if err != nil {
+			return exp, nil
+		}
+
+		x := node.NewQuantifier(quantity, exp)
+		return x, nil
 	}
 }
 
-func (p *CustomParser) parseNodeByCustomParsers(
+func (p *CustomParser) quantityParser(
 	except ...rune,
+) c.Combinator[rune, int, *node.Quantity] {
+	any := c.NoneOf[rune, int](except...)
+	digit := c.Try(Number())
+	comma := c.Try(c.Eq[rune, int](','))
+	rightBrace := c.Eq[rune, int]('}')
+
+	return c.MapAs(
+		map[rune]c.Combinator[rune, int, *node.Quantity]{
+			'?': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
+				return node.NewQuantity(0, 1), nil
+			},
+			'+': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
+				return node.NewEndlessQuantity(1), nil
+			},
+			'*': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
+				return node.NewEndlessQuantity(0), nil
+			},
+			'{': c.Choice(
+				c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,1}
+					from, err := digit(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					_, err = comma(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					to, err := digit(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					if from > to {
+						return nil, c.NothingMatched
+					}
+
+					_, err = rightBrace(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					return node.NewQuantity(from, to), nil
+				}),
+				c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {,1}
+					_, err := comma(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					to, err := digit(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					_, err = rightBrace(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					return node.NewQuantity(0, to), nil
+				}),
+				c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,}
+					from, err := digit(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					_, err = comma(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					_, err = rightBrace(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					return node.NewEndlessQuantity(from), nil
+				}),
+				func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1}
+					from, err := digit(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					_, err = rightBrace(buf)
+					if err != nil {
+						return nil, err
+					}
+
+					return node.NewQuantity(from, from), nil
+				},
+			),
+		},
+		any,
+	)
+}
+
+func (p *CustomParser) chainParser(
+	parse c.Combinator[rune, int, node.Node],
 ) c.Combinator[rune, int, node.Node] {
-	parsers := make([]c.Combinator[rune, int, node.Node], 0, len(p.parsers))
-	for _, comb := range p.parsers {
-		parsers = append(parsers, comb(except...))
-	}
-
-	return TryAll[node.Node](parsers...)
-}
-
-func (p *CustomParser) parseTableByCustomParsers(
-	except ...rune,
-) c.Combinator[rune, int, node.Table] {
-	parsers := make([]c.Combinator[rune, int, node.Table], 0, len(p.inClassParsers))
-	for _, comb := range p.inClassParsers {
-		parsers = append(parsers, comb(except...))
-	}
-
-	return TryAll[node.Table](parsers...)
-}
-
-func (p *CustomParser) parseCustomTable(
-	except ...rune,
-) c.Combinator[rune, int, node.Table] {
-	parse := c.NoneOf[rune, int](except...)
-
-	return func(buf c.Buffer[rune, int]) (node.Table, error) {
-		current := p.inClassPrefixParsers.Children
-
-		for len(current) > 0 {
-			r, err := parse(buf)
-			if err != nil {
-				return nil, c.NothingMatched
-			}
-
-			next, exists := current[r]
-			if !exists {
-				return nil, c.NothingMatched
-			}
-
-			if next.parser != nil {
-				return next.parser(buf)
-			}
-
-			current = next.Children
+	return func(buf c.Buffer[rune, int]) (node.Node, error) {
+		first, err := parse(buf)
+		if err != nil {
+			return nil, err
 		}
 
-		return nil, c.NothingMatched
+		last := first
+
+		for !buf.IsEOF() {
+			pos := buf.Position()
+
+			next, err := parse(buf)
+			if err != nil {
+				buf.Seek(pos)
+				break
+			}
+
+			last.GetNestedNodes()[next.GetKey()] = next
+			last = next
+		}
+
+		return first, nil
 	}
 }

@@ -9,13 +9,13 @@ import (
 	"golang.org/x/text/unicode/rangetable"
 )
 
-// TODO : add interface Ecoder?
+// TODO : add interface Encoder?
 
 type UnicodeTable struct {
 	tbl *unicode.RangeTable
 }
 
-func NewTable(tbl *unicode.RangeTable) *UnicodeTable {
+func NewTable(tbl *unicode.RangeTable) node.Table {
 	return &UnicodeTable{
 		tbl: tbl,
 	}
@@ -35,11 +35,11 @@ func MergeTables(tbls ...node.Table) node.Table {
 	return NewTableFor(runes...)
 }
 
-func NewTableFor(items ...rune) *UnicodeTable {
+func NewTableFor(items ...rune) node.Table {
 	return NewTable(rangetable.New(items...))
 }
 
-func NewTableByPredicate(p func(rune) bool) *UnicodeTable {
+func NewTableByPredicate(p func(rune) bool) node.Table {
 	runes := make([]rune, 0)
 
 	for x := rune(0); x <= unicode.MaxRune; x++ {

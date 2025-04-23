@@ -14,8 +14,7 @@ type Node interface {
 
 	Visit(Scanner, Input, int, int, Callback)
 
-	// Add parent to travers
-	// Should return bool to interupt traversing?
+	// Remove it (GetNestedNodes enough)
 	Traverse(func(Node))
 
 	// TODO : works only for fixed chain with one end node?
@@ -38,6 +37,8 @@ type Callback func(x Node, from int, to int, empty bool)
 
 type Alternation interface {
 	Node
+
+	GetVariants() []Node
 
 	VisitAlternation(
 		scanner Scanner,

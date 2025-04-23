@@ -19,7 +19,7 @@ func NewForNameReference(name string) Node {
 func (n *nameReferenceNode) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }

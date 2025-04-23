@@ -13,7 +13,7 @@ func NewEndOfLine() Node {
 func (n *endOfLine) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }

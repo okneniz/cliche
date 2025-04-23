@@ -122,6 +122,8 @@ func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {
 	}
 
 	s.expression.Append(x)
+	// fmt.Println("scanner match", n.GetKey(), from, to, n.GetExpressions().Slice())
+	// fmt.Println("output", s.output.String())
 	if !leaf {
 		return
 	}

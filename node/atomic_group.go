@@ -8,13 +8,13 @@ import "fmt"
 // remembered by any tokens inside the group.
 // Atomic groups are non-capturing.
 type atomicGroup struct {
-	Value Alternation `json:"value,omitempty"`
+	value Alternation
 	*base
 }
 
 func NewAtomicGroup(alt Alternation) Node {
 	return &atomicGroup{
-		Value: alt,
+		value: alt,
 		base:  newBase(fmt.Sprintf("(?>%s)", alt.GetKey())),
 	}
 }
@@ -22,7 +22,7 @@ func NewAtomicGroup(alt Alternation) Node {
 func (n *atomicGroup) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }
@@ -31,7 +31,7 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, onMatch 
 	pos := scanner.Position()
 	groupsPos := scanner.GroupsPosition()
 
-	n.Value.VisitAlternation(
+	n.value.VisitAlternation(
 		scanner,
 		input,
 		from,
@@ -58,7 +58,7 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, onMatch 
 
 // TODO : move to groupBase
 func (n *atomicGroup) Size() (int, bool) {
-	if size, fixedSize := n.Value.Size(); fixedSize {
+	if size, fixedSize := n.value.Size(); fixedSize {
 		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}

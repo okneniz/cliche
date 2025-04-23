@@ -1,8 +1,8 @@
 {
-  "Name": "escaped",
+  "Name": "escaped spec symbols",
   "Tests": [
     {
-      "Name": "escaped characters",
+      "Name": "escaped spec symbols",
       "Expressions": [
         "\\.",
         "\\?",
@@ -11,11 +11,9 @@
         "\\^",
         "\\$",
         "\\[",
-        "\\]",
-        "\\{",
-        "\\}"
+        "\\|"
       ],
-      "Input": ". ? + * ^ $ [ ] { }",
+      "Input": ". ? + * ^ $ [ ] { } |",
       "Want": [
         {
           "SubString": ".",
@@ -95,36 +93,14 @@
           ]
         },
         {
-          "SubString": "]",
+          "SubString": "|",
           "Span": {
-            "From": 14,
-            "To": 14,
+            "From": 20,
+            "To": 20,
             "Empty": false
           },
           "Expressions": [
-            "\\]"
-          ]
-        },
-        {
-          "SubString": "{",
-          "Span": {
-            "From": 16,
-            "To": 16,
-            "Empty": false
-          },
-          "Expressions": [
-            "\\{"
-          ]
-        },
-        {
-          "SubString": "}",
-          "Span": {
-            "From": 18,
-            "To": 18,
-            "Empty": false
-          },
-          "Expressions": [
-            "\\}"
+            "\\|"
           ]
         }
       ]

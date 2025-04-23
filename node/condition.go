@@ -79,7 +79,7 @@ func NewCondition(cond *Predicate, yes Node, no Node) Node {
 func (n *condition) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }

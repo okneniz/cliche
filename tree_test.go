@@ -13,7 +13,7 @@ import (
 func TestTree_New(t *testing.T) {
 	t.Parallel()
 
-	// TODO : add more examples
+	// TODO : add more examples (look behind, look ahead, conditions, etc)
 
 	tr := New(DefaultParser)
 	err := tr.Add(
@@ -26,7 +26,7 @@ func TestTree_New(t *testing.T) {
 		".",
 		"^",
 		"$",
-		"\\d",
+		`\d`,
 		"\\D",
 		"\\w",
 		"\\W",
@@ -37,10 +37,13 @@ func TestTree_New(t *testing.T) {
 		"\\?",
 		"\\.",
 		"[a-z]",
+		"[^a-z]",
 		"[0-9]",
+		"[^0-9]",
 		"[0-9a-z]",
 		"[a-z0-9]",
-		"[0-9a-zxy\\d]",
+		`[\d]`,
+		`[0-9a-zxy\d]`,
 		"[^0-9a-zxy\\d]",
 		"(y)",
 		"(y|x)",
@@ -49,9 +52,13 @@ func TestTree_New(t *testing.T) {
 		"y|x",
 		"(?:y)",
 		"(?<x>y)",
+		"(?>y)",
+		"(?=y)",
+		"(?!y)",
+		"(?<=y)",
+		"(?<!y)",
 		"foo",
 		"(foo)",
-		"(f|b)",
 		"(foo|bar|baz)",
 		"(foo|bar|baz)+",
 		"(?:foo|bar|baz)+",
@@ -81,7 +88,7 @@ func TestTree_New(t *testing.T) {
 }
 
 func TestTree_Match(t *testing.T) {
-	t.Parallel()
+	// t.Parallel()
 
 	files, err := tableTests.LoadAllTestFiles("./testdata/base/")
 	if err != nil {
@@ -92,13 +99,13 @@ func TestTree_Match(t *testing.T) {
 		testFile := file
 
 		t.Run(testFile.Name, func(t *testing.T) {
-			t.Parallel()
+			// t.Parallel()
 
 			for _, ts := range testFile.Tests {
 				test := ts
 
 				t.Run(test.Name, func(t *testing.T) {
-					t.Parallel()
+					// t.Parallel()
 
 					tr := New(DefaultParser)
 					err := tr.Add(test.Expressions...)

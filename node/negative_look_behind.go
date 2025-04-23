@@ -4,7 +4,7 @@ import "fmt"
 
 type negativeLookBehind struct {
 	subExpressionSize int
-	Value             Alternation `json:"value,omitempty"`
+	value             Alternation
 	*base
 }
 
@@ -16,7 +16,7 @@ func NewNegativeLookBehind(alt Alternation) (Node, error) {
 
 	return &negativeLookBehind{
 		subExpressionSize: size,
-		Value:             alt,
+		value:             alt,
 		base:              newBase(fmt.Sprintf("(?<!%s)", alt.GetKey())),
 	}, nil
 }
@@ -24,7 +24,7 @@ func NewNegativeLookBehind(alt Alternation) (Node, error) {
 func (n *negativeLookBehind) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }
@@ -43,7 +43,7 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 
 	matched := false
 
-	n.Value.VisitAlternation(
+	n.value.VisitAlternation(
 		scanner,
 		input,
 		from-n.subExpressionSize,

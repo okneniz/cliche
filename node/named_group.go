@@ -3,15 +3,15 @@ package node
 import "fmt"
 
 type namedGroup struct {
-	Name  string      `json:"name,omitempty"`
-	Value Alternation `json:"value,omitempty"`
+	name  string
+	value Alternation
 	*base
 }
 
 func NewNamedGroup(name string, alt Alternation) Node {
 	g := &namedGroup{
-		Name:  name,
-		Value: alt,
+		name:  name,
+		value: alt,
 		base:  newBase(fmt.Sprintf("(?<%s>%s)", name, alt.GetKey())),
 	}
 
@@ -21,13 +21,13 @@ func NewNamedGroup(name string, alt Alternation) Node {
 func (n *namedGroup) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }
 
 func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	n.Value.VisitAlternation(
+	n.value.VisitAlternation(
 		scanner,
 		input,
 		from,
@@ -37,7 +37,7 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch C
 			groupsPos := scanner.NamedGroupsPosition()
 
 			// TODO : why to? what about empty captures
-			scanner.MatchNamedGroup(n.Name, from, vTo)
+			scanner.MatchNamedGroup(n.name, from, vTo)
 			scanner.Match(n, from, vTo, n.IsLeaf(), empty)
 			onMatch(n, from, vTo, empty)
 			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
@@ -51,7 +51,7 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch C
 }
 
 func (n *namedGroup) Size() (int, bool) {
-	if size, fixedSize := n.Value.Size(); fixedSize {
+	if size, fixedSize := n.value.Size(); fixedSize {
 		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}

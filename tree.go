@@ -6,7 +6,9 @@ import (
 
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
+	// pp "github.com/okneniz/cliche/parser"
 	"github.com/okneniz/cliche/scanner"
+	"golang.org/x/exp/maps"
 )
 
 type Tree interface {
@@ -34,6 +36,7 @@ func New(parser Parser) *tree {
 	tr := new(tree)
 	tr.nodes = make(map[string]node.Node)
 	tr.parser = parser
+	// pp.RequireDebug = tr
 	return tr
 }
 
@@ -65,7 +68,7 @@ func (t *tree) merge(oldNode, newNode node.Node) {
 		}
 	}
 
-	// TODO : remove AddTo because Node have AddExpression method?
+	// only if oldNode.isLeaf()
 	newNode.GetExpressions().AddTo(oldNode.GetExpressions())
 }
 
@@ -97,7 +100,10 @@ func (t *tree) MarshalJSON() ([]byte, error) {
 	encoder := json.NewEncoder(data)
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", " ")
-	if err := encoder.Encode(t.nodes); err != nil {
+
+	x := newViewsList(maps.Values(t.nodes))
+
+	if err := encoder.Encode(x); err != nil {
 		return nil, err
 	}
 

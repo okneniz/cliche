@@ -5,7 +5,7 @@ import (
 )
 
 type alternation struct {
-	Value     []Node `json:"value,omitempty"`
+	variants  []Node
 	lastNodes map[Node]struct{}
 	*base
 }
@@ -23,7 +23,7 @@ func NewAlternation(variants []Node) Alternation {
 
 	n := new(alternation)
 	n.base = newBase(strings.Join(keys, "|"))
-	n.Value = uniqVariants
+	n.variants = uniqVariants
 	n.lastNodes = make(map[Node]struct{}, len(uniqVariants))
 
 	for _, variant := range uniqVariants {
@@ -37,10 +37,14 @@ func NewAlternation(variants []Node) Alternation {
 	return n
 }
 
+func (n *alternation) GetVariants() []Node {
+	return n.variants
+}
+
 func (n *alternation) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Value {
+	for _, x := range n.variants {
 		x.Traverse(f)
 	}
 }
@@ -103,7 +107,7 @@ func (n *alternation) visitVariants(
 	to int,
 	onMatch AlternationCallback,
 ) {
-	for _, variant := range n.Value {
+	for _, variant := range n.variants {
 		stop := false
 
 		variant.Visit(
@@ -124,7 +128,7 @@ func (n *alternation) visitVariants(
 
 func (n *alternation) Size() (int, bool) {
 	var size *int
-	for _, variant := range n.Value {
+	for _, variant := range n.variants {
 		if x, fixedSize := variant.Size(); fixedSize {
 			if size != nil && *size != x {
 				return 0, false

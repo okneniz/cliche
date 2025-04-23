@@ -3,7 +3,7 @@ package node
 import "fmt"
 
 type lookBehind struct {
-	Value             Alternation `json:"value,omitempty"`
+	value             Alternation
 	subExpressionSize int
 	*base
 }
@@ -15,7 +15,7 @@ func NewLookBehind(alt Alternation) (Node, error) {
 	}
 
 	return &lookBehind{
-		Value:             alt,
+		value:             alt,
 		subExpressionSize: size,
 		base:              newBase(fmt.Sprintf("(?<=%s)", alt.GetKey())),
 	}, nil
@@ -24,7 +24,7 @@ func NewLookBehind(alt Alternation) (Node, error) {
 func (n *lookBehind) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }
@@ -37,7 +37,7 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 	pos := scanner.Position()
 
-	n.Value.VisitAlternation(
+	n.value.VisitAlternation(
 		scanner,
 		input,
 		from-n.subExpressionSize,

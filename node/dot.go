@@ -15,7 +15,7 @@ func NewDot() Node {
 func (n *dot) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }

@@ -3,13 +3,13 @@ package node
 import "fmt"
 
 type group struct {
-	Value Alternation `json:"value,omitempty"`
+	value Alternation
 	*base
 }
 
 func NewGroup(alt Alternation) Node {
 	return &group{
-		Value: alt,
+		value: alt,
 		base:  newBase(fmt.Sprintf("(%s)", alt.GetKey())),
 	}
 }
@@ -17,13 +17,13 @@ func NewGroup(alt Alternation) Node {
 func (n *group) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }
 
 func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	n.Value.VisitAlternation(
+	n.value.VisitAlternation(
 		scanner,
 		input,
 		from,
@@ -47,7 +47,7 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 }
 
 func (n *group) Size() (int, bool) {
-	if size, fixedSize := n.Value.Size(); fixedSize {
+	if size, fixedSize := n.value.Size(); fixedSize {
 		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}

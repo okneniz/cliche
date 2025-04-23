@@ -3,13 +3,13 @@ package node
 import "fmt"
 
 type notCapturedGroup struct {
-	Value Alternation `json:"value,omitempty"`
+	value Alternation
 	*base
 }
 
 func NewNotCapturedGroup(alt Alternation) Node {
 	g := &notCapturedGroup{
-		Value: alt,
+		value: alt,
 		base:  newBase(fmt.Sprintf("(?:%s)", alt.GetKey())),
 	}
 
@@ -19,13 +19,13 @@ func NewNotCapturedGroup(alt Alternation) Node {
 func (n *notCapturedGroup) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }
 
 func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	n.Value.VisitAlternation(
+	n.value.VisitAlternation(
 		scanner,
 		input,
 		from,
@@ -44,7 +44,7 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onM
 }
 
 func (n *notCapturedGroup) Size() (int, bool) {
-	if size, fixedSize := n.Value.Size(); fixedSize {
+	if size, fixedSize := n.value.Size(); fixedSize {
 		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}

@@ -4,22 +4,24 @@ package node
 
 type quantifier struct {
 	quantity *Quantity
-	Value    Node `json:"value,omitempty"`
+	value    Node
 	*base
 }
 
 func NewQuantifier(q *Quantity, value Node) Node {
-	return &quantifier{
+	n := &quantifier{
 		quantity: q,
-		Value:    value,
+		value:    value,
 		base:     newBase(value.GetKey() + q.String()),
 	}
+
+	return n
 }
 
 func (n *quantifier) Traverse(f func(Node)) {
 	f(n)
 
-	for _, x := range n.Nested {
+	for _, x := range n.nested {
 		x.Traverse(f)
 	}
 }
@@ -53,7 +55,7 @@ func (n *quantifier) recursiveVisit(
 	from, to int,
 	onMatch Callback,
 ) {
-	n.Value.Visit(scanner, input, from, to, func(match Node, mFrom, mTo int, empty bool) {
+	n.value.Visit(scanner, input, from, to, func(match Node, mFrom, mTo int, empty bool) {
 		if n.quantity.Gt(count) {
 			if n.quantity.Include(count) {
 				onMatch(match, mFrom, mTo, empty)
@@ -68,7 +70,7 @@ func (n *quantifier) recursiveVisit(
 func (n *quantifier) Size() (int, bool) {
 	// TODO : fix it
 	// TODO : size * quantity
-	if size, fixedSize := n.Value.Size(); fixedSize {
+	if size, fixedSize := n.value.Size(); fixedSize {
 		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}
