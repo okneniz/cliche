@@ -123,7 +123,7 @@ Possesive - greedy and does not backtrack once match.
 |--|--|--|
 |✅| `^...` | negative class (lowest precedence) |
 |✅| `x-y` | range from x to y |
-|❌| `[...]` | set (character class in character class) |
+|✅| `[...]` | set (character class in character class) |
 |❌| `..&&..` | intersection (low precedence, only higher than ^) ex. [a-w&&[^c-g]z] ==> ([a-w] AND ([^c-g] OR z)) ==> [abh-w] |
 
 
