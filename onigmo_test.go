@@ -74,7 +74,7 @@ func TestOnigmo(t *testing.T) {
 	x(t, `[\w\d]`, "2", 0, 1)
 	n(t, `[\w\d]`, " ")
 	x(t, `[[:upper:]]`, "B", 0, 1)
-	// x(t, /[*[:xdigit:]+]/, '+', 0, 1)
+	x(t, `[*[:xdigit:]+]`, `+`, 0, 1)
 	// x(t, /[*[:xdigit:]+]/, 'GHIKK-9+*', 6, 7)
 	// x(t, /[*[:xdigit:]+]/, '-@^+', 3, 4)
 	n(t, `[[:upper]]`, "A")
@@ -92,10 +92,10 @@ func TestOnigmo(t *testing.T) {
 	x(t, `[&]`, "&", 0, 1)
 
 	// not implemented yet
-	// x(t, `[[ab]]`, 'b', 0, 1)
-	// x(t, `[[ab]c]`, 'c', 0, 1)
-	// n(t, `[[^a]]`, 'a')
-	// n(t, `[^[a]]`, 'a')
+	x(t, `[[ab]]`, `b`, 0, 1)
+	x(t, `[[ab]c]`, `c`, 0, 1)
+	n(t, `[[^a]]`, `a`)
+	n(t, `[^[a]]`, `a`)
 	// x(t, `[[ab]&&bc]`, 'b', 0, 1)
 	// n(t, `[[ab]&&bc]`, 'a')
 	// n(t, `[[ab]&&bc]`, 'c')
@@ -182,10 +182,10 @@ func TestOnigmo(t *testing.T) {
 	// n(/(?i)(?-i)a/, "A")
 	// n(/(?i)(?-i:a)/, "A")
 
-	// x(t, `a?`, "", 0, 0)
+	x(t, `a?`, "", 0, 0)
 	x(t, `a?`, "b", 0, 0)
 	x(t, `a?`, "a", 0, 1)
-	// x(t, `a*`, "", 0, 0)
+	x(t, `a*`, "", 0, 0)
 	x(t, `a*`, "a", 0, 1)
 	x(t, `a*`, "aaa", 0, 3)
 	// x(t, `a*`, "baaaa", 0, 0) // wtf
@@ -196,10 +196,10 @@ func TestOnigmo(t *testing.T) {
 	x(t, `a+`, "aabbb", 0, 2)
 	// x(t, `a+`, "baaaa", 1, 5)
 
-	// x(/.?/, '', 0, 0)
+	x(t, `.?`, ``, 0, 0)
 	x(t, `.?`, "f", 0, 1)
 	x(t, `.?`, "\n", 0, 0)
-	// x(t, `.*`, "", 0, 0)
+	x(t, `.*`, "", 0, 0)
 	x(t, `.*`, "abcde", 0, 5)
 	x(t, `.+`, "z", 0, 1)
 	x(t, `.+`, "zdswer\n", 0, 6)
@@ -251,11 +251,11 @@ func TestOnigmo(t *testing.T) {
 	n(t, `(?>a|abd)c`, "abdc")
 	// x(t, `(?>abd|a)c`, "abdc", 0, 4) // pass, but why? (bound)
 
-	// x(/a?|b/, 'a', 0, 1)
-	// x(t, `a?|b`, "b", 0, 0)
-	// x(/a?|b/, '', 0, 0)
-	// x(/a*|b/, 'aa', 0, 2)
-	// x(t, `a*|b*`, "ba", 0, 0)
+	// x(t, `a?|b`, `a`, 0, 1) // TODO : depend on order
+	// x(t, `a?|b`, `b`, 0, 0) // TODO : depend on order
+	// x(t, `a?|b`, ``, 0, 0) // TODO : depend on order
+	x(t, `a*|b`, `aa`, 0, 2)
+	// x(t, `a*|b*`, `ba`, 0, 0) // FAILD but why
 	// x(/a*|b*/, 'ab', 0, 1)
 	// x(/a+|b*/, '', 0, 0)
 	// x(/a+|b*/, 'bbb', 0, 3)
@@ -268,17 +268,17 @@ func TestOnigmo(t *testing.T) {
 	// x(t, `(ab|ca)+`, "caabbc", 0, 4) // pass but why
 
 	// x(/(ab|ca)+/, 'aabca', 1, 5)
-	// x(/(ab|ca)+/, 'abzca', 0, 2)
-	// x(/(a|bab)+/, 'ababa', 0, 5)
+	x(t, `(ab|ca)+`, `abzca`, 0, 2)
+	x(t, `(a|bab)+`, `ababa`, 0, 5)
 	// x(/(a|bab)+/, 'ba', 1, 2)
 	// x(/(a|bab)+/, 'baaaba', 1, 4)
-	// x(/(?:a|b)(?:a|b)/, 'ab', 0, 2)
-	// x(/(?:a*|b*)(?:a*|b*)/, 'aaabbb', 0, 3)
+	x(t, `(?:a|b)(?:a|b)`, `ab`, 0, 2)
+	// x(t, `(?:a*|b*)(?:a*|b*)`, `aaabbb`, 0, 3) // DEBUG
 	// x(/(?:a*|b*)(?:a+|b+)/, 'aaabbb', 0, 6)
-	// x(/(?:a+|b+){2}/, 'aaabbb', 0, 6)
-	// x(/h{0,}/, 'hhhh', 0, 4)
+	x(t, `(?:a+|b+){2}`, `aaabbb`, 0, 6)
+	x(t, `h{0,}`, `hhhh`, 0, 4)
 	// x(/(?:a+|b+){1,2}/, 'aaabbb', 0, 6)
-	// n(/ax{2}*a/, '0axxxa1')
+	n(t, `ax{2}*a`, `0axxxa1`)
 	n(t, `a.{0,2}a`, "0aXXXa0")
 	n(t, `a.{0,2}?a`, "0aXXXa0")
 	n(t, `a.{0,2}?a`, "0aXXXXa0")
