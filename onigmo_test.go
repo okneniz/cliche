@@ -35,7 +35,7 @@ func TestOnigmo(t *testing.T) {
 	// x(t, /a(?#....\\JJJJ)b/, "ab", 0, 2)
 	// x(t, "(?x)\ta .\n+b", "0a123b4", 1, 6, 0)
 
-	// x(t, /(?x)  G (o O(?-x)oO) g L/, "GoOoOgLe", 0, 7)
+	// x(t, `(?x)  G (o O(?-x)oO) g L`, `GoOoogLe`, 0, 7)
 	x(t, `.`, "a", 0, 1)
 	n(t, `.`, "")
 	x(t, `..`, "ab", 0, 2)
@@ -79,23 +79,23 @@ func TestOnigmo(t *testing.T) {
 	// x(t, /[*[:xdigit:]+]/, '-@^+', 3, 4)
 	n(t, `[[:upper]]`, "A")
 
-	// x(t, `[[:upper]]`, ":", 0, 1) // parsing error
+	x(t, `[[:upper]]`, ":", 0, 1)
 
 	// x(t, `[\044-\047]`, "\046", 0, 1) // TODO : rande parsing error
 	// x(t, /[\x5a-\x5c]/, "\x5b", 0, 1)
 	// x(t, /[\x6A-\x6D]/, "\x6c", 0, 1)
 	// n(t, /[\x6A-\x6D]/, "\x6E")
 
-	// n(t, /^[0-9A-F]+ 0+ UNDEF /, '75F 00000000 SECT14A notype ()    External    | _rb_apply')
+	n(t, `^[0-9A-F]+ 0+ UNDEF `, "75F 00000000 SECT14A notype ()    External    | _rb_apply")
 	x(t, `[\[]`, "[", 0, 1)
-	// x(t, `[\]]`, ']', 0, 1)
+	x(t, `[\]]`, "]", 0, 1)
 	x(t, `[&]`, "&", 0, 1)
-
-	// not implemented yet
 	x(t, `[[ab]]`, `b`, 0, 1)
 	x(t, `[[ab]c]`, `c`, 0, 1)
 	n(t, `[[^a]]`, `a`)
 	n(t, `[^[a]]`, `a`)
+
+	// not implemented yet
 	// x(t, `[[ab]&&bc]`, 'b', 0, 1)
 	// n(t, `[[ab]&&bc]`, 'a')
 	// n(t, `[[ab]&&bc]`, 'c')
@@ -188,7 +188,7 @@ func TestOnigmo(t *testing.T) {
 	x(t, `a*`, "", 0, 0)
 	x(t, `a*`, "a", 0, 1)
 	x(t, `a*`, "aaa", 0, 3)
-	// x(t, `a*`, "baaaa", 0, 0) // wtf
+	x(t, `a*`, "baaaa", 0, 0)
 
 	n(t, `a+`, "")
 	x(t, `a+`, "a", 0, 1)
@@ -232,8 +232,9 @@ func TestOnigmo(t *testing.T) {
 	// x(/a|\Az/, 'za', 0, 1)
 	// x(/a|b\Z/, 'ba', 1, 2)
 	// x(/a|b\Z/, 'b', 0, 1)
-	// x(/a|b\z/, 'ba', 1, 2)
-	// x(/a|b\z/, 'b', 0, 1)
+
+	// x(t, `a|b\z`, `ba`, 1, 2)
+	x(t, `a|b\z`, `b`, 0, 1)
 
 	x(t, `\w|\s`, " ", 0, 1)
 	n(t, `\w|\w`, " ")
@@ -241,15 +242,15 @@ func TestOnigmo(t *testing.T) {
 	x(t, `\w|[&$]`, "&", 0, 1)
 	x(t, `[b-d]|[^e-z]`, "a", 0, 1)
 	x(t, `(?:a|[c-f])|bz`, "dz", 0, 1)
-	// x(t, `(?:a|[c-f])|bz`, "bz", 0, 2) // pass, but why? [0-2]
+	x(t, `(?:a|[c-f])|bz`, "bz", 0, 2)
 
 	// x(t, `abc|(?=zz)..f`, "zzf", 0, 3) // TODO : panic
-	// x(t, `abc|(?!zz)..f`, "abf", 0, 3) // pass, but why (bound)
+	x(t, `abc|(?!zz)..f`, "abf", 0, 3)
 
 	// x(t, `(?=za)..a|(?=zz)..a`, "zza", 0, 3) // TODO : panic
 
 	n(t, `(?>a|abd)c`, "abdc")
-	// x(t, `(?>abd|a)c`, "abdc", 0, 4) // pass, but why? (bound)
+	x(t, `(?>abd|a)c`, "abdc", 0, 4) // pass, but why? (bound)
 
 	// x(t, `a?|b`, `a`, 0, 1) // TODO : depend on order
 	// x(t, `a?|b`, `b`, 0, 0) // TODO : depend on order
@@ -259,13 +260,13 @@ func TestOnigmo(t *testing.T) {
 	// x(/a*|b*/, 'ab', 0, 1)
 	// x(/a+|b*/, '', 0, 0)
 	// x(/a+|b*/, 'bbb', 0, 3)
-	// x(/a+|b*/, 'abbb', 0, 1)
+	// x(t, `a+|b*`, `abbb`, 0, 1)
 	n(t, `a+|b+`, "")
-	// x(/(a|b)?/, 'b', 0, 1)
-	// x(/(a|b)*/, 'ba', 0, 2)
-	// x(/(a|b)+/, 'bab', 0, 3)
+	x(t, `(a|b)?`, `b`, 0, 1)
+	x(t, `(a|b)*`, `ba`, 0, 2)
+	x(t, `(a|b)+`, `bab`, 0, 3)
 
-	// x(t, `(ab|ca)+`, "caabbc", 0, 4) // pass but why
+	x(t, `(ab|ca)+`, "caabbc", 0, 4) // pass but why
 
 	// x(/(ab|ca)+/, 'aabca', 1, 5)
 	x(t, `(ab|ca)+`, `abzca`, 0, 2)
@@ -274,10 +275,10 @@ func TestOnigmo(t *testing.T) {
 	// x(/(a|bab)+/, 'baaaba', 1, 4)
 	x(t, `(?:a|b)(?:a|b)`, `ab`, 0, 2)
 	// x(t, `(?:a*|b*)(?:a*|b*)`, `aaabbb`, 0, 3) // DEBUG
-	// x(/(?:a*|b*)(?:a+|b+)/, 'aaabbb', 0, 6)
+	x(t, `(?:a*|b*)(?:a+|b+)`, `aaabbb`, 0, 6)
 	x(t, `(?:a+|b+){2}`, `aaabbb`, 0, 6)
 	x(t, `h{0,}`, `hhhh`, 0, 4)
-	// x(/(?:a+|b+){1,2}/, 'aaabbb', 0, 6)
+	x(t, `(?:a+|b+){1,2}`, `aaabbb`, 0, 6)
 	n(t, `ax{2}*a`, `0axxxa1`)
 	n(t, `a.{0,2}a`, "0aXXXa0")
 	n(t, `a.{0,2}?a`, "0aXXXa0")
@@ -287,7 +288,7 @@ func TestOnigmo(t *testing.T) {
 	// x(/(?:a+|\Ab*)cc/, 'cc', 0, 2)
 	n(t, `(?:a+|\Ab*)cc`, "abcc")
 	// x(/(?:^a+|b+)*c/, 'aabbbabc', 6, 8)
-	// x(/(?:^a+|b+)*c/, 'aabbbbc', 0, 7)
+	x(t, `(?:^a+|b+)*c`, `aabbbbc`, 0, 7)
 
 	// options not implemented yet
 	// x(/a|(?i)c/, 'C', 0, 1)
@@ -317,17 +318,17 @@ func TestOnigmo(t *testing.T) {
 	// i(/(?:ab)?{2}/, '', 0, 0)   # GNU regex bug
 	// x(/(?:ab)?{2}/, 'ababa', 0, 4)
 	// x(/(?:ab)*{0}/, 'ababa', 0, 0)
-	// x(/(?:ab){3,}/, 'abababab', 0, 8)
+	x(t, `(?:ab){3,}`, `abababab`, 0, 8)
 	n(t, `(?:ab){3,}`, "abab")
-	// x(/(?:ab){2,4}/, 'ababab', 0, 6)
-	// x(/(?:ab){2,4}/, 'ababababab', 0, 8)
+	x(t, `(?:ab){2,4}`, `ababab`, 0, 6)
+	x(t, `(?:ab){2,4}`, `ababababab`, 0, 8)
 	// x(/(?:ab){2,4}?/, 'ababababab', 0, 4)
-	// x(/(?:ab){,}/, 'ab{,}', 0, 5)
+	x(t, `(?:ab){,}`, `ab{,}`, 0, 5)
 	// x(/(?:abc)+?{2}/, 'abcabcabc', 0, 6)
 	// x(/(?:X*)(?i:xa)/, 'XXXa', 0, 4)
-	// x(/(d+)([^abc]z)/, 'dddz', 0, 4)
-	// x(/([^abc]*)([^abc]z)/, 'dddz', 0, 4)
-	// x(/(\w+)(\wz)/, 'dddz', 0, 4)
+	x(t, `(d+)([^abc]z)`, `dddz`, 0, 4)
+	x(t, `([^abc]*)([^abc]z)`, `dddz`, 0, 4)
+	x(t, `(\w+)(\wz)`, `dddz`, 0, 4)
 	// x(/(a)/, 'a', 0, 1, 1)
 	// x(/(ab)/, 'ab', 0, 2, 1)
 	// x(/((ab))/, 'ab', 0, 2)
@@ -390,13 +391,13 @@ func TestOnigmo(t *testing.T) {
 	// x(/(((((((a*)b))))))c\7/, 'aaabcaaa', 0, 8)
 	// x(/(((((((a*)b))))))c\7/, 'aaabcaaa', 0, 3, 7)
 	// x(/(a)(b)(c)\2\1\3/, 'abcbac', 0, 6)
-	// x(/([a-d])\1/, 'cc', 0, 2)
-	// x(/(\w\d\s)\1/, 'f5 f5 ', 0, 6)
+	x(t, `([a-d])\1`, `cc`, 0, 2)
+	x(t, `(\w\d\s)\1`, `f5 f5 `, 0, 6)
 	n(t, `(\w\d\s)\1`, "f5 f5")
-	// x(/(who|[a-c]{3})\1/, 'whowho', 0, 6)
-	// x(/...(who|[a-c]{3})\1/, 'abcwhowho', 0, 9)
-	// x(/(who|[a-c]{3})\1/, 'cbccbc', 0, 6)
-	// x(/(^a)\1/, 'aa', 0, 2)
+	x(t, `(who|[a-c]{3})\1`, `whowho`, 0, 6)
+	x(t, `...(who|[a-c]{3})\1`, `abcwhowho`, 0, 9)
+	x(t, `(who|[a-c]{3})\1`, `cbccbc`, 0, 6)
+	x(t, `(^a)\1`, `aa`, 0, 2)
 	n(t, `(^a)\1`, "baa")
 	n(t, `(a$)\1`, "aa")
 	n(t, `(ab\Z)\1`, "ab")
@@ -419,7 +420,7 @@ func TestOnigmo(t *testing.T) {
 	// n(t, `(?<!a|bc)z`, "bcz") // TODO : panic
 	// x(/(?<name1>a)/, 'a', 0, 1)
 
-	// x(/(?<name_2>ab)\g<name_2>/, 'abab', 0, 4)
+	// x(t, `(?<name_2>ab)\g<name_2>`, `abab`, 0, 4)
 	// x(/(?<name_3>.zv.)\k<name_3>/, 'azvbazvb', 0, 8)
 	// x(/(?<=\g<ab>)|-\zEND (?<ab>XyZ)/, 'XyZ', 3, 3)
 	// x(/(?<n>|a\g<n>)+/, '', 0, 0)

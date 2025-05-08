@@ -186,6 +186,8 @@ var (
 
 		cfg.Class().
 			Items().
+			WithPrefix(`\[`, parser.RuneAsTable(parser.Const('['))).
+			WithPrefix(`\]`, parser.RuneAsTable(parser.Const(']'))).
 			WithPrefix(`\p`, parsePropertyTable).
 			WithPrefix(`\P`, parseInvertedPropertyTable)
 
