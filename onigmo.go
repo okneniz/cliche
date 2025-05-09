@@ -214,33 +214,9 @@ var (
 		parseHexCharTable := parser.RuneAsTable(parseHexChar)
 		parseHexCharNode := parser.NodeAsTable(parseHexCharTable)
 
-		cfg.Class().
-			Runes().
-			WithPrefix(`\x`, parseHexChar)
-
-		cfg.Class().
-			Items().
-			WithPrefix(`\x`, parseHexCharTable)
-
-		cfg.NonClass().
-			Items().
-			WithPrefix(`\x`, parseHexCharNode)
-
 		parseOctalChar := parser.NumberAsRune(Braces(parseOctal(3)))
 		parseOctalCharTable := parser.RuneAsTable(parseOctalChar)
 		parseOctalCharNode := parser.NodeAsTable(parseOctalCharTable)
-
-		cfg.Class().
-			Runes().
-			WithPrefix(`\o`, parseOctalChar)
-
-		cfg.Class().
-			Items().
-			WithPrefix(`\o`, parseOctalCharTable)
-
-		cfg.NonClass().
-			Items().
-			WithPrefix(`\o`, parseOctalCharNode)
 
 		parseUnicodeChar := parser.NumberAsRune(parseHexNumber(1, 4))
 		parseUnicodeTable := parser.RuneAsTable(parseUnicodeChar)
@@ -248,52 +224,55 @@ var (
 
 		cfg.Class().
 			Runes().
+			WithPrefix(`\x`, parseHexChar).
+			WithPrefix(`\o`, parseOctalChar).
 			WithPrefix(`\u`, parseUnicodeChar)
 
 		cfg.Class().
 			Items().
+			WithPrefix(`\x`, parseHexCharTable).
+			WithPrefix(`\o`, parseOctalCharTable).
 			WithPrefix(`\u`, parseUnicodeTable)
 
 		cfg.NonClass().
 			Items().
-			WithPrefix(`\u`, parseUnicodeNode)
-
-		parseNameReference := func(except ...rune) c.Combinator[rune, int, node.Node] {
-			parse := parser.Angles(
-				c.Some(
-					0,
-					c.Try(c.NoneOf[rune, int]('>')),
-				),
-			)
-
-			return func(buf c.Buffer[rune, int]) (node.Node, error) {
-				name, err := parse(buf)
-				if err != nil {
-					return nil, err
-				}
-
-				return node.NewForNameReference(string(name)), nil
-			}
-		}
-
-		cfg.NonClass().
-			Items().
+			WithPrefix(`\x`, parseHexCharNode).
+			WithPrefix(`\o`, parseOctalCharNode).
+			WithPrefix(`\u`, parseUnicodeNode).
 			WithPrefix(`\k`, parseNameReference)
 
-		cfg.Groups().Parse(parseCondition)
-		cfg.Groups().Parse(parseGroup)
-
-		cfg.Groups().ParsePrefix("?:", parseNotCapturedGroup)
-		cfg.Groups().ParsePrefix("?<", parseNamedGroup)
-		cfg.Groups().ParsePrefix("?>", parseAtomicGroup)
-		cfg.Groups().ParsePrefix("?=", parseLookAhead)
-		cfg.Groups().ParsePrefix("?!", parseNegativeLookAhead)
-		cfg.Groups().ParsePrefix("?<=", parseLookBehind)
-		cfg.Groups().ParsePrefix("?<!", parseNegativeLookBehind)
+		cfg.Groups().
+			Parse(parseCondition).
+			Parse(parseGroup).
+			ParsePrefix("?:", parseNotCapturedGroup).
+			ParsePrefix("?<", parseNamedGroup).
+			ParsePrefix("?>", parseAtomicGroup).
+			ParsePrefix("?=", parseLookAhead).
+			ParsePrefix("?!", parseNegativeLookAhead).
+			ParsePrefix("?<=", parseLookBehind).
+			ParsePrefix("?<!", parseNegativeLookBehind)
 
 		// TODO : parseInvalidQuantifier
 	})
 )
+
+func parseNameReference(except ...rune) c.Combinator[rune, int, node.Node] {
+	parse := parser.Angles(
+		c.Some(
+			0,
+			c.Try(c.NoneOf[rune, int]('>')),
+		),
+	)
+
+	return func(buf c.Buffer[rune, int]) (node.Node, error) {
+		name, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		return node.NewForNameReference(string(name)), nil
+	}
+}
 
 func Braces[T any](makeParser parser.ParserBuilder[T]) parser.ParserBuilder[T] {
 	return func(except ...rune) c.Combinator[rune, int, T] {
