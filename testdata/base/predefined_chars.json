@@ -1,0 +1,182 @@
+
+{
+  "Name": "predefined chars",
+  "Tests": [
+    {
+      "Name": "new line",
+      "Expressions": [
+        "\\n",
+        "[\\n]"
+      ],
+      "Input": " \n ",
+      "Want": [
+        {
+          "SubString": "\n",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\n",            
+            "[\\n]"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "norizontal tab",
+      "Expressions": [
+        "\\t",
+        "[\\t]"
+      ],
+      "Input": " \t ",
+      "Want": [
+        {
+          "SubString": "\t",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\t",            
+            "[\\t]"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "vertical tab",
+      "Expressions": [
+        "\\v",
+        "[\\v]"
+      ],
+      "Input": " \u000B ",
+      "Want": [
+        {
+          "SubString": "\u000B",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\v",
+            "[\\v]"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "carriage return",
+      "Expressions": [
+        "\\r",
+        "[\\r]"
+      ],
+      "Input": " \r ",
+      "Want": [
+        {
+          "SubString": "\r",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\r",
+            "[\\r]"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "backspace",
+      "Expressions": [
+        "\\b",
+        "[\\b]"
+      ],
+      "Input": " \u0008 ",
+      "Want": [
+        {
+          "SubString": "\u0008",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\b",
+            "[\\b]"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "form feed",
+      "Expressions": [
+        "\\f",        
+        "[\\f]"
+      ],
+      "Input": " \u000c ",
+      "Want": [
+        {
+          "SubString": "\u000c",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\f",            
+            "[\\f]"
+          ]
+        }
+      ]
+    }, 
+    {
+      "Name": "bell",
+      "Expressions": [
+        "\\a",       
+        "[\\a]"
+      ],
+      "Input": " \u0007 ",
+      "Want": [
+        {
+          "SubString": "\u0007",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\a",            
+            "[\\a]"
+          ]
+        }
+      ]
+    }, 
+    {
+      "Name": "escape",
+      "Expressions": [
+        "\\e",        
+        "[\\e]"
+      ],
+      "Input": " \u001b ",
+      "Want": [
+        {
+          "SubString": "\u001b",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\e",
+            "[\\e]"
+          ]
+        }
+      ]
+    }
+  ]
+}

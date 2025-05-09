@@ -166,6 +166,12 @@ var (
 		parseLeftBracket := parser.NodeAsTable(parser.Const(leftBracket))
 		parseBar := parser.NodeAsTable(parser.Const(bar))
 
+		parsePropertyTable := parsePropertyName
+		parseInvertedPropertyTable := parser.InvertTable(parsePropertyTable)
+
+		parseProperty := parser.NodeAsTable(parsePropertyTable)
+		parseInvertedProperty := parser.NodeAsTable(parseInvertedPropertyTable)
+
 		cfg.NonClass().
 			Items().
 			Parse(parseBackReference).
@@ -176,25 +182,32 @@ var (
 			WithPrefix(`\^`, parseCircumFlexus).
 			WithPrefix(`\$`, parseDollar).
 			WithPrefix(`\[`, parseLeftBracket).
-			WithPrefix(`\|`, parseBar)
-
-		parsePropertyTable := parsePropertyName
-		parseInvertedPropertyTable := parser.InvertTable(parsePropertyTable)
-
-		parseProperty := parser.NodeAsTable(parsePropertyTable)
-		parseInvertedProperty := parser.NodeAsTable(parseInvertedPropertyTable)
+			WithPrefix(`\|`, parseBar).
+			WithPrefix(`\n`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\n')))).
+			WithPrefix(`\t`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\t')))).
+			WithPrefix(`\v`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\u000B')))).
+			WithPrefix(`\r`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\r')))).
+			WithPrefix(`\b`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\b')))).
+			WithPrefix(`\f`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\f')))).
+			WithPrefix(`\a`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\a')))).
+			WithPrefix(`\e`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\u001b')))).
+			WithPrefix(`\p`, parseProperty).
+			WithPrefix(`\P`, parseInvertedProperty)
 
 		cfg.Class().
 			Items().
 			WithPrefix(`\[`, parser.RuneAsTable(parser.Const('['))).
 			WithPrefix(`\]`, parser.RuneAsTable(parser.Const(']'))).
+			WithPrefix(`\n`, parser.RuneAsTable(parser.Const('\n'))).
+			WithPrefix(`\t`, parser.RuneAsTable(parser.Const('\t'))).
+			WithPrefix(`\v`, parser.RuneAsTable(parser.Const('\u000B'))).
+			WithPrefix(`\r`, parser.RuneAsTable(parser.Const('\r'))).
+			WithPrefix(`\b`, parser.RuneAsTable(parser.Const('\b'))).
+			WithPrefix(`\f`, parser.RuneAsTable(parser.Const('\f'))).
+			WithPrefix(`\a`, parser.RuneAsTable(parser.Const('\a'))).
+			WithPrefix(`\e`, parser.RuneAsTable(parser.Const('\u001b'))).
 			WithPrefix(`\p`, parsePropertyTable).
 			WithPrefix(`\P`, parseInvertedPropertyTable)
-
-		cfg.NonClass().
-			Items().
-			WithPrefix(`\p`, parseProperty).
-			WithPrefix(`\P`, parseInvertedProperty)
 
 		// TODO : check size in different docs
 		parseHexChar := parser.NumberAsRune(parseHexNumber(2, 2))

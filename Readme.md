@@ -20,14 +20,14 @@ Main features:
 
 | support |characters| description | UTF-8 code |
 |--|--|--|--|
-|❌| `\t` | horizontal tab | `0x09` |
-|❌| `\v` | vertical tab | `0x0B` |
+|✅| `\t` | horizontal tab | `0x09` |
+|✅| `\v` | vertical tab | `0x0B` |
 |✅| `\n` | newline (line feed) | `0x0A` |
-|❌| `\r` | carriage return | `0x0D` |
-|❌| `\b` | backspace | `0x08` |
-|❌| `\f` | form feed | `0x0C` |
-|❌| `\a` | bell | `0x07` |
-|❌| `\e` | escape | `0x1B` |
+|✅| `\r` | carriage return | `0x0D` |
+|✅| `\b` | backspace | `0x08` |
+|✅| `\f` | form feed | `0x0C` |
+|✅| `\a` | bell | `0x07` |
+|✅| `\e` | escape | `0x1B` |
 
 ### Different characters defenitions
 
@@ -500,7 +500,6 @@ https://www.regular-expressions.info/conditional.html
 
 // add test for
 // RUBY - /.{2}|abc|\s/.match("abc").to_a
-// может так можно убрать интерфейс node.Alternation?
 
 // cost is /\$(?<=\$)10/ match "cost is $10"
 
