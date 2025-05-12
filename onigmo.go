@@ -162,15 +162,10 @@ var (
 		parsePlus := parser.NodeAsTable(parser.Const(plus))
 		parseAsterisk := parser.NodeAsTable(parser.Const(asterisk))
 		parseCircumFlexus := parser.NodeAsTable(parser.Const(circumFlexus))
+
 		parseDollar := parser.NodeAsTable(parser.Const(dollar))
 		parseLeftBracket := parser.NodeAsTable(parser.Const(leftBracket))
 		parseBar := parser.NodeAsTable(parser.Const(bar))
-
-		parsePropertyTable := parsePropertyName
-		parseInvertedPropertyTable := parser.InvertTable(parsePropertyTable)
-
-		parseProperty := parser.NodeAsTable(parsePropertyTable)
-		parseInvertedProperty := parser.NodeAsTable(parseInvertedPropertyTable)
 
 		cfg.NonClass().
 			Items().
@@ -190,9 +185,7 @@ var (
 			WithPrefix(`\b`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\b')))).
 			WithPrefix(`\f`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\f')))).
 			WithPrefix(`\a`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\a')))).
-			WithPrefix(`\e`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\u001b')))).
-			WithPrefix(`\p`, parseProperty).
-			WithPrefix(`\P`, parseInvertedProperty)
+			WithPrefix(`\e`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\u001b'))))
 
 		cfg.Class().
 			Items().
@@ -205,9 +198,7 @@ var (
 			WithPrefix(`\b`, parser.RuneAsTable(parser.Const('\b'))).
 			WithPrefix(`\f`, parser.RuneAsTable(parser.Const('\f'))).
 			WithPrefix(`\a`, parser.RuneAsTable(parser.Const('\a'))).
-			WithPrefix(`\e`, parser.RuneAsTable(parser.Const('\u001b'))).
-			WithPrefix(`\p`, parsePropertyTable).
-			WithPrefix(`\P`, parseInvertedPropertyTable)
+			WithPrefix(`\e`, parser.RuneAsTable(parser.Const('\u001b')))
 
 		// TODO : check size in different docs
 		parseHexChar := parser.NumberAsRune(parseHexNumber(2, 2))
@@ -253,6 +244,9 @@ var (
 			ParsePrefix("?<!", parseNegativeLookBehind)
 
 		// TODO : parseInvalidQuantifier
+		configureProperty(cfg, unicode.Properties)
+		configureProperty(cfg, unicode.Scripts)
+		configureProperty(cfg, unicode.Categories)
 	})
 )
 
@@ -381,44 +375,22 @@ func parseOctal(size int) parser.ParserBuilder[int] {
 	}
 }
 
-// кажется это проще делать прямо в опциях и через WithPrefix хелпер
-func parsePropertyName(except ...rune) c.Combinator[rune, int, node.Table] {
-	// TODO : don't ignore except param
+func configureProperty(cfg *parser.ParserConfig, props map[string]*unicode.RangeTable) {
+	for name, prop := range props {
+		tbl := unicodeEncoding.NewTable(prop)
 
-	allProperties := make(map[string]node.Table)
+		cfg.NonClass().
+			Items().
+			WithPrefix(fmt.Sprintf("\\p{%s}", name), parser.NodeAsTable(parser.Const(tbl))).
+			WithPrefix(fmt.Sprintf("\\p{^%s}", name), parser.NodeAsTable(parser.Const(tbl.Invert()))).
+			WithPrefix(fmt.Sprintf("\\P{%s}", name), parser.NodeAsTable(parser.Const(tbl.Invert())))
 
-	for k, v := range unicode.Categories {
-		x := v
-		allProperties[k] = unicodeEncoding.NewTable(x)
+		cfg.Class().
+			Items().
+			WithPrefix(fmt.Sprintf("\\p{%s}", name), parser.Const(tbl)).
+			WithPrefix(fmt.Sprintf("\\p{^%s}", name), parser.Const(tbl.Invert())).
+			WithPrefix(fmt.Sprintf("\\P{%s}", name), parser.Const(tbl.Invert()))
 	}
-
-	for k, v := range unicode.Properties {
-		x := v
-		allProperties[k] = unicodeEncoding.NewTable(x)
-	}
-
-	for k, v := range unicode.Scripts {
-		x := v
-		allProperties[k] = unicodeEncoding.NewTable(x)
-	}
-
-	cases := make([]c.Combinator[rune, int, node.Table], 0, len(allProperties))
-
-	for name, t := range allProperties {
-		parse := c.SequenceOf[rune, int]([]rune("{" + name + "}")...)
-		table := t
-
-		cases = append(cases, func(buf c.Buffer[rune, int]) (node.Table, error) {
-			_, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			return table, nil
-		})
-	}
-
-	return parser.TryAll(cases...)
 }
 
 func parseGroup(

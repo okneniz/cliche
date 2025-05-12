@@ -24,7 +24,8 @@
     {
       "Name": "not Nd",
       "Expressions": [
-        "\\P{Nd}+"
+        "\\P{Nd}+",
+        "\\p{^Nd}+"
       ],
       "Input": "foo bar\nbaz 123 ",
       "Want": [
@@ -36,7 +37,8 @@
             "Empty": false
           },
           "Expressions": [
-            "\\P{Nd}+"
+            "\\P{Nd}+",
+            "\\p{^Nd}+"
           ]
         },
         {
@@ -47,7 +49,8 @@
             "Empty": false
           },
           "Expressions": [
-            "\\P{Nd}+"
+            "\\P{Nd}+",
+            "\\p{^Nd}+"
           ]
         }
       ]

@@ -66,7 +66,7 @@ Main features:
 |--|--|--|
 |✅|`\p{property-name}`| match character with [property](https://pkg.go.dev/unicode#pkg-variables) |
 |✅|`\P{property-name}`| match character without [property](https://pkg.go.dev/unicode#pkg-variables)|
-|❌|`\p{^property-name}`| match character without [property](https://pkg.go.dev/unicode#pkg-variables) |
+|✅|`\p{^property-name}`| match character without [property](https://pkg.go.dev/unicode#pkg-variables) |
 
 
 ### Quantifiers
