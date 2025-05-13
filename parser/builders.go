@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	unicodeEncoding "github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
@@ -52,11 +54,14 @@ func NumberAsRune(makeParser ParserBuilder[int]) ParserBuilder[rune] {
 		parse := makeParser(except...)
 
 		return func(buf c.Buffer[rune, int]) (rune, error) {
+			fmt.Println("parse hex char", buf)
 			x, err := parse(buf)
 			if err != nil {
+				fmt.Println("failed", err, buf)
 				return -1, err
 			}
 
+			fmt.Println("ok", x, rune(x), buf)
 			return rune(x), nil
 		}
 	}

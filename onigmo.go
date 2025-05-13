@@ -221,7 +221,7 @@ var (
 
 		cfg.Class().
 			Items().
-			WithPrefix(`\x`, parseHexCharTable).
+			// WithPrefix(`\x`, parseHexCharTable).
 			WithPrefix(`\o`, parseOctalCharTable).
 			WithPrefix(`\u`, parseUnicodeTable)
 

@@ -82,9 +82,9 @@ func TestOnigmo(t *testing.T) {
 	x(t, `[[:upper]]`, ":", 0, 1)
 
 	// x(t, `[\044-\047]`, "\046", 0, 1) // TODO : rande parsing error
-	// x(t, /[\x5a-\x5c]/, "\x5b", 0, 1)
-	// x(t, /[\x6A-\x6D]/, "\x6c", 0, 1)
-	// n(t, /[\x6A-\x6D]/, "\x6E")
+	x(t, `[\x5a-\x5c]`, "[", 0, 1)
+	x(t, `[\x6A-\x6D]`, "l", 0, 1)
+	n(t, `[\x6A-\x6D]`, "n")
 
 	n(t, `^[0-9A-F]+ 0+ UNDEF `, "75F 00000000 SECT14A notype ()    External    | _rb_apply")
 	x(t, `[\[]`, "[", 0, 1)

@@ -394,24 +394,32 @@ func (p *CustomParser) rangeOrCharParser(
 	)
 
 	return func(buf c.Buffer[rune, int]) (node.Table, error) {
+		fmt.Println("parse range", buf)
+
 		from, err := parseRune(buf)
 		if err != nil {
+			fmt.Println("failed", err, buf)
 			return nil, err
 		}
 
+		fmt.Println("parse range from : ", from, buf)
 		pos := buf.Position()
 
 		_, err = parseSeparator(buf)
 		if err != nil {
+			fmt.Println("failed", err, buf, from)
 			buf.Seek(pos)
 			return unicode.NewTableFor(from), nil
 		}
 
 		to, err := parseRune(buf)
 		if err != nil {
+			fmt.Println("failed", err, buf, to)
 			buf.Seek(pos)
 			return unicode.NewTableFor(from), nil
 		}
+
+		fmt.Println("parse range to : ", to, buf)
 
 		// TODO : check bounds
 
@@ -445,12 +453,17 @@ func (p *CustomParser) classTableParser(
 	)
 
 	newExcept := []rune{']'} //append(except, ']')
+	// TODO: remove try?
 	parseClassItem := c.Try(p.config.classConfig.items.parser(newExcept...))
 	parseClassChar := c.Try(p.rangeOrCharParser(newExcept...))
 
 	// hack : implementation without parsec.Try, parsec.Choice
 	// to avoid problems with references to func and recursive parsing
 	parseTable := func(buf c.Buffer[rune, int]) (node.Table, error) {
+		// range
+		// item
+		// subclass
+		// char
 		pos := buf.Position()
 
 		classItem, err := parseClassItem(buf)
@@ -460,7 +473,7 @@ func (p *CustomParser) classTableParser(
 
 		buf.Seek(pos)
 
-		subClass, err := parseSubClass(buf)
+		subClass, err := parseSubClass(buf) // must be first?
 		if err == nil {
 			return subClass, nil
 		}
