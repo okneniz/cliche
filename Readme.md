@@ -111,7 +111,7 @@ Possesive - greedy and does not backtrack once match.
 |✅| `^` | beginning of the line |
 |✅| `$` | end of the line |
 |✅| `\b` | word boundary |
-|❌| `\B` | non-word boundary |
+|✅| `\B` | non-word boundary |
 |✅| `\A` | beginning of string |
 |❌| `\Z` | end of string, or before newline at the end |
 |✅| `\z` | end of string |

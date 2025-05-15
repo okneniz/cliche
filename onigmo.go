@@ -140,6 +140,7 @@ var (
 			StringAsFunc(`^`, node.NewStartOfLine).
 			StringAsFunc(`$`, node.NewEndOfLine).
 			StringAsFunc(`\b`, node.NewWordBoundary).
+			StringAsFunc(`\B`, node.NewNonWordBoundary).
 			WithPrefix(`\d`, parseDigit).
 			WithPrefix(`\D`, parseNotDigit).
 			WithPrefix(`\w`, parseWord).
@@ -221,7 +222,6 @@ var (
 
 		cfg.Class().
 			Items().
-			// WithPrefix(`\x`, parseHexCharTable).
 			WithPrefix(`\o`, parseOctalCharTable).
 			WithPrefix(`\u`, parseUnicodeTable)
 

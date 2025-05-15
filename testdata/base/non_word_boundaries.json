@@ -1,0 +1,248 @@
+{
+  "Name": "non word boundaries",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "\\B"
+      ],
+      "Input": "test",
+      "Want": [
+        {
+          "SubString": "",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 2",
+      "Expressions": [
+        "\\B"
+      ],
+      "Input": " test",
+      "Want": [
+        {
+          "SubString": "",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 3",
+      "Expressions": [
+        "\\B"
+      ],
+      "Input": "test ",
+      "Want": [
+        {
+          "SubString": "",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 4",
+      "Expressions": [
+        "\\B"
+      ],
+      "Input": " test ",
+      "Want": [
+        {
+          "SubString": "",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\B"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 5",
+      "Expressions": [
+        "\\B\\w+\\B"
+      ],
+      "Input": " test _ 123 x5",
+      "Want": [
+        {
+          "SubString": "es",
+          "Span": {
+            "From": 2,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\B\\w+\\B"
+          ]
+        },
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 9,
+            "To": 9,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\B\\w+\\B"
+          ]
+        }
+      ]
+    }
+  ]
+}

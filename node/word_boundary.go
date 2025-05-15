@@ -29,8 +29,10 @@ func (n *wordBoundary) Traverse(f func(Node)) {
 // Between two characters in the string, where one is a word character and the other is not a word character.
 
 func (n *wordBoundary) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
-	if (!n.isWord(input, from-1) && n.isWord(input, from)) ||
-		(n.isWord(input, from-1) && !n.isWord(input, from)) {
+	isWordBoundary := (!n.isWord(input, from-1) && n.isWord(input, from)) ||
+		(n.isWord(input, from-1) && !n.isWord(input, from))
+
+	if isWordBoundary {
 		scanner.Match(n, from, from, n.IsLeaf(), true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 	}
