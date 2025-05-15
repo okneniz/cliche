@@ -194,7 +194,7 @@ When we say "backreference a group," it actually means, "re-match the same text 
     \k<name-level> \k'name-level'
 ```
 
-### Asertions
+### Assertions
  
 https://www.regular-expressions.info/lookaround.html
 

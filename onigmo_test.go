@@ -136,7 +136,7 @@ func TestOnigmo(t *testing.T) {
 	// n(t, /\Gz/, 'bza')
 	// n(t, /az\G/, 'az')
 	n(t, `az\A`, `az`)
-	// n(t, /a\Az/, 'az')
+	n(t, `a\Az`, `az`)
 	x(t, `\^\$`, "^$", 0, 2)
 	x(t, `^x?y`, "xy", 0, 2)
 	x(t, `^(x?y)`, "xy", 0, 2)
@@ -229,7 +229,7 @@ func TestOnigmo(t *testing.T) {
 	// x(/a|\Gz/, 'bza', 2, 3)
 	// x(/a|\Gz/, 'za', 0, 1)
 	// x(/a|\Az/, 'bza', 2, 3)
-	// x(/a|\Az/, 'za', 0, 1)
+	// x(t, `a|\Az`, `za`, 0, 1) // TODO - is simple
 	// x(/a|b\Z/, 'ba', 1, 2)
 	// x(/a|b\Z/, 'b', 0, 1)
 
