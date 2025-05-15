@@ -139,6 +139,7 @@ var (
 			StringAsFunc(`.`, node.NewDot).
 			StringAsFunc(`^`, node.NewStartOfLine).
 			StringAsFunc(`$`, node.NewEndOfLine).
+			StringAsFunc(`\b`, node.NewWordBoundary).
 			WithPrefix(`\d`, parseDigit).
 			WithPrefix(`\D`, parseNotDigit).
 			WithPrefix(`\w`, parseWord).
@@ -182,7 +183,6 @@ var (
 			WithPrefix(`\t`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\t')))).
 			WithPrefix(`\v`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\u000B')))).
 			WithPrefix(`\r`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\r')))).
-			WithPrefix(`\b`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\b')))).
 			WithPrefix(`\f`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\f')))).
 			WithPrefix(`\a`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\a')))).
 			WithPrefix(`\e`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\u001b'))))
