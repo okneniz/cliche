@@ -1,7 +1,6 @@
 package node
 
 import (
-	"fmt"
 	"unicode"
 )
 
@@ -32,12 +31,13 @@ func (n *nonWordBoundary) Visit(
 	isWordBoundary := (!n.isWord(input, from-1) && n.isWord(input, from)) ||
 		(n.isWord(input, from-1) && !n.isWord(input, from))
 
-	fmt.Println("WTF", from, to)
-	fmt.Println("is word", n.isWord(input, from-1), n.isWord(input, from))
-
 	if !isWordBoundary {
+		pos := scanner.Position()
+
 		scanner.Match(n, from, from, n.IsLeaf(), true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
+
+		scanner.Rewind(pos)
 	}
 }
 

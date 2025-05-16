@@ -49,7 +49,7 @@ func (b *RunesBuffer) Size() int {
 }
 
 func (b *RunesBuffer) String() string {
-	return fmt.Sprintf("RunesBuffer(%s, %d)", string(b.data), b.position)
+	return fmt.Sprintf("RunesBuffer(%s, %v, %d)", string(b.data), b.data, b.position)
 }
 
 // Seek - change buffer position

@@ -33,8 +33,12 @@ func (n *wordBoundary) Visit(scanner Scanner, input Input, from, to int, onMatch
 		(n.isWord(input, from-1) && !n.isWord(input, from))
 
 	if isWordBoundary {
+		pos := scanner.Position()
+
 		scanner.Match(n, from, from, n.IsLeaf(), true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
+
+		scanner.Rewind(pos)
 	}
 }
 
