@@ -394,32 +394,24 @@ func (p *CustomParser) rangeOrCharParser(
 	)
 
 	return func(buf c.Buffer[rune, int]) (node.Table, error) {
-		fmt.Println("parse range", buf)
-
 		from, err := parseRune(buf)
 		if err != nil {
-			fmt.Println("failed", err, buf)
 			return nil, err
 		}
 
-		fmt.Println("parse range from : ", from, buf)
 		pos := buf.Position()
 
 		_, err = parseSeparator(buf)
 		if err != nil {
-			fmt.Println("failed", err, buf, from)
 			buf.Seek(pos)
 			return unicode.NewTableFor(from), nil
 		}
 
 		to, err := parseRune(buf)
 		if err != nil {
-			fmt.Println("failed", err, buf, to)
 			buf.Seek(pos)
 			return unicode.NewTableFor(from), nil
 		}
-
-		fmt.Println("parse range to : ", to, buf)
 
 		// TODO : check bounds
 
