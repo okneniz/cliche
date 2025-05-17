@@ -135,6 +135,7 @@ var (
 			Items().
 			StringAsFunc(`\A`, node.NewStartOfString).
 			StringAsFunc(`\z`, node.NewEndOfString).
+			StringAsFunc(`\Z`, node.NewEndOfStringAndNewLine).
 			StringAsFunc(`\K`, node.NewKeep).
 			StringAsFunc(`.`, node.NewDot).
 			StringAsFunc(`^`, node.NewStartOfLine).
@@ -192,6 +193,7 @@ var (
 			Items().
 			WithPrefix(`\[`, parser.RuneAsTable(parser.Const('['))).
 			WithPrefix(`\]`, parser.RuneAsTable(parser.Const(']'))).
+			WithPrefix(`\^`, parser.RuneAsTable(parser.Const('^'))).
 			WithPrefix(`\n`, parser.RuneAsTable(parser.Const('\n'))).
 			WithPrefix(`\t`, parser.RuneAsTable(parser.Const('\t'))).
 			WithPrefix(`\v`, parser.RuneAsTable(parser.Const('\u000B'))).

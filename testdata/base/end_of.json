@@ -83,7 +83,8 @@
       "Name": "string",
       "Expressions": [
         "...\\z",
-        ".\\z"
+        ".\\z",
+        ".\\Z"
       ],
       "Input": "foo bar\nbaz",
       "Want": [
@@ -95,7 +96,8 @@
             "Empty": false
           },
           "Expressions": [
-            ".\\z"
+            ".\\z",            
+            ".\\Z"
           ]
         },
         {
@@ -107,6 +109,28 @@
           },
           "Expressions": [
             "...\\z"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "string and new line",
+      "Expressions": [
+        "...\\z",
+        ".\\z",
+        ".\\Z"
+      ],
+      "Input": "foo bar\nbaz\n",
+      "Want": [
+        {
+          "SubString": "z",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            ".\\Z"
           ]
         }
       ]

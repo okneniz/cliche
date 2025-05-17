@@ -113,7 +113,7 @@ Possesive - greedy and does not backtrack once match.
 |✅| `\b` | word boundary |
 |✅| `\B` | non-word boundary |
 |✅| `\A` | beginning of string |
-|❌| `\Z` | end of string, or before newline at the end |
+|✅| `\Z` | end of string, or before newline at the end |
 |✅| `\z` | end of string |
 |❌| `\G` | where the current search attempt begins |
 
@@ -125,7 +125,6 @@ Possesive - greedy and does not backtrack once match.
 |✅| `x-y` | range from x to y |
 |✅| `[...]` | set (character class in character class) |
 |❌| `..&&..` | intersection (low precedence, only higher than ^) ex. [a-w&&[^c-g]z] ==> ([a-w] AND ([^c-g] OR z)) ==> [abh-w] |
-
 
 ### Bracket ([:xxxxx:], negate [:^xxxxx:])
 
@@ -259,7 +258,6 @@ https://www.regular-expressions.info/conditional.html
 |✅| `(?(n)yes-subexp)` | condition with one branch (n >= 1)|
 |✅| `(?(<cond>)yes-subexp)` | condition with one branch |
 
-
 ### Subexp calls ("Tanaka Akira special")
 
 ```
@@ -374,10 +372,6 @@ https://www.regular-expressions.info/conditional.html
   - anchors to assertions / look-behind / look-aheads
 - refactor traverse
 - think about reluctant and possessive quantifiers (Is it possible with this architecture?)
-
-## Octal character defenitions can conflict with quantifiers
-
-- `\o{nnn}` - 
 
 ## Compact
 
