@@ -1,8 +1,11 @@
-package cliche
+package onigmo_test
 
 import (
 	"strings"
 	"testing"
+
+	"github.com/okneniz/cliche"
+	"github.com/okneniz/cliche/onigmo"
 )
 
 func TestOnigmo(t *testing.T) {
@@ -177,7 +180,9 @@ func TestOnigmo(t *testing.T) {
 	// x(/(?m:a.)/, "a\n", 0, 2)
 	// x(/(?m:.b)/, "a\nb", 1, 3)
 
-	x(t, `.*abc`, `dddabdd\nddabc`, 8, 6)
+	// TODO : check that all \n in double brackets "\n"
+
+	x(t, `.*abc`, "dddabdd\nddabc", 8, 5)
 	// x(/(?m:.*abc)/, "dddabddabc", 0, 10)
 	// n(/(?i)(?-i)a/, "A")
 	// n(/(?i)(?-i:a)/, "A")
@@ -606,7 +611,7 @@ func TestOnigmo(t *testing.T) {
 	x(t, `[い-け]`, `う`, 0, 1)
 	x(t, `[い-け]|[^か-こ]`, `あ`, 0, 1)
 	x(t, `[い-け]|[^か-こ]`, `か`, 0, 1)
-	x(t, `[^あ]`, `\n`, 0, 1)
+	x(t, `[^あ]`, "\n", 0, 1)
 	x(t, `(?:あ|[う-き])|いを`, `うを`, 0, 1)
 	x(t, `(?:あ|[う-き])|いを`, `いを`, 0, 2)
 
@@ -852,7 +857,7 @@ func n(t *testing.T, expression, str string) {
 	t.Helper()
 
 	t.Run("must not match "+expression+" and "+str, func(t *testing.T) {
-		tr := New(OnigmoParser)
+		tr := cliche.New(onigmo.OnigmoParser)
 
 		err := tr.Add(expression)
 		if err != nil {
@@ -881,7 +886,7 @@ func x(t *testing.T, expression, str string, start, size int) {
 	t.Run("must match "+expression+" and "+str, func(t *testing.T) {
 		t.Helper()
 
-		tr := New(OnigmoParser)
+		tr := cliche.New(onigmo.OnigmoParser)
 
 		err := tr.Add(expression)
 		if err != nil {

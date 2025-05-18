@@ -9,6 +9,8 @@ import (
 	// pp "github.com/okneniz/cliche/parser"
 	"github.com/okneniz/cliche/scanner"
 	"golang.org/x/exp/maps"
+
+	unicodeEncoding "github.com/okneniz/cliche/encoding/unicode"
 )
 
 type Tree interface {
@@ -24,7 +26,8 @@ type Parser interface {
 }
 
 var (
-	_ Tree = new(tree)
+	_ Tree       = new(tree)
+	_ node.Table = new(unicodeEncoding.UnicodeTable)
 )
 
 type tree struct {

@@ -1,4 +1,4 @@
-package cliche
+package onigmo
 
 import (
 	"errors"

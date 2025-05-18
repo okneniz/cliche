@@ -1,5 +1,7 @@
 package cliche
 
+import "github.com/okneniz/cliche/onigmo"
+
 var (
-	DefaultParser = OnigmoParser
+	DefaultParser = onigmo.OnigmoParser
 )

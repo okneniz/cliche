@@ -161,6 +161,7 @@ When we say "backreference a group," it actually means, "re-match the same text 
 |--|--|--|
 |✅| `(exp)\1` | backrefernces by index |
 |✅| `(?<name>exp)\k<name>` | backreferences by name |
+|❌| `(?<name>exp)\g<name>` | call a group by name |
 
 ❌ backreference with recursion level
 
@@ -191,6 +192,35 @@ When we say "backreference a group," it actually means, "re-match the same text 
 
     \k<name+level> \k'name+level'
     \k<name-level> \k'name-level'
+```
+### Subexp calls ("Tanaka Akira special")
+
+```
+  When we say "call a group," it actually means, "re-execute the subexp in
+  that group."
+
+  \g<0>     \g'0'     call the whole pattern recursively
+  \g<n>     \g'n'     (n >= 1) call the nth group
+  \g<-n>    \g'-n'    (n >= 1) call the nth group counting backwards from
+                      the calling position
+  \g<+n>    \g'+n'    (n >= 1) call the nth group counting forwards from
+                      the calling position
+  \g<name>  \g'name'  call the group with the specified name
+
+  * Left-most recursive calls are not allowed.
+
+    ex. (?<name>a|\g<name>b)    => error
+        (?<name>a|b\g<name>c)   => OK
+
+  * Calls with a name that is assigned to more than one groups are not
+    allowed in ONIG_SYNTAX_RUBY.
+
+  * Call by number is forbidden if any named group is defined and
+    ONIG_OPTION_CAPTURE_GROUP is not set.
+
+  * The option status of the called group is always effective.
+
+    ex. /(?-i:\g<name>)(?i:(?<name>a)){0}/.match("A")
 ```
 
 ### Assertions
@@ -258,35 +288,6 @@ https://www.regular-expressions.info/conditional.html
 |✅| `(?(n)yes-subexp)` | condition with one branch (n >= 1)|
 |✅| `(?(<cond>)yes-subexp)` | condition with one branch |
 
-### Subexp calls ("Tanaka Akira special")
-
-```
-  When we say "call a group," it actually means, "re-execute the subexp in
-  that group."
-
-  \g<0>     \g'0'     call the whole pattern recursively
-  \g<n>     \g'n'     (n >= 1) call the nth group
-  \g<-n>    \g'-n'    (n >= 1) call the nth group counting backwards from
-                      the calling position
-  \g<+n>    \g'+n'    (n >= 1) call the nth group counting forwards from
-                      the calling position
-  \g<name>  \g'name'  call the group with the specified name
-
-  * Left-most recursive calls are not allowed.
-
-    ex. (?<name>a|\g<name>b)    => error
-        (?<name>a|b\g<name>c)   => OK
-
-  * Calls with a name that is assigned to more than one groups are not
-    allowed in ONIG_SYNTAX_RUBY.
-
-  * Call by number is forbidden if any named group is defined and
-    ONIG_OPTION_CAPTURE_GROUP is not set.
-
-  * The option status of the called group is always effective.
-
-    ex. /(?-i:\g<name>)(?i:(?<name>a)){0}/.match("A")
-```
 
 ### Options
 
@@ -344,6 +345,9 @@ https://www.regular-expressions.info/conditional.html
 ```
 
 ## Roadmap
+
+https://www.regular-expressions.info/branchreset.html
+https://www.regular-expressions.info/freespacing.html
 
 - pretty parsing errors
 - add recursive calls \g
@@ -534,4 +538,40 @@ https://www.regular-expressions.info/conditional.html
 // ((?<=(^))(.+)(?=($)))
 //
 // must match any string
+
+// TODO : try to explain it in doc for contributors
+//
+// split to another groups of options
+//
+// common:
+//   - chars (value)
+//     - as is (a, b, 1)
+//     - with prefix (\u{123}, \x017)
+//   - escaped meta chars (range of value)
+//   - classes (range of value)
+//
+// not in class:
+//   - groups
+//   - assertions (lookahead / lookbehind)
+//   - alternative
+//   - anchors: (match positions)
+//   	- ^, $
+//   	- \A, \z
+// 	 - spec symbols - [(|
+//   - quantifiers *+?
+//   - meta chars - ^$.
+//
+// in class:
+//   - bracket
+//   - ranges from chars
+// 	 - spec symbols - ^])
+
+// node
+//   - match node (chars, classes)
+//     - return false if bounds out of ranges)
+//	   - yield only not empty span
+//   - position node (anchor)
+//	   - yield only empty span
+//   - special consuctions (group, alternation, assertions)
+//     - capture internal sub expression
 
