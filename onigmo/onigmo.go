@@ -1,88 +1,89 @@
 package onigmo
 
 import (
-	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"unicode"
 
 	unicodeEncoding "github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/parser"
-	c "github.com/okneniz/parsec/common"
 )
 
-var _ node.Table = new(unicodeEncoding.UnicodeTable)
-
-// TODO : try to explain it in doc for contributors
-//
-// split to another groups of options
-//
-// common:
-//   - chars (value)
-//     - as is (a, b, 1)
-//     - with prefix (\u{123}, \x017)
-//   - escaped meta chars (range of value)
-//   - classes (range of value)
-//
-// not in class:
-//   - groups
-//   - assertions (lookahead / lookbehind)
-//   - alternative
-//   - anchors: (match positions)
-//   	- ^, $
-//   	- \A, \z
-// 	 - spec symbols - [(|
-//   - quantifiers *+?
-//   - meta chars - ^$.
-//
-// in class:
-//   - bracket
-//   - ranges from chars
-// 	 - spec symbols - ^])
-
-// node
-//   - match node (chars, classes)
-//     - return false if bounds out of ranges)
-//	   - yield only not empty span
-//   - position node (anchor)
-//	   - yield only empty span
-//   - special consuctions (group, alternation, assertions)
-//     - capture internal sub expression
-
 var (
+	_ node.Table = new(unicodeEncoding.UnicodeTable)
+
+	alnum  = unicodeEncoding.NewTableByPredicate(func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) })
+	alpha  = unicodeEncoding.NewTableByPredicate(func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) })
+	ascii  = unicodeEncoding.NewTableByPredicate(func(x rune) bool { return x < unicode.MaxASCII })
+	blank  = unicodeEncoding.NewTableByPredicate(func(x rune) bool { return x == ' ' || x == '\t' })
+	digit  = unicodeEncoding.NewTableByPredicate(unicode.IsDigit)
+	lower  = unicodeEncoding.NewTableByPredicate(unicode.IsLower)
+	upper  = unicodeEncoding.NewTableByPredicate(unicode.IsUpper)
+	space  = unicodeEncoding.NewTableByPredicate(unicode.IsSpace)
+	cntrl  = unicodeEncoding.NewTableByPredicate(unicode.IsControl)
+	print  = unicodeEncoding.NewTableByPredicate(unicode.IsPrint)
+	graph  = unicodeEncoding.NewTableByPredicate(func(x rune) bool { return unicode.IsGraphic(x) && !unicode.IsSpace(x) })
+	punct  = unicodeEncoding.NewTableByPredicate(unicode.IsPunct)
+	xdigit = unicodeEncoding.NewTableByPredicate(isHex)
+	word   = unicodeEncoding.NewTableByPredicate(isWord)
+
+	notAlnum  = alnum.Invert()
+	notAlpha  = alpha.Invert()
+	notAscii  = ascii.Invert()
+	notBlank  = blank.Invert()
+	notDigit  = digit.Invert()
+	notLower  = lower.Invert()
+	notUpper  = upper.Invert()
+	notSpace  = space.Invert()
+	notCntrl  = cntrl.Invert()
+	notPrint  = print.Invert()
+	notGraph  = graph.Invert()
+	notPunct  = punct.Invert()
+	notXdigit = xdigit.Invert()
+	notWord   = word.Invert()
+
+	parseDigit     = parser.NodeAsTable(parser.Const(digit))
+	parseNotDigit  = parser.NodeAsTable(parser.Const(notDigit))
+	parseWord      = parser.NodeAsTable(parser.Const(word))
+	parseNotWord   = parser.NodeAsTable(parser.Const(notWord))
+	parseSpace     = parser.NodeAsTable(parser.Const(space))
+	parseNotSpace  = parser.NodeAsTable(parser.Const(notSpace))
+	parseXdigit    = parser.NodeAsTable(parser.Const(xdigit))
+	parseNotXdigit = parser.NodeAsTable(parser.Const(notXdigit))
+
+	dot          = unicodeEncoding.NewTableFor('.')
+	question     = unicodeEncoding.NewTableFor('?')
+	plus         = unicodeEncoding.NewTableFor('+')
+	asterisk     = unicodeEncoding.NewTableFor('*')
+	circumFlexus = unicodeEncoding.NewTableFor('^')
+	dollar       = unicodeEncoding.NewTableFor('$')
+	leftBracket  = unicodeEncoding.NewTableFor('[')
+	bar          = unicodeEncoding.NewTableFor('|')
+
+	parseDot          = parser.NodeAsTable(parser.Const(dot))
+	parseQuestion     = parser.NodeAsTable(parser.Const(question))
+	parsePlus         = parser.NodeAsTable(parser.Const(plus))
+	parseAsterisk     = parser.NodeAsTable(parser.Const(asterisk))
+	parseCircumFlexus = parser.NodeAsTable(parser.Const(circumFlexus))
+
+	parseDollar      = parser.NodeAsTable(parser.Const(dollar))
+	parseLeftBracket = parser.NodeAsTable(parser.Const(leftBracket))
+	parseBar         = parser.NodeAsTable(parser.Const(bar))
+
+	// TODO : check size in different docs
+	parseHexChar      = parser.NumberAsRune(parseHexNumber(2, 2))
+	parseHexCharTable = parser.RuneAsTable(parseHexChar)
+	parseHexCharNode  = parser.NodeAsTable(parseHexCharTable)
+
+	parseOctalChar      = parser.NumberAsRune(braces(parseOctal(3)))
+	parseOctalCharTable = parser.RuneAsTable(parseOctalChar)
+	parseOctalCharNode  = parser.NodeAsTable(parseOctalCharTable)
+
+	parseUnicodeChar  = parser.NumberAsRune(parseHexNumber(1, 4))
+	parseUnicodeTable = parser.RuneAsTable(parseUnicodeChar)
+	parseUnicodeNode  = parser.NodeAsTable(parseUnicodeTable)
+
 	OnigmoParser = parser.New(func(cfg *parser.ParserConfig) {
-		alnum := unicodeEncoding.NewTableByPredicate(func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) })
-		alpha := unicodeEncoding.NewTableByPredicate(func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) })
-		ascii := unicodeEncoding.NewTableByPredicate(func(x rune) bool { return x < unicode.MaxASCII })
-		blank := unicodeEncoding.NewTableByPredicate(func(x rune) bool { return x == ' ' || x == '\t' })
-		digit := unicodeEncoding.NewTableByPredicate(unicode.IsDigit)
-		lower := unicodeEncoding.NewTableByPredicate(unicode.IsLower)
-		upper := unicodeEncoding.NewTableByPredicate(unicode.IsUpper)
-		space := unicodeEncoding.NewTableByPredicate(unicode.IsSpace)
-		cntrl := unicodeEncoding.NewTableByPredicate(unicode.IsControl)
-		print := unicodeEncoding.NewTableByPredicate(unicode.IsPrint)
-		graph := unicodeEncoding.NewTableByPredicate(func(x rune) bool { return unicode.IsGraphic(x) && !unicode.IsSpace(x) })
-		punct := unicodeEncoding.NewTableByPredicate(unicode.IsPunct)
-		xdigit := unicodeEncoding.NewTableByPredicate(isHex)
-		word := unicodeEncoding.NewTableByPredicate(isWord)
-
-		notAlnum := alnum.Invert()
-		notAlpha := alpha.Invert()
-		notAscii := ascii.Invert()
-		notBlank := blank.Invert()
-		notDigit := digit.Invert()
-		notLower := lower.Invert()
-		notUpper := upper.Invert()
-		notSpace := space.Invert()
-		notCntrl := cntrl.Invert()
-		notPrint := print.Invert()
-		notGraph := graph.Invert()
-		notPunct := punct.Invert()
-		notXdigit := xdigit.Invert()
-		notWord := word.Invert()
-
 		cfg.Class().
 			Items().
 			StringAsValue("[:alnum:]", alnum).
@@ -122,15 +123,6 @@ var (
 			StringAsValue(`\h`, xdigit).
 			StringAsValue(`\H`, notXdigit)
 
-		parseDigit := parser.NodeAsTable(parser.Const(digit))
-		parseNotDigit := parser.NodeAsTable(parser.Const(notDigit))
-		parseWord := parser.NodeAsTable(parser.Const(word))
-		parseNotWord := parser.NodeAsTable(parser.Const(notWord))
-		parseSpace := parser.NodeAsTable(parser.Const(space))
-		parseNotSpace := parser.NodeAsTable(parser.Const(notSpace))
-		parseXdigit := parser.NodeAsTable(parser.Const(xdigit))
-		parseNotXdigit := parser.NodeAsTable(parser.Const(notXdigit))
-
 		cfg.NonClass().
 			Items().
 			StringAsFunc(`\A`, node.NewStartOfString).
@@ -150,25 +142,6 @@ var (
 			WithPrefix(`\S`, parseNotSpace).
 			WithPrefix(`\h`, parseXdigit).
 			WithPrefix(`\H`, parseNotXdigit)
-
-		dot := unicodeEncoding.NewTableFor('.')
-		question := unicodeEncoding.NewTableFor('?')
-		plus := unicodeEncoding.NewTableFor('+')
-		asterisk := unicodeEncoding.NewTableFor('*')
-		circumFlexus := unicodeEncoding.NewTableFor('^')
-		dollar := unicodeEncoding.NewTableFor('$')
-		leftBracket := unicodeEncoding.NewTableFor('[')
-		bar := unicodeEncoding.NewTableFor('|')
-
-		parseDot := parser.NodeAsTable(parser.Const(dot))
-		parseQuestion := parser.NodeAsTable(parser.Const(question))
-		parsePlus := parser.NodeAsTable(parser.Const(plus))
-		parseAsterisk := parser.NodeAsTable(parser.Const(asterisk))
-		parseCircumFlexus := parser.NodeAsTable(parser.Const(circumFlexus))
-
-		parseDollar := parser.NodeAsTable(parser.Const(dollar))
-		parseLeftBracket := parser.NodeAsTable(parser.Const(leftBracket))
-		parseBar := parser.NodeAsTable(parser.Const(bar))
 
 		cfg.NonClass().
 			Items().
@@ -202,19 +175,6 @@ var (
 			WithPrefix(`\f`, parser.RuneAsTable(parser.Const('\f'))).
 			WithPrefix(`\a`, parser.RuneAsTable(parser.Const('\a'))).
 			WithPrefix(`\e`, parser.RuneAsTable(parser.Const('\u001b')))
-
-		// TODO : check size in different docs
-		parseHexChar := parser.NumberAsRune(parseHexNumber(2, 2))
-		parseHexCharTable := parser.RuneAsTable(parseHexChar)
-		parseHexCharNode := parser.NodeAsTable(parseHexCharTable)
-
-		parseOctalChar := parser.NumberAsRune(Braces(parseOctal(3)))
-		parseOctalCharTable := parser.RuneAsTable(parseOctalChar)
-		parseOctalCharNode := parser.NodeAsTable(parseOctalCharTable)
-
-		parseUnicodeChar := parser.NumberAsRune(parseHexNumber(1, 4))
-		parseUnicodeTable := parser.RuneAsTable(parseUnicodeChar)
-		parseUnicodeNode := parser.NodeAsTable(parseUnicodeTable)
 
 		cfg.Class().
 			Runes().
@@ -252,131 +212,6 @@ var (
 	})
 )
 
-func parseNameReference(except ...rune) c.Combinator[rune, int, node.Node] {
-	parse := parser.Angles(
-		c.Some(
-			0,
-			c.Try(c.NoneOf[rune, int]('>')),
-		),
-	)
-
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		name, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewForNameReference(string(name)), nil
-	}
-}
-
-func Braces[T any](makeParser parser.ParserBuilder[T]) parser.ParserBuilder[T] {
-	return func(except ...rune) c.Combinator[rune, int, T] {
-		parse := parser.Braces(makeParser(except...))
-
-		return func(buf c.Buffer[rune, int]) (T, error) {
-			x, err := parse(buf)
-			if err != nil {
-				var def T
-				return def, err
-			}
-
-			return x, nil
-		}
-	}
-}
-
-func parseBackReference(except ...rune) c.Combinator[rune, int, node.Node] {
-	digits := []rune("0123456789")
-
-	if len(except) > 0 {
-		exceptM := make(map[rune]struct{}, len(except))
-		for _, c := range except {
-			exceptM[c] = struct{}{}
-		}
-
-		for _, c := range digits {
-			if _, exists := exceptM[c]; exists {
-				panic("exceptions include digit " + string(c))
-			}
-		}
-	}
-
-	// is it possible to have back reference more than nine?
-	// for example \13 or \99 ?
-	parse := c.Skip[rune, int](
-		c.Eq[rune, int]('\\'),
-		parser.Quantifier(1, 2, c.OneOf[rune, int](digits...)),
-	)
-
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		runes, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		str := strings.ToLower(string(runes))
-
-		index, err := strconv.ParseInt(str, 16, 64)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NodeForReference(int(index)), nil
-	}
-}
-
-func parseHexNumber(from, to int) parser.ParserBuilder[int] {
-	return func(except ...rune) c.Combinator[rune, int, int] {
-		// TODO : don't ignore except
-
-		parse := parser.Quantifier(
-			from,
-			to,
-			c.OneOf[rune, int]([]rune("0123456789abcdefABCDEF")...),
-		)
-
-		return func(buf c.Buffer[rune, int]) (int, error) {
-			runes, err := parse(buf)
-			if err != nil {
-				return -1, err
-			}
-
-			str := strings.ToLower(string(runes))
-
-			num, err := strconv.ParseInt(str, 16, 64)
-			if err != nil {
-				return -1, err
-			}
-
-			return int(num), nil
-		}
-	}
-}
-
-func parseOctal(size int) parser.ParserBuilder[int] {
-	return func(except ...rune) c.Combinator[rune, int, int] {
-		allowed := []rune("01234567")
-		parse := c.Count(size, c.OneOf[rune, int](allowed...))
-
-		return func(buf c.Buffer[rune, int]) (int, error) {
-			runes, err := parse(buf)
-			if err != nil {
-				return -1, err
-			}
-
-			str := strings.ToLower(string(runes))
-
-			num, err := strconv.ParseInt(str, 8, 64)
-			if err != nil {
-				return -1, err
-			}
-
-			return int(num), nil
-		}
-	}
-}
-
 func configureProperty(cfg *parser.ParserConfig, props map[string]*unicode.RangeTable) {
 	for name, prop := range props {
 		tbl := unicodeEncoding.NewTable(prop)
@@ -392,233 +227,6 @@ func configureProperty(cfg *parser.ParserConfig, props map[string]*unicode.Range
 			WithPrefix(fmt.Sprintf("\\p{%s}", name), parser.Const(tbl)).
 			WithPrefix(fmt.Sprintf("\\p{^%s}", name), parser.Const(tbl.Invert())).
 			WithPrefix(fmt.Sprintf("\\P{%s}", name), parser.Const(tbl.Invert()))
-	}
-}
-
-func parseGroup(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewGroup(alt), nil
-	}
-}
-
-func parseNotCapturedGroup(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewNotCapturedGroup(alt), nil
-	}
-}
-
-func parseNamedGroup(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	endOfName := c.Eq[rune, int]('>')
-	allowedForNamedSymbols := c.NoneOf[rune, int](append(except, '>')...)
-
-	parseGroupName := c.SkipAfter(
-		endOfName,
-		c.Some(0, c.Try(allowedForNamedSymbols)),
-	)
-
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		name, err := parseGroupName(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewNamedGroup(string(name), alt), nil
-	}
-}
-
-func parseAtomicGroup(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewAtomicGroup(alt), nil
-	}
-}
-
-func parseLookAhead(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewLookAhead(alt), nil
-	}
-}
-
-func parseNegativeLookAhead(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewNegativeLookAhead(alt), nil
-	}
-}
-
-func parseLookBehind(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		n, err := node.NewLookBehind(alt)
-		if err != nil {
-			// TODO : return explanation from parser
-			// handle not only NothingMatched error
-			panic(err)
-		}
-
-		return n, nil
-	}
-}
-
-func parseNegativeLookBehind(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		n, err := node.NewNegativeLookBehind(alt)
-		if err != nil {
-			// TODO : return explanation from parser
-			// handle not only NothingMatched error
-			panic(err)
-		}
-
-		return n, nil
-	}
-}
-
-// (?('test')c|d)
-func parseCondition(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
-	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	// TODO : don't ignore except
-
-	digits := []rune("0123456789")
-	backReference := parser.Quantifier(1, 2, c.OneOf[rune, int](digits...))
-	nameReference := parser.Angles(c.Some(0, c.Try(c.NoneOf[rune, int]('>'))))
-
-	parseBackReference := func(buf c.Buffer[rune, int]) (*node.Predicate, error) {
-		runes, err := backReference(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		str := strings.ToLower(string(runes))
-
-		index, err := strconv.ParseInt(str, 16, 64)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewPredicate(
-			fmt.Sprintf("%d", index), // TODO: use strconv instead
-			func(s node.Scanner) bool {
-				_, matched := s.GetGroup(int(index))
-				return matched
-			},
-		), nil
-	}
-
-	parseNameReference := func(buf c.Buffer[rune, int]) (*node.Predicate, error) {
-		name, err := nameReference(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		str := string(name)
-
-		return node.NewPredicate(
-			str,
-			func(s node.Scanner) bool {
-				_, matched := s.GetNamedGroup(str)
-				return matched
-			},
-		), nil
-
-	}
-
-	reference := parser.TryAll(
-		parseBackReference,
-		parseNameReference,
-	)
-
-	condition := parser.Parens(reference)
-	before := parser.SkipString("?")
-
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		_, err := before(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		cond, err := condition(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		variants := alt.GetVariants()
-
-		switch len(variants) {
-		case 1:
-			return node.NewGuard(cond, variants[0]), nil
-		case 2:
-			return node.NewCondition(cond, variants[0], variants[1]), nil
-		}
-
-		return nil, errors.New("invalid condition pattern")
 	}
 }
 
