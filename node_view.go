@@ -29,6 +29,10 @@ func newView(n node.Node) *nodeView {
 		v.Variants = newViewsList(alt.GetVariants())
 	}
 
+	if c, ok := n.(node.Container); ok {
+		v.Variants = newViewsList(c.GetValue().GetVariants())
+	}
+
 	if len(n.GetNestedNodes()) > 0 {
 		v.Nested = newViewsList(maps.Values(n.GetNestedNodes()))
 	}

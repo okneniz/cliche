@@ -48,6 +48,10 @@ type Alternation interface {
 	)
 }
 
+type Container interface {
+	GetValue() Alternation
+}
+
 type AlternationCallback func(x Node, from int, to int, empty bool) (stop bool)
 
 type Table interface {

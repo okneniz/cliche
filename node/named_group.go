@@ -18,6 +18,10 @@ func NewNamedGroup(name string, alt Alternation) Node {
 	return g
 }
 
+func (n *namedGroup) GetValue() Alternation {
+	return n.value
+}
+
 func (n *namedGroup) Traverse(f func(Node)) {
 	f(n)
 

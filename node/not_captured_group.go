@@ -16,6 +16,10 @@ func NewNotCapturedGroup(alt Alternation) Node {
 	return g
 }
 
+func (n *notCapturedGroup) GetValue() Alternation {
+	return n.value
+}
+
 func (n *notCapturedGroup) Traverse(f func(Node)) {
 	f(n)
 

@@ -19,6 +19,10 @@ func NewAtomicGroup(alt Alternation) Node {
 	}
 }
 
+func (n *atomicGroup) GetValue() Alternation {
+	return n.value
+}
+
 func (n *atomicGroup) Traverse(f func(Node)) {
 	f(n)
 

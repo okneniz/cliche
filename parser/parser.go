@@ -432,6 +432,7 @@ func (p *CustomParser) classParser(
 			return nil, err
 		}
 
+		// TODO : what about key for negative class?
 		return node.NewForTable(table), nil
 	}
 }

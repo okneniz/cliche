@@ -14,6 +14,10 @@ func NewNegativeLookAhead(alt Alternation) Node {
 	}
 }
 
+func (n *negativeLookAhead) GetValue() Alternation {
+	return n.value
+}
+
 func (n *negativeLookAhead) Traverse(f func(Node)) {
 	f(n)
 

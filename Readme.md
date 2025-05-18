@@ -345,6 +345,7 @@ https://www.regular-expressions.info/conditional.html
 
 ## Roadmap
 
+- pretty parsing errors
 - add recursive calls \g
 - add another simple chars for compabilities with another engines
 - matches list test

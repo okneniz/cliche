@@ -14,6 +14,10 @@ func NewGroup(alt Alternation) Node {
 	}
 }
 
+func (n *group) GetValue() Alternation {
+	return n.value
+}
+
 func (n *group) Traverse(f func(Node)) {
 	f(n)
 
