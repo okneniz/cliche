@@ -291,7 +291,7 @@ func (p *CustomParser) alternationParser(
 				return nil, err
 			}
 
-			return node.NewForTable(unicode.NewTableFor(x)), nil
+			return node.NewForTable(unicode.NewTable(x)), nil
 		}),
 	)
 
@@ -404,13 +404,13 @@ func (p *CustomParser) rangeOrCharParser(
 		_, err = parseSeparator(buf)
 		if err != nil {
 			buf.Seek(pos)
-			return unicode.NewTableFor(from), nil
+			return unicode.NewTable(from), nil
 		}
 
 		to, err := parseRune(buf)
 		if err != nil {
 			buf.Seek(pos)
-			return unicode.NewTableFor(from), nil
+			return unicode.NewTable(from), nil
 		}
 
 		// TODO : check bounds

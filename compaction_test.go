@@ -20,6 +20,10 @@ func TestTreeCompaction(t *testing.T) {
 			"[1-2a-z]",
 			"[12a-z]",
 			"[1a-z2]",
+			"[1-2[a-z]]",
+			"[[1-2][a-z]]",
+			"[12[a-z]]",
+			"[12a[b-z]]",
 		},
 		{
 			"[a-z]",
@@ -35,6 +39,10 @@ func TestTreeCompaction(t *testing.T) {
 			"[a]",
 			"[aaaa]",
 			"[a-a]",
+			"[a-aa]",
+			"[a-a[a]]",
+			"[[a][a-a]]",
+			"[[a-a][a-a]]",
 		},
 		{
 			// "[\\d]", // TODO : why key is so large?

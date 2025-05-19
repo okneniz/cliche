@@ -1,24 +1,29 @@
 package unicode
 
 import (
-	"fmt"
-	"strings"
 	"unicode"
 
-	"github.com/okneniz/cliche/node" // вывернуть в обратную сторону, не должно быть такой зависимости
+	"github.com/okneniz/cliche/node" // how to remove it from deps?
+	"golang.org/x/exp/slices"
 	"golang.org/x/text/unicode/rangetable"
 )
 
-// TODO : add interface Encoder?
+func NewTable(runes ...rune) node.Table {
+	slices.Sort(runes)
+	runes = slices.Compact(runes)
 
-type UnicodeTable struct {
-	tbl *unicode.RangeTable
-}
-
-func NewTable(tbl *unicode.RangeTable) node.Table {
-	return &UnicodeTable{
-		tbl: tbl,
+	switch {
+	case len(runes) == 0:
+		return empty
+	case len(runes) == 1:
+		return runeTable{
+			r: runes[0],
+		}
+	case len(runes) >= unicode.MaxRune:
+		return everything
 	}
+
+	return newRangeTable(rangetable.New(runes...))
 }
 
 func MergeTables(tbls ...node.Table) node.Table {
@@ -32,11 +37,7 @@ func MergeTables(tbls ...node.Table) node.Table {
 		}
 	}
 
-	return NewTableFor(runes...)
-}
-
-func NewTableFor(items ...rune) node.Table {
-	return NewTable(rangetable.New(items...))
+	return NewTable(runes...)
 }
 
 func NewTableByPredicate(p func(rune) bool) node.Table {
@@ -48,80 +49,5 @@ func NewTableByPredicate(p func(rune) bool) node.Table {
 		}
 	}
 
-	return NewTable(rangetable.New(runes...))
-}
-
-func (t *UnicodeTable) Include(x rune) bool {
-	return unicode.In(x, t.tbl)
-}
-
-func (t *UnicodeTable) Invert() node.Table {
-	runes := make([]rune, 0)
-
-	for x := rune(1); x <= unicode.MaxRune; x++ {
-		if !unicode.In(x, t.tbl) {
-			runes = append(runes, x)
-		}
-	}
-
-	return NewTable(rangetable.New(runes...))
-}
-
-func (t *UnicodeTable) String() string {
-	b := new(strings.Builder)
-
-	b.WriteString("[")
-
-	comma := false
-
-	if len(t.tbl.R16) > 0 {
-		b.WriteString("R16(")
-
-		for i, r := range t.tbl.R16 {
-			b.WriteString(fmt.Sprintf("%d", r.Lo))
-			b.WriteString("-")
-			b.WriteString(fmt.Sprintf("%d", r.Hi))
-
-			if r.Stride != 1 {
-				b.WriteString("-")
-				b.WriteString(fmt.Sprintf("%d", r.Stride))
-			}
-
-			if i != len(t.tbl.R16)-1 {
-				b.WriteString(",")
-			}
-		}
-
-		b.WriteString(")")
-		comma = true
-	}
-
-	if len(t.tbl.R32) > 0 {
-		if comma {
-			b.WriteString(",")
-		}
-
-		b.WriteString("R32(")
-
-		for i, r := range t.tbl.R32 {
-			b.WriteString(fmt.Sprintf("%d", r.Lo))
-			b.WriteString("-")
-			b.WriteString(fmt.Sprintf("%d", r.Hi))
-
-			if r.Stride != 1 {
-				b.WriteString("-")
-				b.WriteString(fmt.Sprintf("%d", r.Stride))
-			}
-
-			if i != len(t.tbl.R32)-1 {
-				b.WriteString(",")
-			}
-		}
-
-		b.WriteString(")")
-	}
-
-	b.WriteString("]")
-
-	return b.String()
+	return NewTable(runes...)
 }

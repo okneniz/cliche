@@ -10,8 +10,6 @@ import (
 )
 
 var (
-	_ node.Table = new(unicodeEncoding.UnicodeTable)
-
 	alnum  = unicodeEncoding.NewTableByPredicate(func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) })
 	alpha  = unicodeEncoding.NewTableByPredicate(func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) })
 	ascii  = unicodeEncoding.NewTableByPredicate(func(x rune) bool { return x < unicode.MaxASCII })
@@ -51,14 +49,14 @@ var (
 	parseXdigit    = parser.NodeAsTable(parser.Const(xdigit))
 	parseNotXdigit = parser.NodeAsTable(parser.Const(notXdigit))
 
-	dot          = unicodeEncoding.NewTableFor('.')
-	question     = unicodeEncoding.NewTableFor('?')
-	plus         = unicodeEncoding.NewTableFor('+')
-	asterisk     = unicodeEncoding.NewTableFor('*')
-	circumFlexus = unicodeEncoding.NewTableFor('^')
-	dollar       = unicodeEncoding.NewTableFor('$')
-	leftBracket  = unicodeEncoding.NewTableFor('[')
-	bar          = unicodeEncoding.NewTableFor('|')
+	dot          = unicodeEncoding.NewTable('.')
+	question     = unicodeEncoding.NewTable('?')
+	plus         = unicodeEncoding.NewTable('+')
+	asterisk     = unicodeEncoding.NewTable('*')
+	circumFlexus = unicodeEncoding.NewTable('^')
+	dollar       = unicodeEncoding.NewTable('$')
+	leftBracket  = unicodeEncoding.NewTable('[')
+	bar          = unicodeEncoding.NewTable('|')
 
 	parseDot          = parser.NodeAsTable(parser.Const(dot))
 	parseQuestion     = parser.NodeAsTable(parser.Const(question))
@@ -154,13 +152,13 @@ var (
 			WithPrefix(`\$`, parseDollar).
 			WithPrefix(`\[`, parseLeftBracket).
 			WithPrefix(`\|`, parseBar).
-			WithPrefix(`\n`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\n')))).
-			WithPrefix(`\t`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\t')))).
-			WithPrefix(`\v`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\u000B')))).
-			WithPrefix(`\r`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\r')))).
-			WithPrefix(`\f`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\f')))).
-			WithPrefix(`\a`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\a')))).
-			WithPrefix(`\e`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTableFor('\u001b'))))
+			WithPrefix(`\n`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\n')))).
+			WithPrefix(`\t`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\t')))).
+			WithPrefix(`\v`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\u000B')))).
+			WithPrefix(`\r`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\r')))).
+			WithPrefix(`\f`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\f')))).
+			WithPrefix(`\a`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\a')))).
+			WithPrefix(`\e`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\u001b'))))
 
 		cfg.Class().
 			Items().
@@ -214,7 +212,9 @@ var (
 
 func configureProperty(cfg *parser.ParserConfig, props map[string]*unicode.RangeTable) {
 	for name, prop := range props {
-		tbl := unicodeEncoding.NewTable(prop)
+		tbl := unicodeEncoding.NewTableByPredicate(func(r rune) bool {
+			return unicode.In(r, prop)
+		})
 
 		cfg.NonClass().
 			Items().

@@ -11,6 +11,10 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
+// TODO : move onigmo speciic node.Node to this package?
+// lookahead / lookbehind ?
+// conditions
+
 func braces[T any](makeParser parser.ParserBuilder[T]) parser.ParserBuilder[T] {
 	return func(except ...rune) c.Combinator[rune, int, T] {
 		parse := parser.Braces(makeParser(except...))

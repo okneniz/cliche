@@ -1,7 +1,7 @@
 package parser
 
 import (
-	unicodeEncoding "github.com/okneniz/cliche/encoding/unicode"
+	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
 )
@@ -42,7 +42,7 @@ func RuneAsTable(makeParser ParserBuilder[rune]) ParserBuilder[node.Table] {
 				return nil, err
 			}
 
-			return unicodeEncoding.NewTableFor(r), nil
+			return unicode.NewTable(r), nil
 		}
 	}
 }
