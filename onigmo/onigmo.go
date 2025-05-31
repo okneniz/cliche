@@ -207,6 +207,11 @@ var (
 		configureProperty(cfg, unicode.Properties)
 		configureProperty(cfg, unicode.Scripts)
 		configureProperty(cfg, unicode.Categories)
+
+		cfg.Quntifier().Items().StringAsValue("?", node.NewQuantity(0, 1))
+		cfg.Quntifier().Items().StringAsValue("+", node.NewEndlessQuantity(1))
+		cfg.Quntifier().Items().StringAsValue("*", node.NewEndlessQuantity(0))
+		cfg.Quntifier().Items().WithPrefix("{", parseQuanty)
 	})
 )
 

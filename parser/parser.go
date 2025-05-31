@@ -42,6 +42,7 @@ type ParserConfig struct {
 	nonClassConfig *NonClassParserConfig
 	groupConfig    *GroupParserConfig
 	classConfig    *ClassParserConfig
+	quntityConfig  *QuantityParserConfig
 }
 
 type Option[T any] func(T)
@@ -60,6 +61,9 @@ func NewConfig() *ParserConfig {
 	cfg.classConfig.runes = NewParserScope[rune]()
 	cfg.classConfig.items = NewParserScope[node.Table]()
 
+	cfg.quntityConfig = new(QuantityParserConfig)
+	cfg.quntityConfig.items = NewParserScope[*node.Quantity]()
+
 	return cfg
 }
 
@@ -73,6 +77,10 @@ func (cfg *ParserConfig) Class() *ClassParserConfig {
 
 func (cfg *ParserConfig) NonClass() *NonClassParserConfig {
 	return cfg.nonClassConfig
+}
+
+func (cfg *ParserConfig) Quntifier() *QuantityParserConfig {
+	return cfg.quntityConfig
 }
 
 type ParserScope[T any] struct {
@@ -121,6 +129,7 @@ func (scope *ParserScope[T]) StringAsFunc(
 }
 
 func (scope *ParserScope[T]) parser(except ...rune) c.Combinator[rune, int, T] {
+	// TODO : why ignore except?
 	parseAny := c.Any[rune, int]() // to parse prefix rune by rune
 
 	parseScopeByPrefix := NewParserTree(
@@ -171,6 +180,20 @@ func (cfg *ClassParserConfig) Items() *ParserScope[node.Table] {
 }
 
 func (cfg *ClassParserConfig) String() string {
+	return fmt.Sprintf("%T{%v}", cfg, cfg.items)
+}
+
+//
+
+type QuantityParserConfig struct {
+	items *ParserScope[*node.Quantity]
+}
+
+func (cfg *QuantityParserConfig) Items() *ParserScope[*node.Quantity] {
+	return cfg.items
+}
+
+func (cfg *QuantityParserConfig) String() string {
 	return fmt.Sprintf("%T{%v}", cfg, cfg.items)
 }
 
@@ -424,15 +447,14 @@ func (p *CustomParser) rangeOrCharParser(
 func (p *CustomParser) classParser(
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	parseClass := p.classTableParser(except...)
+	parseTable := p.classTableParser(except...)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		table, err := parseClass(buf)
+		table, err := parseTable(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		// TODO : what about key for negative class?
 		return node.NewForTable(table), nil
 	}
 }
@@ -524,7 +546,7 @@ func (p *CustomParser) optionalQuantifierParser(
 	expression c.Combinator[rune, int, node.Node],
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	parseQuantity := c.Try(p.quantityParser(except...))
+	parseQuantity := c.Try(p.config.quntityConfig.items.parser(except...))
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
 		exp, err := expression(buf)
@@ -540,108 +562,6 @@ func (p *CustomParser) optionalQuantifierParser(
 		x := node.NewQuantifier(quantity, exp)
 		return x, nil
 	}
-}
-
-func (p *CustomParser) quantityParser(
-	except ...rune,
-) c.Combinator[rune, int, *node.Quantity] {
-	any := c.NoneOf[rune, int](except...)
-	digit := c.Try(Number())
-	comma := c.Try(c.Eq[rune, int](','))
-	rightBrace := c.Eq[rune, int]('}')
-
-	return c.MapAs(
-		map[rune]c.Combinator[rune, int, *node.Quantity]{
-			'?': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
-				return node.NewQuantity(0, 1), nil
-			},
-			'+': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
-				return node.NewEndlessQuantity(1), nil
-			},
-			'*': func(buf c.Buffer[rune, int]) (*node.Quantity, error) {
-				return node.NewEndlessQuantity(0), nil
-			},
-			'{': c.Choice(
-				c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,1}
-					from, err := digit(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					_, err = comma(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					to, err := digit(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					if from > to {
-						return nil, c.NothingMatched
-					}
-
-					_, err = rightBrace(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					return node.NewQuantity(from, to), nil
-				}),
-				c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {,1}
-					_, err := comma(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					to, err := digit(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					_, err = rightBrace(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					return node.NewQuantity(0, to), nil
-				}),
-				c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,}
-					from, err := digit(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					_, err = comma(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					_, err = rightBrace(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					return node.NewEndlessQuantity(from), nil
-				}),
-				func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1}
-					from, err := digit(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					_, err = rightBrace(buf)
-					if err != nil {
-						return nil, err
-					}
-
-					return node.NewQuantity(from, from), nil
-				},
-			),
-		},
-		any,
-	)
 }
 
 func (p *CustomParser) chainParser(

@@ -366,3 +366,90 @@ func parseCondition(
 		return nil, errors.New("invalid condition pattern")
 	}
 }
+
+func parseQuanty(
+	_ ...rune,
+) c.Combinator[rune, int, *node.Quantity] {
+	digit := c.Try(parser.Number())
+	comma := c.Try(c.Eq[rune, int](','))
+	rightBrace := c.Eq[rune, int]('}')
+
+	return c.Choice(
+		c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,1}
+			from, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = comma(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			to, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			if from > to {
+				return nil, c.NothingMatched
+			}
+
+			_, err = rightBrace(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return node.NewQuantity(from, to), nil
+		}),
+		c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {,1}
+			_, err := comma(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			to, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = rightBrace(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return node.NewQuantity(0, to), nil
+		}),
+		c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,}
+			from, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = comma(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = rightBrace(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return node.NewEndlessQuantity(from), nil
+		}),
+		func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1}
+			from, err := digit(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			_, err = rightBrace(buf)
+			if err != nil {
+				return nil, err
+			}
+
+			return node.NewQuantity(from, from), nil
+		},
+	)
+}
