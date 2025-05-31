@@ -352,7 +352,6 @@ https://www.regular-expressions.info/freespacing.html
 - custom quantifiers ?
 - pretty parsing errors
 - add recursive calls \g
-- add another simple chars for compabilities with another engines
 - matches list test
 - tests:
   - more tests
@@ -457,16 +456,6 @@ https://www.regular-expressions.info/freespacing.html
 
 
 ## Need check
-
-// TODO :
-//
-// is it possible to capture empty string?
-//
-// example:
-//
-// (^)foo($)
-
-// what abour nested empty captures
 
 // TODO: remove onMatch Callback params (required only for quantifier?)
 // pass quantifier as scanner?
