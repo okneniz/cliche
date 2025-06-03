@@ -285,7 +285,11 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 		newNode = variants[0]
 	}
 
-	// NOTE: translate one type node to another -> \d{3} -> \d\d\d ?
+	// TODO : move it to special component?
+	// - alternation with one variant must work as this variant out of this alternation
+	// - translate one type node to another -> \d{3} -> \d\d\d ?
+	// - remove comments from chains
+
 	// NOTE: add specail error class with merge method
 	// (required to pretty errors (expected: char or class ... explanation))
 	// and merge expectations in choice

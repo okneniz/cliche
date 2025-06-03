@@ -17,6 +17,7 @@ func NewAlternation(variants []Node) Alternation {
 	for _, variant := range variants {
 		key := ""
 		variant.Traverse(func(x Node) { key += x.GetKey() })
+		// TODO : keep only uniq variants by map
 		uniqVariants = append(uniqVariants, variant)
 		keys = append(keys, key)
 	}
@@ -56,13 +57,12 @@ func (n *alternation) Visit(
 	from, to int,
 	onMatch Callback,
 ) {
-	n.visitVariants(
+	n.VisitAlternation(
 		scanner,
 		input,
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) bool {
-			pos := scanner.Position()
 			scanner.Match(n, from, vTo, n.IsLeaf(), empty)
 			onMatch(n, from, vTo, empty)
 
@@ -72,41 +72,21 @@ func (n *alternation) Visit(
 			}
 
 			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
-			scanner.Rewind(pos)
 			return false
 		},
 	)
 }
 
-// VisitAlternation - visit like group values
+// VisitAlternation - visit like container value (without nested nodes)
 func (n *alternation) VisitAlternation(
-	scanner Scanner,
-	input Input,
-	from, to int,
-	onMatchVariant AlternationCallback,
-) {
-	n.visitVariants(
-		scanner,
-		input,
-		from,
-		to,
-		func(variant Node, vFrom, vTo int, empty bool) bool {
-			if _, exists := n.lastNodes[variant]; exists {
-				return onMatchVariant(variant, vFrom, vTo, empty)
-			}
-
-			return false
-		},
-	)
-}
-
-func (n *alternation) visitVariants(
 	scanner Scanner,
 	input Input,
 	from,
 	to int,
 	onMatch AlternationCallback,
 ) {
+	pos := scanner.Position()
+
 	for _, variant := range n.variants {
 		stop := false
 
@@ -115,10 +95,16 @@ func (n *alternation) visitVariants(
 			input,
 			from,
 			to,
-			func(variant Node, vFrom, vTo int, empty bool) {
-				stop = onMatch(variant, vFrom, vTo, empty)
+			func(x Node, vFrom, vTo int, empty bool) {
+				if _, exists := n.lastNodes[x]; exists {
+					vPos := scanner.Position()
+					stop = onMatch(variant, vFrom, vTo, empty)
+					scanner.Rewind(vPos)
+				}
 			},
 		)
+
+		scanner.Rewind(pos)
 
 		if stop {
 			break
@@ -126,6 +112,7 @@ func (n *alternation) visitVariants(
 	}
 }
 
+// TODO : return list of sizes?
 func (n *alternation) Size() (int, bool) {
 	var size *int
 	for _, variant := range n.variants {

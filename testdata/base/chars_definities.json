@@ -1,5 +1,5 @@
 {
-  "Name": "dierent chars definitions",
+  "Name": "different chars definitions",
   "Tests": [
     {
       "Name": "match '\\o{nnn}'",

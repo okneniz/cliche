@@ -7,6 +7,8 @@ type notCapturedGroup struct {
 	*base
 }
 
+var _ Container = new(notCapturedGroup)
+
 func NewNotCapturedGroup(alt Alternation) Node {
 	g := &notCapturedGroup{
 		value: alt,
@@ -16,7 +18,7 @@ func NewNotCapturedGroup(alt Alternation) Node {
 	return g
 }
 
-func (n *notCapturedGroup) GetValue() Alternation {
+func (n *notCapturedGroup) GetValue() Node {
 	return n.value
 }
 

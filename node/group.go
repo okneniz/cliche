@@ -7,6 +7,8 @@ type group struct {
 	*base
 }
 
+var _ Container = new(group)
+
 func NewGroup(alt Alternation) Node {
 	return &group{
 		value: alt,
@@ -14,7 +16,7 @@ func NewGroup(alt Alternation) Node {
 	}
 }
 
-func (n *group) GetValue() Alternation {
+func (n *group) GetValue() Node {
 	return n.value
 }
 

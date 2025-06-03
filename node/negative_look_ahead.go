@@ -7,6 +7,8 @@ type negativeLookAhead struct {
 	*base
 }
 
+var _ Container = new(negativeLookAhead)
+
 func NewNegativeLookAhead(alt Alternation) Node {
 	return &negativeLookAhead{
 		value: alt,
@@ -14,7 +16,7 @@ func NewNegativeLookAhead(alt Alternation) Node {
 	}
 }
 
-func (n *negativeLookAhead) GetValue() Alternation {
+func (n *negativeLookAhead) GetValue() Node {
 	return n.value
 }
 

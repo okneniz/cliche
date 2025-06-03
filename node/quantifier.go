@@ -8,6 +8,8 @@ type quantifier struct {
 	*base
 }
 
+var _ Container = new(quantifier)
+
 func NewQuantifier(q *Quantity, value Node) Node {
 	n := &quantifier{
 		quantity: q,
@@ -26,6 +28,10 @@ func (n *quantifier) Traverse(f func(Node)) {
 	}
 }
 
+func (n *quantifier) GetValue() Node {
+	return n.value
+}
+
 func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	start := scanner.Position()
 
@@ -42,12 +48,13 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 	// for zero matches like .? or .* or .{0,X}
 	if n.quantity.Optional() {
 		scanner.Match(n, from, from, n.IsLeaf(), true)
+		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
+		scanner.Rewind(start)
 	}
-
-	scanner.Rewind(start)
 }
 
+// TODO :rewrite without recursion, if it possible
 func (n *quantifier) recursiveVisit(
 	count int,
 	scanner Scanner,
@@ -55,6 +62,7 @@ func (n *quantifier) recursiveVisit(
 	from, to int,
 	onMatch Callback,
 ) {
+	// TODO : maybe return n, ignore match?
 	n.value.Visit(scanner, input, from, to, func(match Node, mFrom, mTo int, empty bool) {
 		if n.quantity.Gt(count) {
 			if n.quantity.Include(count) {
@@ -66,6 +74,7 @@ func (n *quantifier) recursiveVisit(
 	})
 }
 
+// TODO : return list of sizes?
 // TODO : add tests to fail on parsing not fixed size quantificators in look behind assertions
 func (n *quantifier) Size() (int, bool) {
 	// TODO : fix it

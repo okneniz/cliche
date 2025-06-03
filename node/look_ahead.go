@@ -7,6 +7,8 @@ type lookAhead struct {
 	*base
 }
 
+var _ Container = new(lookAhead)
+
 func NewLookAhead(alt Alternation) Node {
 	return &lookAhead{
 		value: alt,
@@ -14,7 +16,7 @@ func NewLookAhead(alt Alternation) Node {
 	}
 }
 
-func (n *lookAhead) GetValue() Alternation {
+func (n *lookAhead) GetValue() Node {
 	return n.value
 }
 

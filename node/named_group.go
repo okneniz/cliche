@@ -8,6 +8,8 @@ type namedGroup struct {
 	*base
 }
 
+var _ Container = new(namedGroup)
+
 func NewNamedGroup(name string, alt Alternation) Node {
 	g := &namedGroup{
 		name:  name,
@@ -18,7 +20,7 @@ func NewNamedGroup(name string, alt Alternation) Node {
 	return g
 }
 
-func (n *namedGroup) GetValue() Alternation {
+func (n *namedGroup) GetValue() Node {
 	return n.value
 }
 

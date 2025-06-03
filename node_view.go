@@ -12,8 +12,9 @@ type nodeView struct {
 	Key         string      `json:"key"`
 	NodeType    string      `json:"type"`
 	Address     string      `json:"address"`
-	Variants    []*nodeView `json:"variants,omitempty"`
 	Expressions []string    `json:"expressions,omitempty"`
+	Value       *nodeView   `json:"value,omitempty"`
+	Variants    []*nodeView `json:"variants,omitempty"`
 	Nested      []*nodeView `json:"nested,omitempty"`
 }
 
@@ -25,12 +26,12 @@ func newView(n node.Node) *nodeView {
 		Expressions: n.GetExpressions().Slice(),
 	}
 
-	if alt, ok := n.(node.Alternation); ok {
-		v.Variants = newViewsList(alt.GetVariants())
+	if c, ok := n.(node.Container); ok {
+		v.Value = newView(c.GetValue())
 	}
 
-	if c, ok := n.(node.Container); ok {
-		v.Variants = newViewsList(c.GetValue().GetVariants())
+	if alt, ok := n.(node.Alternation); ok {
+		v.Variants = newViewsList(alt.GetVariants())
 	}
 
 	if len(n.GetNestedNodes()) > 0 {

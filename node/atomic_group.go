@@ -12,6 +12,8 @@ type atomicGroup struct {
 	*base
 }
 
+var _ Container = new(atomicGroup)
+
 func NewAtomicGroup(alt Alternation) Node {
 	return &atomicGroup{
 		value: alt,
@@ -19,7 +21,7 @@ func NewAtomicGroup(alt Alternation) Node {
 	}
 }
 
-func (n *atomicGroup) GetValue() Alternation {
+func (n *atomicGroup) GetValue() Node {
 	return n.value
 }
 
