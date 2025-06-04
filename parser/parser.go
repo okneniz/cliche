@@ -11,28 +11,6 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-// TODO : можно давать комбинаторам имена чтобы генерировать
-// красивую ошибку с пояснением (что ожидается и что на самом деле)
-//
-// тогда комбинаторы должны быть или структурой или обернуты в структуру
-//
-// move prefixes parser to special builder
-// to simplify Config to list of combinators
-// (usefull for orders of combinators - apply in same orders as added)
-//
-// move it to parsec in future
-
-// Что в итоге должно быть
-//
-// ### Basic syntax
-//
-//   - `\` escape (enable or disable meta character)
-//   - `|` alternation
-//   - `(...)` group
-//   - `[...]` character class
-
-// TODO : improve names (remove "Parser" prefixes)
-
 type CustomParser struct {
 	config *ParserConfig
 	parse  c.Combinator[rune, int, node.Alternation]
@@ -280,22 +258,18 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 	var newNode node.Node
 	newNode = alt
 
+	// TODO : move it to special component?
 	variants := alt.GetVariants()
 	if len(variants) == 1 {
 		newNode = variants[0]
 	}
 
-	// TODO : move it to special component?
-	// - alternation with one variant must work as this variant out of this alternation
-	// - translate one type node to another -> \d{3} -> \d\d\d ?
-	// - remove comments from chains
-
-	// NOTE: add specail error class with merge method
+	// TODO: add specail error class with merge method
 	// (required to pretty errors (expected: char or class ... explanation))
 	// and merge expectations in choice
 
 	newNode.Traverse(func(x node.Node) {
-		if len(x.GetNestedNodes()) == 0 { // its leaf
+		if len(x.GetNestedNodes()) == 0 {
 			x.AddExpression(str)
 		}
 	})

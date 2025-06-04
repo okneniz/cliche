@@ -35,7 +35,7 @@ func TestOnigmo(t *testing.T) {
 	// x(t, "\17", "\017", 0, 1)
 
 	x(t, "\x1f", "\x1f", 0, 1)
-	// x(t, /a(?#....\\JJJJ)b/, "ab", 0, 2)
+	x(t, "a(?#....\\JJJJ)b", "ab", 0, 2)
 	// x(t, "(?x)\ta .\n+b", "0a123b4", 1, 6, 0)
 
 	// x(t, `(?x)  G (o O(?-x)oO) g L`, `GoOoogLe`, 0, 7)
@@ -180,8 +180,6 @@ func TestOnigmo(t *testing.T) {
 	// x(/(?m:a.)/, "a\n", 0, 2)
 	// x(/(?m:.b)/, "a\nb", 1, 3)
 
-	// TODO : check that all \n in double brackets "\n"
-
 	x(t, `.*abc`, "dddabdd\nddabc", 8, 5)
 	// x(/(?m:.*abc)/, "dddabddabc", 0, 10)
 	// n(/(?i)(?-i)a/, "A")
@@ -229,14 +227,14 @@ func TestOnigmo(t *testing.T) {
 	n(t, `a|b|cd|efg|h|ijk|lmn|o|pq|rstuvwx|yz`, "mn")
 
 	// x(t, `a|^z`, "ba", 1, 2)
-	// x(t, `a|^z`, "za", 0, 1) // important
+	x(t, `a|^z`, "za", 0, 1) // important
 
 	// x(/a|\Gz/, 'bza', 2, 3)
 	// x(/a|\Gz/, 'za', 0, 1)
 	// x(/a|\Az/, 'bza', 2, 3)
 	// x(t, `a|\Az`, `za`, 0, 1) // TODO - is simple
 	// x(/a|b\Z/, 'ba', 1, 2)
-	// x(/a|b\Z/, 'b', 0, 1)
+	x(t, `a|b\Z`, `b`, 0, 1)
 
 	// x(t, `a|b\z`, `ba`, 1, 1) // TODO
 	x(t, `a|b\z`, `b`, 0, 1)
@@ -261,11 +259,11 @@ func TestOnigmo(t *testing.T) {
 	// x(t, `a?|b`, `b`, 0, 0) // TODO : depend on order
 	// x(t, `a?|b`, ``, 0, 0) // TODO : depend on order
 	x(t, `a*|b`, `aa`, 0, 2)
-	// x(t, `a*|b*`, `ba`, 0, 0) // FAILD but why
-	// x(/a*|b*/, 'ab', 0, 1)
+	x(t, `a*|b*`, `ba`, 0, 0) // FAILD but why
+	x(t, `a*|b*`, `ab`, 0, 1)
 	// x(/a+|b*/, '', 0, 0)
-	// x(/a+|b*/, 'bbb', 0, 3)
-	// x(t, `a+|b*`, `abbb`, 0, 1)
+	x(t, `a+|b*`, `bbb`, 0, 3)
+	x(t, `a+|b*`, `abbb`, 0, 1)
 	n(t, `a+|b+`, "")
 	x(t, `(a|b)?`, `b`, 0, 1)
 	x(t, `(a|b)*`, `ba`, 0, 2)

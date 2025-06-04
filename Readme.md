@@ -11,10 +11,11 @@ Main features:
 
 ### Basic syntax
 
-  - `\` escape (enable or disable meta character)
   - `|` alternation
   - `(...)` group
   - `[...]` character class
+  - `\` escape (enable or disable meta character)
+  - postfix expressions as quantifiers 
 
 ### Predefined characters
 
@@ -340,8 +341,9 @@ https://www.regular-expressions.info/conditional.html
 
 ### Other
 
-```
-(?#...)            comment
+| support | construction | description |
+|--|--|--|
+|✅| `(?# ... )` | comment |
 ```
 
 ## Roadmap
@@ -349,11 +351,8 @@ https://www.regular-expressions.info/conditional.html
 https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
-- add comments (?#...)
-  - empty key in root (for empty regexps or with only comments)
-  - ignore or remove comments from chain
-    - transform chains after parsing
-    
+- support empty regexp
+- transform tree (alter)
 - add recursive calls \g
 - pretty parsing errors
 - matches list test

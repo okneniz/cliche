@@ -201,7 +201,8 @@ var (
 			ParsePrefix("?=", parseLookAhead).
 			ParsePrefix("?!", parseNegativeLookAhead).
 			ParsePrefix("?<=", parseLookBehind).
-			ParsePrefix("?<!", parseNegativeLookBehind)
+			ParsePrefix("?<!", parseNegativeLookBehind).
+			ParsePrefix("?#", parseComment)
 
 		// TODO : parseInvalidQuantifier
 		configureProperty(cfg, unicode.Properties)

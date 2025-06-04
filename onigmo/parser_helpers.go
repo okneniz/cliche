@@ -12,8 +12,9 @@ import (
 )
 
 // TODO : move onigmo speciic node.Node to this package?
-// lookahead / lookbehind ?
+// lookahead / lookbehind
 // conditions
+// comments
 
 func braces[T any](makeParser parser.ParserBuilder[T]) parser.ParserBuilder[T] {
 	return func(except ...rune) c.Combinator[rune, int, T] {
@@ -452,4 +453,20 @@ func parseQuanty(
 			return node.NewQuantity(from, from), nil
 		},
 	)
+}
+
+func parseComment(
+	_ c.Combinator[rune, int, node.Alternation],
+	except ...rune,
+) c.Combinator[rune, int, node.Node] {
+	parse := c.Many(10, c.Try(c.NoneOf[rune, int](except...)))
+
+	return func(buf c.Buffer[rune, int]) (node.Node, error) {
+		runes, err := parse(buf)
+		if err != nil {
+			return nil, err
+		}
+
+		return node.NewComment(string(runes)), nil
+	}
 }
