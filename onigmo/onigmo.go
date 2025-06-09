@@ -222,17 +222,20 @@ func configureProperty(cfg *parser.ParserConfig, props map[string]*unicode.Range
 			return unicode.In(r, prop)
 		})
 
+		positive := parser.Const(tbl)
+		negative := parser.Const(tbl.Invert())
+
 		cfg.NonClass().
 			Items().
-			WithPrefix(fmt.Sprintf("\\p{%s}", name), parser.NodeAsTable(parser.Const(tbl))).
-			WithPrefix(fmt.Sprintf("\\p{^%s}", name), parser.NodeAsTable(parser.Const(tbl.Invert()))).
-			WithPrefix(fmt.Sprintf("\\P{%s}", name), parser.NodeAsTable(parser.Const(tbl.Invert())))
+			WithPrefix(fmt.Sprintf("\\p{%s}", name), parser.NodeAsTable(positive)).
+			WithPrefix(fmt.Sprintf("\\p{^%s}", name), parser.NodeAsTable(negative)).
+			WithPrefix(fmt.Sprintf("\\P{%s}", name), parser.NodeAsTable(negative))
 
 		cfg.Class().
 			Items().
-			WithPrefix(fmt.Sprintf("\\p{%s}", name), parser.Const(tbl)).
-			WithPrefix(fmt.Sprintf("\\p{^%s}", name), parser.Const(tbl.Invert())).
-			WithPrefix(fmt.Sprintf("\\P{%s}", name), parser.Const(tbl.Invert()))
+			WithPrefix(fmt.Sprintf("\\p{%s}", name), positive).
+			WithPrefix(fmt.Sprintf("\\p{^%s}", name), negative).
+			WithPrefix(fmt.Sprintf("\\P{%s}", name), negative)
 	}
 }
 

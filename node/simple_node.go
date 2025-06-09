@@ -8,10 +8,8 @@ type simpleNode struct {
 
 func NewForTable(table Table) Node {
 	return &simpleNode{
-		predicate: func(r rune) bool {
-			return table.Include(r)
-		},
-		base: newBase(table.String()),
+		predicate: table.Include,
+		base:      newBase(table.String()),
 	}
 }
 

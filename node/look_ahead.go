@@ -2,6 +2,8 @@ package node
 
 import "fmt"
 
+// https://www.regular-expressions.info/keep.html
+
 type lookAhead struct {
 	value Alternation
 	*base

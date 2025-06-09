@@ -12,7 +12,7 @@ Main features:
 ### Basic syntax
 
   - `|` alternation
-  - `(...)` group
+  - `(...)` parentheses `()` group parts of a regular expression, allowing you to apply quantifiers or other operations to the group as a whole.
   - `[...]` character class
   - `\` escape (enable or disable meta character)
   - postfix expressions as quantifiers 
