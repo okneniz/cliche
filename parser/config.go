@@ -5,44 +5,44 @@ import (
 )
 
 type Config struct {
-	nonClassConfig *NonClassConfig
-	groupConfig    *GroupConfig
-	classConfig    *ClassConfig
-	quntityConfig  *QuantityConfig
+	nonClass *NonClassConfig
+	group    *GroupConfig
+	class    *ClassConfig
+	quntity  *QuantityConfig
 }
 
 func NewConfig() *Config {
 	cfg := new(Config)
 
-	cfg.nonClassConfig = new(NonClassConfig)
-	cfg.nonClassConfig.items = NewParserScope[node.Node]()
+	cfg.nonClass = new(NonClassConfig)
+	cfg.nonClass.items = NewParserScope[node.Node]()
 
-	cfg.groupConfig = new(GroupConfig)
-	cfg.groupConfig.prefixes = make(map[string]GroupParserBuilder[node.Node], 0)
-	cfg.groupConfig.parsers = make([]GroupParserBuilder[node.Node], 0)
+	cfg.group = new(GroupConfig)
+	cfg.group.prefixes = make(map[string]GroupParserBuilder[node.Node], 0)
+	cfg.group.parsers = make([]GroupParserBuilder[node.Node], 0)
 
-	cfg.classConfig = new(ClassConfig)
-	cfg.classConfig.runes = NewParserScope[rune]()
-	cfg.classConfig.items = NewParserScope[node.Table]()
+	cfg.class = new(ClassConfig)
+	cfg.class.runes = NewParserScope[rune]()
+	cfg.class.items = NewParserScope[node.Table]()
 
-	cfg.quntityConfig = new(QuantityConfig)
-	cfg.quntityConfig.items = NewParserScope[*node.Quantity]()
+	cfg.quntity = new(QuantityConfig)
+	cfg.quntity.items = NewParserScope[*node.Quantity]()
 
 	return cfg
 }
 
 func (cfg *Config) Groups() *GroupConfig {
-	return cfg.groupConfig
+	return cfg.group
 }
 
 func (cfg *Config) Class() *ClassConfig {
-	return cfg.classConfig
+	return cfg.class
 }
 
 func (cfg *Config) NonClass() *NonClassConfig {
-	return cfg.nonClassConfig
+	return cfg.nonClass
 }
 
 func (cfg *Config) Quntifier() *QuantityConfig {
-	return cfg.quntityConfig
+	return cfg.quntity
 }

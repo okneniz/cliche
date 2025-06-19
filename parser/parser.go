@@ -65,7 +65,7 @@ func (p *CustomParser) alternationParser(
 ) c.Combinator[rune, int, node.Alternation] {
 	parseAny := c.NoneOf[rune, int](except...)
 	parseClass := c.Try(p.classParser(except...))
-	parseNonClassItem := p.config.nonClassConfig.items.parser(except...)
+	parseNonClassItem := p.config.nonClass.items.parser(except...)
 
 	parseNonClass := func(buf c.Buffer[rune, int]) (node.Node, error) {
 		pos := buf.Position()
@@ -152,7 +152,7 @@ func (p *CustomParser) alternationParser(
 
 	parseGroup = c.Try(
 		Parens(
-			p.config.groupConfig.parser(
+			p.config.group.parser(
 				groupAlternation,
 				append(except, ')')...,
 			),
@@ -181,7 +181,7 @@ func (p *CustomParser) rangeOrCharParser(
 	parseSeparator := c.Eq[rune, int]('-')
 
 	parseRune := p.runeParser(
-		p.config.classConfig.runes,
+		p.config.class.runes,
 		except...,
 	)
 
@@ -238,7 +238,7 @@ func (p *CustomParser) classTableParser(
 
 	newExcept := []rune{']'} //append(except, ']')
 
-	parseClassItem := p.config.classConfig.items.parser(newExcept...)
+	parseClassItem := p.config.class.items.parser(newExcept...)
 	parseClassChar := p.rangeOrCharParser(newExcept...)
 
 	// hack : implementation without parsec.Try, parsec.Choice
@@ -315,7 +315,7 @@ func (p *CustomParser) optionalQuantifierParser(
 	expression c.Combinator[rune, int, node.Node],
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	parseQuantity := c.Try(p.config.quntityConfig.items.parser(except...))
+	parseQuantity := c.Try(p.config.quntity.items.parser(except...))
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
 		exp, err := expression(buf)
