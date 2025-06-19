@@ -6,14 +6,14 @@ import (
 	"github.com/okneniz/cliche/node"
 )
 
-type QuantityParserConfig struct {
+type QuantityConfig struct {
 	items *ParserScope[*node.Quantity]
 }
 
-func (cfg *QuantityParserConfig) Items() *ParserScope[*node.Quantity] {
+func (cfg *QuantityConfig) Items() *ParserScope[*node.Quantity] {
 	return cfg.items
 }
 
-func (cfg *QuantityParserConfig) String() string {
+func (cfg *QuantityConfig) String() string {
 	return fmt.Sprintf("%T{%v}", cfg, cfg.items)
 }

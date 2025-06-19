@@ -10,13 +10,13 @@ import (
 )
 
 type CustomParser struct {
-	config *ParserConfig
+	config *Config
 	parse  c.Combinator[rune, int, node.Alternation]
 }
 
 type Option[T any] func(T)
 
-func New(opts ...Option[*ParserConfig]) *CustomParser {
+func New(opts ...Option[*Config]) *CustomParser {
 	p := new(CustomParser)
 
 	cfg := NewConfig()
@@ -65,19 +65,27 @@ func (p *CustomParser) alternationParser(
 ) c.Combinator[rune, int, node.Alternation] {
 	parseAny := c.NoneOf[rune, int](except...)
 	parseClass := c.Try(p.classParser(except...))
+	parseNonClassItem := p.config.nonClassConfig.items.parser(except...)
 
-	// TODO : simplify - remove c.Try
-	parseNonClass := c.Choice(
-		c.Try(p.config.nonClassConfig.items.parser(except...)),
-		c.Try(func(buf c.Buffer[rune, int]) (node.Node, error) {
-			x, err := parseAny(buf)
-			if err != nil {
-				return nil, err
-			}
+	parseNonClass := func(buf c.Buffer[rune, int]) (node.Node, error) {
+		pos := buf.Position()
 
+		item, err := parseNonClassItem(buf)
+		if err == nil {
+			return item, nil
+		}
+
+		buf.Seek(pos)
+
+		x, err := parseAny(buf)
+		if err == nil {
 			return node.NewForTable(unicode.NewTable(x)), nil
-		}),
-	)
+		}
+
+		buf.Seek(pos)
+
+		return nil, err
+	}
 
 	var (
 		parseGroup c.Combinator[rune, int, node.Node]
@@ -320,8 +328,7 @@ func (p *CustomParser) optionalQuantifierParser(
 			return exp, nil
 		}
 
-		x := node.NewQuantifier(quantity, exp)
-		return x, nil
+		return node.NewQuantifier(quantity, exp), nil
 	}
 }
 

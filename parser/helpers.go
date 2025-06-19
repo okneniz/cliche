@@ -6,39 +6,7 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-func SkipString(data string) c.Combinator[rune, int, struct{}] {
-	nothing := struct{}{}
-
-	return func(buf c.Buffer[rune, int]) (struct{}, error) {
-		l := len(data)
-		for _, x := range data {
-			r, err := buf.Read(true)
-			if err != nil {
-				return nothing, err
-			}
-			if x != r {
-				return nothing, c.NothingMatched
-			}
-			l -= 1
-		}
-
-		if l != 0 {
-			return nothing, c.NothingMatched
-		}
-
-		return nothing, nil
-	}
-}
-
-func TryAll[T any](parsers ...c.Combinator[rune, int, T]) c.Combinator[rune, int, T] {
-	attempts := make([]c.Combinator[rune, int, T], len(parsers))
-
-	for i, parse := range parsers {
-		attempts[i] = c.Try(parse)
-	}
-
-	return c.Choice(attempts...)
-}
+// TODO : move to parsec
 
 func Quantifier[T any, P any, S any](from, to int, f c.Combinator[T, P, S]) c.Combinator[T, P, []S] {
 	return func(buffer c.Buffer[T, P]) ([]S, error) {
@@ -114,29 +82,4 @@ func Squares[T any](
 		body,
 		c.Eq[rune, int](']'),
 	)
-}
-
-func Number() c.Combinator[rune, int, int] {
-	digit := c.Try[rune, int](c.Range[rune, int]('0', '9'))
-	zero := rune('0')
-
-	return func(buf c.Buffer[rune, int]) (int, error) {
-		token, err := digit(buf)
-		if err != nil {
-			return 0, err
-		}
-
-		result := int(token - zero)
-		for {
-			token, err = digit(buf)
-			if err != nil {
-				break
-			}
-
-			result = result * 10
-			result += int(token - zero)
-		}
-
-		return result, nil
-	}
 }

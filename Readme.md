@@ -351,7 +351,7 @@ https://www.regular-expressions.info/conditional.html
 https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
-- pretty parsing errors
+- pretty parsing errors (remove panic from look arounds)
 - add options
   - case insensetive
   - multi line

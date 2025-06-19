@@ -331,13 +331,26 @@ func parseCondition(
 
 	}
 
-	reference := parser.TryAll(
-		parseBackReference,
-		parseNameReference,
-	)
+	reference := func(buf c.Buffer[rune, int]) (*node.Predicate, error) {
+		pos := buf.Position()
+
+		ref, err := parseBackReference(buf)
+		if err == nil {
+			return ref, nil
+		}
+
+		buf.Seek(pos)
+
+		ref, err = parseNameReference(buf)
+		if err == nil {
+			return ref, nil
+		}
+
+		return nil, err
+	}
 
 	condition := parser.Parens(reference)
-	before := parser.SkipString("?")
+	before := c.Eq[rune, int]('?')
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
 		_, err := before(buf)
@@ -371,7 +384,7 @@ func parseCondition(
 func parseQuanty(
 	_ ...rune,
 ) c.Combinator[rune, int, *node.Quantity] {
-	digit := c.Try(parser.Number())
+	digit := c.Try(parseNumber())
 	comma := c.Try(c.Eq[rune, int](','))
 	rightBrace := c.Eq[rune, int]('}')
 
@@ -468,5 +481,30 @@ func parseComment(
 		}
 
 		return node.NewComment(string(runes)), nil
+	}
+}
+
+func parseNumber() c.Combinator[rune, int, int] {
+	digit := c.Try[rune, int](c.Range[rune, int]('0', '9'))
+	zero := rune('0')
+
+	return func(buf c.Buffer[rune, int]) (int, error) {
+		token, err := digit(buf)
+		if err != nil {
+			return 0, err
+		}
+
+		result := int(token - zero)
+		for {
+			token, err = digit(buf)
+			if err != nil {
+				break
+			}
+
+			result = result * 10
+			result += int(token - zero)
+		}
+
+		return result, nil
 	}
 }

@@ -81,7 +81,7 @@ var (
 	parseUnicodeTable = parser.RuneAsTable(parseUnicodeChar)
 	parseUnicodeNode  = parser.NodeAsTable(parseUnicodeTable)
 
-	OnigmoParser = parser.New(func(cfg *parser.ParserConfig) {
+	OnigmoParser = parser.New(func(cfg *parser.Config) {
 		cfg.Class().
 			Items().
 			StringAsValue("[:alnum:]", alnum).
@@ -216,7 +216,7 @@ var (
 	})
 )
 
-func configureProperty(cfg *parser.ParserConfig, props map[string]*unicode.RangeTable) {
+func configureProperty(cfg *parser.Config, props map[string]*unicode.RangeTable) {
 	for name, prop := range props {
 		tbl := unicodeEncoding.NewTableByPredicate(func(r rune) bool {
 			return unicode.In(r, prop)

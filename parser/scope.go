@@ -53,6 +53,7 @@ func (scope *ParserScope[T]) StringAsFunc(
 
 func (scope *ParserScope[T]) parser(except ...rune) c.Combinator[rune, int, T] {
 	// TODO : why ignore except?
+	// TODO: don't ignore it - pass correct
 	parseAny := c.Any[rune, int]() // to parse prefix rune by rune
 
 	parseScopeByPrefix := newParserTree(
