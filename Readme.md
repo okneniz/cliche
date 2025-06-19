@@ -11,11 +11,11 @@ Main features:
 
 ### Basic syntax
 
-  - `|` alternation
-  - `(...)` parentheses `()` group parts of a regular expression, allowing you to apply quantifiers or other operations to the group as a whole.
-  - `[...]` character class
-  - `\` escape (enable or disable meta character)
-  - postfix expressions as quantifiers 
+- `|` alternation
+- `(...)` parentheses `()` group parts of a regular expression, allowing you to apply quantifiers or other operations to the group as a whole.
+- `[...]` character class
+- `\` escape (enable or disable meta character)
+- postfix expressions as quantifiers 
 
 ### Predefined characters
 
@@ -363,9 +363,8 @@ https://www.regular-expressions.info/freespacing.html
 - support empty regexp
 - matches list test
 - tests:
-  - more tests
-    - complex tests
-    - property-based testing
+  - complex tests
+  - property-based testing
   - split tests to different groups (maybe by tags), for example:
     - POSIX
     - ERE
