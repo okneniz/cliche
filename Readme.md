@@ -351,10 +351,16 @@ https://www.regular-expressions.info/conditional.html
 https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
-- support empty regexp
-- transform tree (alter)
-- add recursive calls \g
 - pretty parsing errors
+- add options
+  - case insensetive
+  - multi line
+  - named groups      
+- transform tree (alter)
+  - more compactions
+    - quatifiers to sequence \w{3} -> \w\w\w
+    - anchors to assertions / look-behind / look-aheads
+- support empty regexp
 - matches list test
 - tests:
   - more tests
@@ -370,14 +376,8 @@ https://www.regular-expressions.info/freespacing.html
   - use testdata from another libs
     - RE2 / golang - https://github.com/golang/go/tree/master/src/regexp/testdata
     - Onigmo / ruby - https://github.com/k-takata/Onigmo/blob/master/test.rb
-- add options
-  - case insensetive
-  - multi line
-  - named groups      
-- more compactions
-  - quatifiers to sequence \w{3} -> \w\w\w
-  - anchors to assertions / look-behind / look-aheads
 - refactor traverse
+- add recursive calls \g
 - think about reluctant and possessive quantifiers (Is it possible with this architecture?)
 
 ## Compact

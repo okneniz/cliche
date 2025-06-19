@@ -7,7 +7,7 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-func NewParserTree[T any](
+func newParserTree[T any](
 	parse c.Combinator[rune, int, rune],
 	cases map[string]ParserBuilder[T],
 	except ...rune,
