@@ -16,15 +16,6 @@ type CustomParser struct {
 
 type Option[T any] func(T)
 
-// var RequireDebug fmt.Stringer
-//
-// func debug(message string, args ...interface{}) {
-// 	if RequireDebug != nil {
-// 		fmt.Printf(message, args...)
-// 		fmt.Println(RequireDebug.String())
-// 	}
-// }
-
 func New(opts ...Option[*ParserConfig]) *CustomParser {
 	p := new(CustomParser)
 
@@ -50,7 +41,7 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 	var newNode node.Node
 	newNode = alt
 
-	// TODO : move it to special component?
+	// TODO : move it to special component (alterer)
 	variants := alt.GetVariants()
 	if len(variants) == 1 {
 		newNode = variants[0]
@@ -238,9 +229,9 @@ func (p *CustomParser) classTableParser(
 	)
 
 	newExcept := []rune{']'} //append(except, ']')
-	// TODO: remove try?
-	parseClassItem := c.Try(p.config.classConfig.items.parser(newExcept...))
-	parseClassChar := c.Try(p.rangeOrCharParser(newExcept...))
+
+	parseClassItem := p.config.classConfig.items.parser(newExcept...)
+	parseClassChar := p.rangeOrCharParser(newExcept...)
 
 	// hack : implementation without parsec.Try, parsec.Choice
 	// to avoid problems with references to func and recursive parsing
