@@ -16,18 +16,18 @@ func NewConfig() *Config {
 	cfg := new(Config)
 
 	cfg.nonClass = new(NonClassScope)
-	cfg.nonClass.items = NewScopeConfig[node.Node]()
+	cfg.nonClass.items = NewScope[node.Node]()
 
 	cfg.group = new(GroupScope)
 	cfg.group.prefixes = make(map[string]GroupParserBuilder[node.Node], 0)
 	cfg.group.parsers = make([]GroupParserBuilder[node.Node], 0)
 
 	cfg.class = new(ClassScope)
-	cfg.class.runes = NewScopeConfig[rune]()
-	cfg.class.items = NewScopeConfig[node.Table]()
+	cfg.class.runes = NewScope[rune]()
+	cfg.class.items = NewScope[node.Table]()
 
 	cfg.quntity = new(QuantityScope)
-	cfg.quntity.items = NewScopeConfig[*quantity.Quantity]()
+	cfg.quntity.items = NewScope[*quantity.Quantity]()
 
 	return cfg
 }

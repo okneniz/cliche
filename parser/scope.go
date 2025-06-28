@@ -9,7 +9,7 @@ type Scope[T any] struct {
 	parsers  []ParserBuilder[T] // TODO : add special struct for names?
 }
 
-func NewScopeConfig[T any]() *Scope[T] {
+func NewScope[T any]() *Scope[T] {
 	scope := new(Scope[T])
 	scope.prefixes = make(map[string]ParserBuilder[T], 0)
 	scope.parsers = make([]ParserBuilder[T], 0)
