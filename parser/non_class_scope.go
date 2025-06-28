@@ -7,17 +7,17 @@ import (
 )
 
 type NonClassScope struct {
-	items *ScopeConfig[node.Node]
+	items *Scope[node.Node]
 }
 
-func (cfg *NonClassScope) Items() *ScopeConfig[node.Node] {
-	return cfg.items
+func (scope *NonClassScope) Items() *Scope[node.Node] {
+	return scope.items
 }
 
-func (cfg *NonClassScope) makeParser(
+func (scope *NonClassScope) makeParser(
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	parseItem := cfg.items.makeParser(except...)
+	parseItem := scope.items.makeParser(except...)
 	parseRune := c.NoneOf[rune, int](except...)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {

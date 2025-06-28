@@ -4,41 +4,41 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-type ScopeConfig[T any] struct {
+type Scope[T any] struct {
 	prefixes map[string]ParserBuilder[T]
-	parsers  []ParserBuilder[T]
+	parsers  []ParserBuilder[T] // TODO : add special struct for names?
 }
 
-func NewScopeConfig[T any]() *ScopeConfig[T] {
-	scope := new(ScopeConfig[T])
+func NewScopeConfig[T any]() *Scope[T] {
+	scope := new(Scope[T])
 	scope.prefixes = make(map[string]ParserBuilder[T], 0)
 	scope.parsers = make([]ParserBuilder[T], 0)
 	return scope
 }
 
-func (scope *ScopeConfig[T]) Parse(
+func (scope *Scope[T]) Parse(
 	builders ...ParserBuilder[T],
-) *ScopeConfig[T] {
+) *Scope[T] {
 	scope.parsers = append(scope.parsers, builders...)
 	return scope
 }
 
-func (scope *ScopeConfig[T]) WithPrefix(
+func (scope *Scope[T]) WithPrefix(
 	prefix string, builder ParserBuilder[T],
-) *ScopeConfig[T] {
+) *Scope[T] {
 	scope.prefixes[prefix] = builder
 	return scope
 }
 
-func (scope *ScopeConfig[T]) StringAsValue(
+func (scope *Scope[T]) StringAsValue(
 	prefix string, value T,
-) *ScopeConfig[T] {
+) *Scope[T] {
 	return scope.WithPrefix(prefix, Const(value))
 }
 
-func (scope *ScopeConfig[T]) StringAsFunc(
+func (scope *Scope[T]) StringAsFunc(
 	prefix string, nodeBuilder func() T,
-) *ScopeConfig[T] {
+) *Scope[T] {
 	return scope.WithPrefix(
 		prefix,
 		func(_ ...rune) c.Combinator[rune, int, T] {
@@ -49,7 +49,9 @@ func (scope *ScopeConfig[T]) StringAsFunc(
 	)
 }
 
-func (scope *ScopeConfig[T]) makeParser(except ...rune) c.Combinator[rune, int, T] {
+func (scope *Scope[T]) makeParser(
+	except ...rune,
+) c.Combinator[rune, int, T] {
 	// TODO : why ignore except?
 	// TODO: don't ignore it - pass correct
 	parseAny := c.Any[rune, int]() // to parse prefix rune by rune

@@ -7,20 +7,20 @@ import (
 )
 
 type ClassScope struct {
-	runes *ScopeConfig[rune]
-	items *ScopeConfig[node.Table]
+	runes *Scope[rune]
+	items *Scope[node.Table]
 }
 
-func (cfg *ClassScope) Runes() *ScopeConfig[rune] {
-	return cfg.runes
+func (scope *ClassScope) Runes() *Scope[rune] {
+	return scope.runes
 }
 
-func (cfg *ClassScope) Items() *ScopeConfig[node.Table] {
-	return cfg.items
+func (scope *ClassScope) Items() *Scope[node.Table] {
+	return scope.items
 }
 
-func (cfg *ClassScope) makeParser() c.Combinator[rune, int, node.Node] {
-	parseTable := cfg.makeTableParser(false)
+func (scope *ClassScope) makeParser() c.Combinator[rune, int, node.Node] {
+	parseTable := scope.makeTableParser(false)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
 		table, err := parseTable(buf)
@@ -32,7 +32,7 @@ func (cfg *ClassScope) makeParser() c.Combinator[rune, int, node.Node] {
 	}
 }
 
-func (cfg *ClassScope) makeTableParser(
+func (scope *ClassScope) makeTableParser(
 	isSubclass bool,
 ) c.Combinator[rune, int, node.Table] {
 	var (
@@ -40,8 +40,8 @@ func (cfg *ClassScope) makeTableParser(
 		parseSubClass c.Combinator[rune, int, node.Table]
 	)
 
-	parseClassItem := cfg.items.makeParser(']')
-	parseClassChar := cfg.makeRangeOrCharParser(']')
+	parseClassItem := scope.items.makeParser(']')
+	parseClassChar := scope.makeRangeOrCharParser(']')
 
 	parseTable := func(buf c.Buffer[rune, int]) (node.Table, error) {
 		pos := buf.Position()
@@ -103,19 +103,19 @@ func (cfg *ClassScope) makeTableParser(
 	if isSubclass {
 		parseSubClass = parseClass
 	} else {
-		parseSubClass = cfg.makeTableParser(true)
+		parseSubClass = scope.makeTableParser(true)
 	}
 
 	return c.Try(parseClass)
 }
 
-func (cfg *ClassScope) makeRangeOrCharParser(
+func (scope *ClassScope) makeRangeOrCharParser(
 	except ...rune,
 ) c.Combinator[rune, int, node.Table] {
 	parseSeparator := c.Eq[rune, int]('-')
 
 	parseRune := c.Choice(
-		c.Try(cfg.runes.makeParser(except...)),
+		c.Try(scope.runes.makeParser(except...)),
 		c.NoneOf[rune, int](except...),
 	)
 

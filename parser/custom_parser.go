@@ -69,7 +69,7 @@ func (p *CustomParser) alternationParser(
 		parseGroup c.Combinator[rune, int, node.Node]
 	)
 
-	parseVariant := c.Try(p.chainParser(p.optionalQuantifierParser(
+	parseNode := p.optionalQuantifierParser(
 		func(buf c.Buffer[rune, int]) (node.Node, error) {
 			group, err := parseGroup(buf)
 			if err == nil {
@@ -89,8 +89,10 @@ func (p *CustomParser) alternationParser(
 			return nil, err
 		},
 		except...,
-	)))
+	)
 
+	parseChain := p.chainParser(parseNode)
+	parseVariant := c.Try(parseChain)
 	parseSeparator := c.Eq[rune, int]('|')
 	parseVariants := c.SepBy1(0, parseVariant, parseSeparator)
 
@@ -124,7 +126,7 @@ func (p *CustomParser) optionalQuantifierParser(
 	expression c.Combinator[rune, int, node.Node],
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	parseQuantity := c.Try(p.config.quntity.items.makeParser(except...))
+	parseQuantity := p.config.quntity.makeParser(except...)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
 		exp, err := expression(buf)
