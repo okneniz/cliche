@@ -3,7 +3,7 @@ package scanner
 import (
 	"fmt"
 
-	"github.com/okneniz/cliche/span"
+	"github.com/okneniz/cliche/quantity"
 )
 
 // TODO : add unit tests too
@@ -24,7 +24,7 @@ func newMatchesList() *matchesList {
 	return b
 }
 
-func (b *matchesList) compare(m1, m2 span.Interface) int {
+func (b *matchesList) compare(m1, m2 quantity.Interface) int {
 	switch {
 	case m1.From() > m2.From():
 		return -1

@@ -3,14 +3,14 @@ package parser
 import (
 	"fmt"
 
-	"github.com/okneniz/cliche/node"
+	"github.com/okneniz/cliche/quantity"
 )
 
 type QuantityScope struct {
-	items *ScopeConfig[*node.Quantity]
+	items *ScopeConfig[*quantity.Quantity]
 }
 
-func (cfg *QuantityScope) Items() *ScopeConfig[*node.Quantity] {
+func (cfg *QuantityScope) Items() *ScopeConfig[*quantity.Quantity] {
 	return cfg.items
 }
 

@@ -7,6 +7,7 @@ import (
 	unicodeEncoding "github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/parser"
+	"github.com/okneniz/cliche/quantity"
 )
 
 var (
@@ -209,9 +210,9 @@ var (
 		configureProperty(cfg, unicode.Scripts)
 		configureProperty(cfg, unicode.Categories)
 
-		cfg.Quntifier().Items().StringAsValue("?", node.NewQuantity(0, 1))
-		cfg.Quntifier().Items().StringAsValue("+", node.NewEndlessQuantity(1))
-		cfg.Quntifier().Items().StringAsValue("*", node.NewEndlessQuantity(0))
+		cfg.Quntifier().Items().StringAsValue("?", quantity.NewQuantity(0, 1))
+		cfg.Quntifier().Items().StringAsValue("+", quantity.NewEndlessQuantity(1))
+		cfg.Quntifier().Items().StringAsValue("*", quantity.NewEndlessQuantity(0))
 		cfg.Quntifier().Items().WithPrefix("{", parseQuanty)
 	})
 )

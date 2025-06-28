@@ -1,4 +1,4 @@
-package span
+package quantity
 
 type List interface {
 	Size() int

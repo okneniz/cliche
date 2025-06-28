@@ -1,16 +1,18 @@
 package node
 
+import "github.com/okneniz/cliche/quantity"
+
 // https://www.regular-expressions.info/repeat.html
 
 type quantifier struct {
-	quantity *Quantity
+	quantity *quantity.Quantity
 	value    Node
 	*base
 }
 
 var _ Container = new(quantifier)
 
-func NewQuantifier(q *Quantity, value Node) Node {
+func NewQuantifier(q *quantity.Quantity, value Node) Node {
 	n := &quantifier{
 		quantity: q,
 		value:    value,

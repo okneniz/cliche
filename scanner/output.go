@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/okneniz/cliche/node"
-	"github.com/okneniz/cliche/span"
+	"github.com/okneniz/cliche/quantity"
 )
 
 // TODO : add unit tests too
@@ -38,9 +38,9 @@ func (out *Output) String() string {
 func (out *Output) Yield(
 	n node.Node,
 	subString string,
-	sp span.Interface,
-	groups []span.Interface,
-	namedGroups map[string]span.Interface,
+	sp quantity.Interface,
+	groups []quantity.Interface,
+	namedGroups map[string]quantity.Interface,
 ) {
 	m := &Match{
 		subString: subString,

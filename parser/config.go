@@ -2,6 +2,7 @@ package parser
 
 import (
 	"github.com/okneniz/cliche/node"
+	"github.com/okneniz/cliche/quantity"
 )
 
 type Config struct {
@@ -26,7 +27,7 @@ func NewConfig() *Config {
 	cfg.class.items = NewScopeConfig[node.Table]()
 
 	cfg.quntity = new(QuantityScope)
-	cfg.quntity.items = NewScopeConfig[*node.Quantity]()
+	cfg.quntity.items = NewScopeConfig[*quantity.Quantity]()
 
 	return cfg
 }

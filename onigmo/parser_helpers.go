@@ -8,6 +8,7 @@ import (
 
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/parser"
+	"github.com/okneniz/cliche/quantity"
 	c "github.com/okneniz/parsec/common"
 )
 
@@ -383,13 +384,13 @@ func parseCondition(
 
 func parseQuanty(
 	_ ...rune,
-) c.Combinator[rune, int, *node.Quantity] {
+) c.Combinator[rune, int, *quantity.Quantity] {
 	digit := c.Try(parseNumber())
 	comma := c.Try(c.Eq[rune, int](','))
 	rightBrace := c.Eq[rune, int]('}')
 
 	return c.Choice(
-		c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,1}
+		c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, error) { // {1,1}
 			from, err := digit(buf)
 			if err != nil {
 				return nil, err
@@ -414,9 +415,9 @@ func parseQuanty(
 				return nil, err
 			}
 
-			return node.NewQuantity(from, to), nil
+			return quantity.NewQuantity(from, to), nil
 		}),
-		c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {,1}
+		c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, error) { // {,1}
 			_, err := comma(buf)
 			if err != nil {
 				return nil, err
@@ -432,9 +433,9 @@ func parseQuanty(
 				return nil, err
 			}
 
-			return node.NewQuantity(0, to), nil
+			return quantity.NewQuantity(0, to), nil
 		}),
-		c.Try(func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1,}
+		c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, error) { // {1,}
 			from, err := digit(buf)
 			if err != nil {
 				return nil, err
@@ -450,9 +451,9 @@ func parseQuanty(
 				return nil, err
 			}
 
-			return node.NewEndlessQuantity(from), nil
+			return quantity.NewEndlessQuantity(from), nil
 		}),
-		func(buf c.Buffer[rune, int]) (*node.Quantity, error) { // {1}
+		func(buf c.Buffer[rune, int]) (*quantity.Quantity, error) { // {1}
 			from, err := digit(buf)
 			if err != nil {
 				return nil, err
@@ -463,7 +464,7 @@ func parseQuanty(
 				return nil, err
 			}
 
-			return node.NewQuantity(from, from), nil
+			return quantity.NewQuantity(from, from), nil
 		},
 	)
 }
