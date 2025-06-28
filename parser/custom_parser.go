@@ -4,7 +4,6 @@ import (
 	"golang.org/x/exp/slices"
 
 	"github.com/okneniz/cliche/buf"
-	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
 )
@@ -23,8 +22,8 @@ func New(opts ...Option[*Config]) *CustomParser {
 	for _, apply := range opts {
 		apply(cfg)
 	}
-	p.config = cfg
 
+	p.config = cfg
 	p.parse = p.alternationParser('|')
 
 	return p
@@ -63,7 +62,7 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 func (p *CustomParser) alternationParser(
 	except ...rune,
 ) c.Combinator[rune, int, node.Alternation] {
-	parseClass := c.Try(p.classParser())
+	parseClass := p.config.class.makeParser()
 	parseNonClass := p.config.nonClass.makeParser(except...)
 
 	var (
@@ -139,138 +138,6 @@ func (p *CustomParser) alternationParser(
 	)
 
 	return parseAlternation
-}
-
-func (p *CustomParser) rangeOrCharParser(
-	except ...rune,
-) c.Combinator[rune, int, node.Table] {
-	parseSeparator := c.Eq[rune, int]('-')
-
-	parseRune := c.Choice(
-		c.Try(p.config.class.runes.makeParser(except...)),
-		c.NoneOf[rune, int](except...),
-	)
-
-	return func(buf c.Buffer[rune, int]) (node.Table, error) {
-		from, err := parseRune(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		pos := buf.Position()
-
-		_, err = parseSeparator(buf)
-		if err != nil {
-			buf.Seek(pos)
-			return unicode.NewTable(from), nil
-		}
-
-		to, err := parseRune(buf)
-		if err != nil {
-			buf.Seek(pos)
-			return unicode.NewTable(from), nil
-		}
-
-		// TODO : check bounds
-
-		return unicode.NewTableByPredicate(func(x rune) bool {
-			return from <= x && x <= to
-		}), nil
-	}
-}
-
-func (p *CustomParser) classParser() c.Combinator[rune, int, node.Node] {
-	parseTable := p.classTableParser(false)
-
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
-		table, err := parseTable(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return node.NewForTable(table), nil
-	}
-}
-
-func (p *CustomParser) classTableParser(
-	isSubclass bool,
-) c.Combinator[rune, int, node.Table] {
-	var (
-		parseClass    c.Combinator[rune, int, node.Table]
-		parseSubClass c.Combinator[rune, int, node.Table]
-	)
-
-	parseClassItem := p.config.class.items.makeParser(']')
-	parseClassChar := p.rangeOrCharParser(']')
-
-	// hack : implementation without parsec.Try, parsec.Choice
-	// to avoid problems with references to func and recursive parsing
-	parseTable := func(buf c.Buffer[rune, int]) (node.Table, error) {
-		// subclass
-		// range
-		// item
-		// char
-		pos := buf.Position()
-
-		classItem, err := parseClassItem(buf)
-		if err == nil {
-			return classItem, nil
-		}
-
-		buf.Seek(pos)
-
-		subClass, err := parseSubClass(buf) // must be first?
-		if err == nil {
-			return subClass, nil
-		}
-
-		buf.Seek(pos)
-
-		classChar, err := parseClassChar(buf)
-		if err == nil {
-			return classChar, nil
-		}
-
-		return nil, err
-	}
-
-	parseSequenceOfTables := c.Some(1, c.Try(parseTable))
-
-	parsePositive := func(buf c.Buffer[rune, int]) (node.Table, error) {
-		tables, err := parseSequenceOfTables(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		return unicode.MergeTables(tables...), nil
-	}
-
-	parseNegative := c.Skip(
-		c.Eq[rune, int]('^'),
-		func(buf c.Buffer[rune, int]) (node.Table, error) {
-			table, err := parsePositive(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			return table.Invert(), nil
-		},
-	)
-
-	parseClass = Squares(
-		c.Choice(
-			c.Try(parseNegative),
-			parsePositive,
-		),
-	)
-
-	if isSubclass {
-		parseSubClass = parseClass
-	} else {
-		parseSubClass = p.classTableParser(true)
-	}
-
-	return parseClass
 }
 
 func (p *CustomParser) optionalQuantifierParser(
