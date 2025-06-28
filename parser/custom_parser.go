@@ -92,32 +92,12 @@ func (p *CustomParser) alternationParser(
 	)))
 
 	parseSeparator := c.Eq[rune, int]('|')
+	parseVariants := c.SepBy1(0, parseVariant, parseSeparator)
 
 	parseAlternation := func(buf c.Buffer[rune, int]) (node.Alternation, error) {
-		variant, err := parseVariant(buf)
+		variants, err := parseVariants(buf)
 		if err != nil {
 			return nil, err
-		}
-
-		variants := make([]node.Node, 0, 1)
-		variants = append(variants, variant)
-
-		for !buf.IsEOF() {
-			pos := buf.Position()
-
-			_, err = parseSeparator(buf)
-			if err != nil {
-				buf.Seek(pos)
-				break
-			}
-
-			variant, err = parseVariant(buf)
-			if err != nil {
-				buf.Seek(pos)
-				break
-			}
-
-			variants = append(variants, variant)
 		}
 
 		return node.NewAlternation(variants), nil
