@@ -51,7 +51,7 @@ func (scope *ScopeConfig[T]) StringAsFunc(
 	)
 }
 
-func (scope *ScopeConfig[T]) parser(except ...rune) c.Combinator[rune, int, T] {
+func (scope *ScopeConfig[T]) makeParser(except ...rune) c.Combinator[rune, int, T] {
 	// TODO : why ignore except?
 	// TODO: don't ignore it - pass correct
 	parseAny := c.Any[rune, int]() // to parse prefix rune by rune

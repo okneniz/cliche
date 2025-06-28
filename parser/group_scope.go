@@ -30,7 +30,7 @@ func (cfg *GroupScope) ParsePrefix(
 	return cfg
 }
 
-func (cfg *GroupScope) parser(
+func (cfg *GroupScope) makeParser(
 	parseAlternation c.Combinator[rune, int, node.Alternation],
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {

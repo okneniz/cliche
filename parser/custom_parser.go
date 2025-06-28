@@ -65,7 +65,7 @@ func (p *CustomParser) alternationParser(
 ) c.Combinator[rune, int, node.Alternation] {
 	parseAny := c.NoneOf[rune, int](except...)
 	parseClass := c.Try(p.classParser(except...))
-	parseNonClassItem := p.config.nonClass.items.parser(except...)
+	parseNonClassItem := p.config.nonClass.items.makeParser(except...)
 
 	parseNonClass := func(buf c.Buffer[rune, int]) (node.Node, error) {
 		pos := buf.Position()
@@ -152,7 +152,7 @@ func (p *CustomParser) alternationParser(
 
 	parseGroup = c.Try(
 		Parens(
-			p.config.group.parser(
+			p.config.group.makeParser(
 				groupAlternation,
 				append(except, ')')...,
 			),
@@ -166,7 +166,7 @@ func (p *CustomParser) runeParser(
 	cfg *ScopeConfig[rune],
 	except ...rune,
 ) c.Combinator[rune, int, rune] {
-	parseRune := cfg.parser(except...)
+	parseRune := cfg.makeParser(except...)
 	parseAny := c.NoneOf[rune, int](except...)
 
 	return c.Choice(
@@ -238,7 +238,7 @@ func (p *CustomParser) classTableParser(
 
 	newExcept := []rune{']'} //append(except, ']')
 
-	parseClassItem := p.config.class.items.parser(newExcept...)
+	parseClassItem := p.config.class.items.makeParser(newExcept...)
 	parseClassChar := p.rangeOrCharParser(newExcept...)
 
 	// hack : implementation without parsec.Try, parsec.Choice
@@ -315,7 +315,7 @@ func (p *CustomParser) optionalQuantifierParser(
 	expression c.Combinator[rune, int, node.Node],
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	parseQuantity := c.Try(p.config.quntity.items.parser(except...))
+	parseQuantity := c.Try(p.config.quntity.items.makeParser(except...))
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
 		exp, err := expression(buf)
