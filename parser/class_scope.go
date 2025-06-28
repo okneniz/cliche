@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/okneniz/cliche/node"
 )
 
@@ -20,8 +18,4 @@ func (cfg *ClassScope) Runes() *ScopeConfig[rune] {
 
 func (cfg *ClassScope) Items() *ScopeConfig[node.Table] {
 	return cfg.items
-}
-
-func (cfg *ClassScope) String() string {
-	return fmt.Sprintf("%T{%v}", cfg, cfg.items)
 }
