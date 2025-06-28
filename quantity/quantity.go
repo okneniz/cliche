@@ -31,6 +31,7 @@ func New(from int, to int) *Quantity {
 	}
 }
 
+// TODO : add special struct
 func NewEndlessQuantity(from int) *Quantity {
 	return &Quantity{
 		from: from,

@@ -1,19 +1,18 @@
 package node
 
-// https://www.regular-expressions.info/charclass.html
-type simpleNode struct {
-	predicate func(rune) bool
+type character struct {
+	match func(rune) bool
 	*base
 }
 
 func NewForTable(table Table) Node {
-	return &simpleNode{
-		predicate: table.Include,
-		base:      newBase(table.String()),
+	return &character{
+		match: table.Include,
+		base:  newBase(table.String()),
 	}
 }
 
-func (n *simpleNode) Traverse(f func(Node)) {
+func (n *character) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.nested {
@@ -21,12 +20,12 @@ func (n *simpleNode) Traverse(f func(Node)) {
 	}
 }
 
-func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *character) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
 
-	if n.predicate(input.ReadAt(from)) {
+	if n.match(input.ReadAt(from)) {
 		pos := scanner.Position()
 
 		scanner.Match(n, from, from, n.IsLeaf(), false)
@@ -37,7 +36,7 @@ func (n *simpleNode) Visit(scanner Scanner, input Input, from, to int, onMatch C
 	}
 }
 
-func (n *simpleNode) Size() (int, bool) {
+func (n *character) Size() (int, bool) {
 	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 		return 1 + nestedSize, true
 	}
