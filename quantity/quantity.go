@@ -13,7 +13,7 @@ type Quantity struct {
 	more bool
 }
 
-func NewQuantity(from int, to int) *Quantity {
+func New(from int, to int) *Quantity {
 	// TODO : validate?
 
 	if from == to {

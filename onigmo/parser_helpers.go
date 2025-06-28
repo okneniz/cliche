@@ -415,7 +415,7 @@ func parseQuanty(
 				return nil, err
 			}
 
-			return quantity.NewQuantity(from, to), nil
+			return quantity.New(from, to), nil
 		}),
 		c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, error) { // {,1}
 			_, err := comma(buf)
@@ -433,7 +433,7 @@ func parseQuanty(
 				return nil, err
 			}
 
-			return quantity.NewQuantity(0, to), nil
+			return quantity.New(0, to), nil
 		}),
 		c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, error) { // {1,}
 			from, err := digit(buf)
@@ -464,7 +464,7 @@ func parseQuanty(
 				return nil, err
 			}
 
-			return quantity.NewQuantity(from, from), nil
+			return quantity.New(from, from), nil
 		},
 	)
 }

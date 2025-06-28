@@ -118,7 +118,7 @@ func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {
 	if empty {
 		x.span = quantity.Empty(from)
 	} else {
-		x.span = quantity.New(from, to)
+		x.span = quantity.Pair(from, to)
 	}
 
 	s.expression.Append(x)
@@ -182,7 +182,7 @@ func (s *FullScanner) capturedStringSpan() (quantity.Interface, bool) {
 		return begin, true
 	}
 
-	return quantity.New(
+	return quantity.Pair(
 		begin.From(),
 		end.To(),
 	), true
@@ -213,7 +213,7 @@ func (s *FullScanner) lastNotEmptySpan() (quantity.Interface, bool) {
 }
 
 func (s *FullScanner) MatchGroup(from int, to int) {
-	g := quantity.Get(quantity.New(from, to), s.holes)
+	g := quantity.Get(quantity.Pair(from, to), s.holes)
 	s.groups.Append(g)
 }
 
@@ -230,7 +230,7 @@ func (s *FullScanner) RewindGroups(pos int) {
 }
 
 func (s *FullScanner) MatchNamedGroup(name string, from int, to int) {
-	g := quantity.Get(quantity.New(from, to), s.holes)
+	g := quantity.Get(quantity.Pair(from, to), s.holes)
 	s.namedGroups.Put(name, g)
 }
 
@@ -247,7 +247,7 @@ func (s *FullScanner) RewindNamedGroups(pos int) {
 }
 
 func (s *FullScanner) MarkAsHole(from int, to int) {
-	s.holes.Append(quantity.New(from, to))
+	s.holes.Append(quantity.Pair(from, to))
 }
 
 func (s *FullScanner) HolesPosition() int {

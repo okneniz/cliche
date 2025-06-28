@@ -210,7 +210,7 @@ var (
 		configureProperty(cfg, unicode.Scripts)
 		configureProperty(cfg, unicode.Categories)
 
-		cfg.Quntifier().Items().StringAsValue("?", quantity.NewQuantity(0, 1))
+		cfg.Quntifier().Items().StringAsValue("?", quantity.New(0, 1))
 		cfg.Quntifier().Items().StringAsValue("+", quantity.NewEndlessQuantity(1))
 		cfg.Quntifier().Items().StringAsValue("*", quantity.NewEndlessQuantity(0))
 		cfg.Quntifier().Items().WithPrefix("{", parseQuanty)

@@ -47,5 +47,5 @@ func Get(x Interface, skips List) Interface {
 		}
 	}
 
-	return New(from, to)
+	return Pair(from, to)
 }

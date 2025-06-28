@@ -16,25 +16,25 @@ func Test_Get(t *testing.T) {
 
 	examples := []example{
 		{
-			span: New(0, 5),
+			span: Pair(0, 5),
 			skip: []Interface{
-				New(1, 4),
+				Pair(1, 4),
 			},
-			want: New(0, 5),
+			want: Pair(0, 5),
 		},
 		{
-			span: New(0, 5),
+			span: Pair(0, 5),
 			skip: []Interface{
-				New(2, 5),
+				Pair(2, 5),
 			},
-			want: New(0, 1),
+			want: Pair(0, 1),
 		},
 		{
-			span: New(0, 5),
+			span: Pair(0, 5),
 			skip: []Interface{
-				New(0, 1),
+				Pair(0, 1),
 			},
-			want: New(2, 5),
+			want: Pair(2, 5),
 		},
 	}
 

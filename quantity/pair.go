@@ -13,7 +13,7 @@ var (
 	_ Interface = pair{0, 0}
 )
 
-func New(from int, to int) Interface {
+func Pair(from int, to int) Interface {
 	if from > to || from < 0 || to < 0 {
 		panic(fmt.Sprintf("invalid bounds %d %d", from, to))
 	}
