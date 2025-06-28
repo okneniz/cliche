@@ -36,7 +36,7 @@ func (cfg *GroupScope) makeParser(
 ) c.Combinator[rune, int, node.Node] {
 	parseAny := c.NoneOf[rune, int](except...) // to parse prefix rune by rune
 
-	parseScopeByPrefix := NewGroupsParserTree(
+	parseScopeByPrefix := makeGroupsParserTree(
 		parseAny,
 		parseAlternation,
 		cfg.prefixes,

@@ -56,7 +56,7 @@ func (scope *ScopeConfig[T]) makeParser(except ...rune) c.Combinator[rune, int, 
 	// TODO: don't ignore it - pass correct
 	parseAny := c.Any[rune, int]() // to parse prefix rune by rune
 
-	parseByPrefix := newParserTree(
+	parseByPrefix := makeParserTree(
 		parseAny,
 		scope.prefixes,
 		except...,

@@ -7,7 +7,7 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-func newParserTree[T any](
+func makeParserTree[T any](
 	parse c.Combinator[rune, int, rune],
 	cases map[string]ParserBuilder[T],
 	except ...rune,
@@ -83,7 +83,7 @@ func newParserTree[T any](
 	}
 }
 
-func NewGroupsParserTree(
+func makeGroupsParserTree(
 	parse c.Combinator[rune, int, rune],
 	parseAlternation c.Combinator[rune, int, node.Alternation],
 	cases map[string]GroupParserBuilder[node.Node],
