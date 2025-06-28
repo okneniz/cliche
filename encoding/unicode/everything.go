@@ -17,5 +17,5 @@ func (t everythingTable) Invert() node.Table {
 }
 
 func (t everythingTable) String() string {
-	return "[]"
+	return "[ALL]"
 }
