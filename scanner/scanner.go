@@ -116,9 +116,9 @@ func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {
 	x := nodeMatch{node: n}
 
 	if empty {
-		x.span = quantity.Empty(from)
+		x.bounds = quantity.Empty(from)
 	} else {
-		x.span = quantity.Pair(from, to)
+		x.bounds = quantity.Pair(from, to)
 	}
 
 	s.expression.Append(x)
@@ -191,7 +191,7 @@ func (s *FullScanner) capturedStringSpan() (quantity.Interface, bool) {
 func (s *FullScanner) firstSpan() (quantity.Interface, bool) {
 	if x, ok := s.expression.First(); ok {
 		// TODO : skip empty too?
-		return x.span, true
+		return x.bounds, true
 	}
 
 	return nil, false
@@ -204,8 +204,8 @@ func (s *FullScanner) lastNotEmptySpan() (quantity.Interface, bool) {
 			return nil, false
 		}
 
-		if !m.span.Empty() {
-			return m.span, true
+		if !m.bounds.Empty() {
+			return m.bounds, true
 		}
 	}
 

@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
-// TODO : move to span
-
+// TODO : это не тоже самое что range / span
+// почему - не может быть количества, нельзя сделать empty Quantity
 type Quantity struct {
 	from int
 	to   *int

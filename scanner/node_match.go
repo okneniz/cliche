@@ -8,10 +8,10 @@ import (
 )
 
 type nodeMatch struct {
-	node node.Node
-	span quantity.Interface // TODO : rename to bounds
+	node   node.Node
+	bounds quantity.Interface
 }
 
 func (m nodeMatch) String() string {
-	return fmt.Sprintf("nodeMatch{%s: %s}", m.span, m.node.GetKey())
+	return fmt.Sprintf("nodeMatch{%s: %s}", m.bounds, m.node.GetKey())
 }
