@@ -8,20 +8,20 @@ import (
 
 // as in NonClass, but some char have another meaning (for example $, ^)
 // don't have anchors
-type ClassConfig struct {
+type ClassScope struct {
 	// \u{00E0}, \A, \z
-	runes *ParserScope[rune]
-	items *ParserScope[node.Table]
+	runes *ScopeConfig[rune]
+	items *ScopeConfig[node.Table]
 }
 
-func (cfg *ClassConfig) Runes() *ParserScope[rune] {
+func (cfg *ClassScope) Runes() *ScopeConfig[rune] {
 	return cfg.runes
 }
 
-func (cfg *ClassConfig) Items() *ParserScope[node.Table] {
+func (cfg *ClassScope) Items() *ScopeConfig[node.Table] {
 	return cfg.items
 }
 
-func (cfg *ClassConfig) String() string {
+func (cfg *ClassScope) String() string {
 	return fmt.Sprintf("%T{%v}", cfg, cfg.items)
 }

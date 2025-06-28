@@ -6,41 +6,41 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-type ParserScope[T any] struct {
+type ScopeConfig[T any] struct {
 	prefixes map[string]ParserBuilder[T]
 	parsers  []ParserBuilder[T]
 }
 
-func NewParserScope[T any]() *ParserScope[T] {
-	scope := new(ParserScope[T])
+func NewScopeConfig[T any]() *ScopeConfig[T] {
+	scope := new(ScopeConfig[T])
 	scope.prefixes = make(map[string]ParserBuilder[T], 0)
 	scope.parsers = make([]ParserBuilder[T], 0)
 	return scope
 }
 
-func (scope *ParserScope[T]) Parse(
+func (scope *ScopeConfig[T]) Parse(
 	builders ...ParserBuilder[T],
-) *ParserScope[T] {
+) *ScopeConfig[T] {
 	scope.parsers = append(scope.parsers, builders...)
 	return scope
 }
 
-func (scope *ParserScope[T]) WithPrefix(
+func (scope *ScopeConfig[T]) WithPrefix(
 	prefix string, builder ParserBuilder[T],
-) *ParserScope[T] {
+) *ScopeConfig[T] {
 	scope.prefixes[prefix] = builder
 	return scope
 }
 
-func (scope *ParserScope[T]) StringAsValue(
+func (scope *ScopeConfig[T]) StringAsValue(
 	prefix string, value T,
-) *ParserScope[T] {
+) *ScopeConfig[T] {
 	return scope.WithPrefix(prefix, Const(value))
 }
 
-func (scope *ParserScope[T]) StringAsFunc(
+func (scope *ScopeConfig[T]) StringAsFunc(
 	prefix string, nodeBuilder func() T,
-) *ParserScope[T] {
+) *ScopeConfig[T] {
 	return scope.WithPrefix(
 		prefix,
 		func(_ ...rune) c.Combinator[rune, int, T] {
@@ -51,19 +51,19 @@ func (scope *ParserScope[T]) StringAsFunc(
 	)
 }
 
-func (scope *ParserScope[T]) parser(except ...rune) c.Combinator[rune, int, T] {
+func (scope *ScopeConfig[T]) parser(except ...rune) c.Combinator[rune, int, T] {
 	// TODO : why ignore except?
 	// TODO: don't ignore it - pass correct
 	parseAny := c.Any[rune, int]() // to parse prefix rune by rune
 
-	parseScopeByPrefix := newParserTree(
+	parseByPrefix := newParserTree(
 		parseAny,
 		scope.prefixes,
 		except...,
 	)
 
 	parsers := make([]c.Combinator[rune, int, T], 0, len(scope.parsers)+1)
-	parsers = append(parsers, c.Try(parseScopeByPrefix))
+	parsers = append(parsers, c.Try(parseByPrefix))
 
 	for _, buildParser := range scope.parsers {
 		parser := buildParser(except...)
@@ -73,6 +73,6 @@ func (scope *ParserScope[T]) parser(except ...rune) c.Combinator[rune, int, T] {
 	return c.Choice(parsers...)
 }
 
-func (scope *ParserScope[T]) String() string {
+func (scope *ScopeConfig[T]) String() string {
 	return fmt.Sprintf("%T{%v}", scope, scope.prefixes)
 }

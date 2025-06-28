@@ -5,44 +5,44 @@ import (
 )
 
 type Config struct {
-	nonClass *NonClassConfig
-	group    *GroupConfig
-	class    *ClassConfig
-	quntity  *QuantityConfig
+	nonClass *NonClassScope
+	group    *GroupScope
+	class    *ClassScope
+	quntity  *QuantityScope
 }
 
 func NewConfig() *Config {
 	cfg := new(Config)
 
-	cfg.nonClass = new(NonClassConfig)
-	cfg.nonClass.items = NewParserScope[node.Node]()
+	cfg.nonClass = new(NonClassScope)
+	cfg.nonClass.items = NewScopeConfig[node.Node]()
 
-	cfg.group = new(GroupConfig)
+	cfg.group = new(GroupScope)
 	cfg.group.prefixes = make(map[string]GroupParserBuilder[node.Node], 0)
 	cfg.group.parsers = make([]GroupParserBuilder[node.Node], 0)
 
-	cfg.class = new(ClassConfig)
-	cfg.class.runes = NewParserScope[rune]()
-	cfg.class.items = NewParserScope[node.Table]()
+	cfg.class = new(ClassScope)
+	cfg.class.runes = NewScopeConfig[rune]()
+	cfg.class.items = NewScopeConfig[node.Table]()
 
-	cfg.quntity = new(QuantityConfig)
-	cfg.quntity.items = NewParserScope[*node.Quantity]()
+	cfg.quntity = new(QuantityScope)
+	cfg.quntity.items = NewScopeConfig[*node.Quantity]()
 
 	return cfg
 }
 
-func (cfg *Config) Groups() *GroupConfig {
+func (cfg *Config) Groups() *GroupScope {
 	return cfg.group
 }
 
-func (cfg *Config) Class() *ClassConfig {
+func (cfg *Config) Class() *ClassScope {
 	return cfg.class
 }
 
-func (cfg *Config) NonClass() *NonClassConfig {
+func (cfg *Config) NonClass() *NonClassScope {
 	return cfg.nonClass
 }
 
-func (cfg *Config) Quntifier() *QuantityConfig {
+func (cfg *Config) Quntifier() *QuantityScope {
 	return cfg.quntity
 }

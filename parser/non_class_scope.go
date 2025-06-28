@@ -4,12 +4,12 @@ import (
 	"github.com/okneniz/cliche/node"
 )
 
-type NonClassConfig struct {
+type NonClassScope struct {
 	// escaped char (\u{123}, \A, \z)
 	// escaped range of char (\d, \w, \p{Property})
-	items *ParserScope[node.Node]
+	items *ScopeConfig[node.Node]
 }
 
-func (cfg *NonClassConfig) Items() *ParserScope[node.Node] {
+func (cfg *NonClassScope) Items() *ScopeConfig[node.Node] {
 	return cfg.items
 }

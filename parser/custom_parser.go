@@ -163,10 +163,10 @@ func (p *CustomParser) alternationParser(
 }
 
 func (p *CustomParser) runeParser(
-	scope *ParserScope[rune],
+	cfg *ScopeConfig[rune],
 	except ...rune,
 ) c.Combinator[rune, int, rune] {
-	parseRune := scope.parser(except...)
+	parseRune := cfg.parser(except...)
 	parseAny := c.NoneOf[rune, int](except...)
 
 	return c.Choice(

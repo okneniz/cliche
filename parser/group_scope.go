@@ -5,32 +5,32 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-// can use parser from common, need only for named group, not captured group, look around, conditions
-type GroupConfig struct {
-	prefixes map[string]GroupParserBuilder[node.Node]
-	parsers  []GroupParserBuilder[node.Node] // alternation wrapped to node
-}
-
 type GroupParserBuilder[T any] func(
 	parseAlternation c.Combinator[rune, int, node.Alternation],
 	except ...rune,
 ) c.Combinator[rune, int, T]
 
-func (cfg *GroupConfig) Parse(
+// can use parser from common, need only for named group, not captured group, look around, conditions
+type GroupScope struct {
+	prefixes map[string]GroupParserBuilder[node.Node]
+	parsers  []GroupParserBuilder[node.Node] // alternation wrapped to node
+}
+
+func (cfg *GroupScope) Parse(
 	builders ...GroupParserBuilder[node.Node],
-) *GroupConfig {
+) *GroupScope {
 	cfg.parsers = append(cfg.parsers, builders...)
 	return cfg
 }
 
-func (cfg *GroupConfig) ParsePrefix(
+func (cfg *GroupScope) ParsePrefix(
 	prefix string, builder GroupParserBuilder[node.Node],
-) *GroupConfig {
+) *GroupScope {
 	cfg.prefixes[prefix] = builder
 	return cfg
 }
 
-func (cfg *GroupConfig) parser(
+func (cfg *GroupScope) parser(
 	parseAlternation c.Combinator[rune, int, node.Alternation],
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
