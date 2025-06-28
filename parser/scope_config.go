@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	c "github.com/okneniz/parsec/common"
 )
 
@@ -71,8 +69,4 @@ func (scope *ScopeConfig[T]) makeParser(except ...rune) c.Combinator[rune, int, 
 	}
 
 	return c.Choice(parsers...)
-}
-
-func (scope *ScopeConfig[T]) String() string {
-	return fmt.Sprintf("%T{%v}", scope, scope.prefixes)
 }

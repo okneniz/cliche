@@ -63,29 +63,8 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 func (p *CustomParser) alternationParser(
 	except ...rune,
 ) c.Combinator[rune, int, node.Alternation] {
-	parseAny := c.NoneOf[rune, int](except...)
-	parseClass := c.Try(p.classParser(except...))
-	parseNonClassItem := p.config.nonClass.items.makeParser(except...)
-
-	parseNonClass := func(buf c.Buffer[rune, int]) (node.Node, error) {
-		pos := buf.Position()
-
-		item, err := parseNonClassItem(buf)
-		if err == nil {
-			return item, nil
-		}
-
-		buf.Seek(pos)
-
-		x, err := parseAny(buf)
-		if err == nil {
-			return node.NewForTable(unicode.NewTable(x)), nil
-		}
-
-		buf.Seek(pos)
-
-		return nil, err
-	}
+	parseClass := c.Try(p.classParser())
+	parseNonClass := p.config.nonClass.makeParser(except...)
 
 	var (
 		parseGroup c.Combinator[rune, int, node.Node]
@@ -162,27 +141,14 @@ func (p *CustomParser) alternationParser(
 	return parseAlternation
 }
 
-func (p *CustomParser) runeParser(
-	cfg *ScopeConfig[rune],
-	except ...rune,
-) c.Combinator[rune, int, rune] {
-	parseRune := cfg.makeParser(except...)
-	parseAny := c.NoneOf[rune, int](except...)
-
-	return c.Choice(
-		c.Try(parseRune),
-		parseAny,
-	)
-}
-
 func (p *CustomParser) rangeOrCharParser(
 	except ...rune,
 ) c.Combinator[rune, int, node.Table] {
 	parseSeparator := c.Eq[rune, int]('-')
 
-	parseRune := p.runeParser(
-		p.config.class.runes,
-		except...,
+	parseRune := c.Choice(
+		c.Try(p.config.class.runes.makeParser(except...)),
+		c.NoneOf[rune, int](except...),
 	)
 
 	return func(buf c.Buffer[rune, int]) (node.Table, error) {
@@ -213,10 +179,8 @@ func (p *CustomParser) rangeOrCharParser(
 	}
 }
 
-func (p *CustomParser) classParser(
-	except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	parseTable := p.classTableParser(except...)
+func (p *CustomParser) classParser() c.Combinator[rune, int, node.Node] {
+	parseTable := p.classTableParser(false)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, error) {
 		table, err := parseTable(buf)
@@ -229,24 +193,22 @@ func (p *CustomParser) classParser(
 }
 
 func (p *CustomParser) classTableParser(
-	except ...rune,
+	isSubclass bool,
 ) c.Combinator[rune, int, node.Table] {
 	var (
 		parseClass    c.Combinator[rune, int, node.Table]
 		parseSubClass c.Combinator[rune, int, node.Table]
 	)
 
-	newExcept := []rune{']'} //append(except, ']')
-
-	parseClassItem := p.config.class.items.makeParser(newExcept...)
-	parseClassChar := p.rangeOrCharParser(newExcept...)
+	parseClassItem := p.config.class.items.makeParser(']')
+	parseClassChar := p.rangeOrCharParser(']')
 
 	// hack : implementation without parsec.Try, parsec.Choice
 	// to avoid problems with references to func and recursive parsing
 	parseTable := func(buf c.Buffer[rune, int]) (node.Table, error) {
+		// subclass
 		// range
 		// item
-		// subclass
 		// char
 		pos := buf.Position()
 
@@ -302,10 +264,10 @@ func (p *CustomParser) classTableParser(
 		),
 	)
 
-	if slices.Contains(except, ']') {
+	if isSubclass {
 		parseSubClass = parseClass
 	} else {
-		parseSubClass = p.classTableParser(newExcept...)
+		parseSubClass = p.classTableParser(true)
 	}
 
 	return parseClass
