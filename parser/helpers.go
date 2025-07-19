@@ -10,7 +10,7 @@ import (
 // TODO : move to parsec
 
 func Quantifier[T any](from, to int, f Parser[T]) Parser[[]T] {
-	return func(buffer c.Buffer[rune, int]) ([]T, *ParsingError) {
+	return func(buffer c.Buffer[rune, int]) ([]T, Error) {
 		pos := buffer.Position()
 
 		if from > to {
@@ -48,7 +48,7 @@ func Quantifier[T any](from, to int, f Parser[T]) Parser[[]T] {
 }
 
 func Many[T any](expect string, parseItem Parser[T]) Parser[[]T] {
-	return func(buf c.Buffer[rune, int]) ([]T, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) ([]T, Error) {
 		list := make([]T, 0)
 
 		for !buf.IsEOF() {
@@ -68,7 +68,7 @@ func Many[T any](expect string, parseItem Parser[T]) Parser[[]T] {
 }
 
 func Some[T any](expect string, parse Parser[T]) Parser[[]T] {
-	return func(buf c.Buffer[rune, int]) ([]T, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) ([]T, Error) {
 		list := make([]T, 0)
 
 		start := buf.Position()
@@ -94,7 +94,7 @@ func Some[T any](expect string, parse Parser[T]) Parser[[]T] {
 }
 
 func Try[T any](parse Parser[T]) Parser[T] {
-	return func(buf c.Buffer[rune, int]) (T, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (T, Error) {
 		pos := buf.Position()
 
 		value, err := parse(buf)
@@ -110,7 +110,7 @@ func Try[T any](parse Parser[T]) Parser[T] {
 }
 
 func Skip[T any, S any](before Parser[S], parse Parser[T]) Parser[T] {
-	return func(buf c.Buffer[rune, int]) (T, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (T, Error) {
 		_, err := before(buf)
 		if err != nil {
 			var t T
@@ -127,7 +127,7 @@ func OneOf(xs ...rune) Parser[rune] {
 		list[x] = struct{}{}
 	}
 
-	return func(buf c.Buffer[rune, int]) (rune, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (rune, Error) {
 		pos := buf.Position()
 
 		x, err := buf.Read(true)
@@ -157,7 +157,7 @@ func NoneOf(xs ...rune) Parser[rune] {
 		list[x] = struct{}{}
 	}
 
-	return func(buf c.Buffer[rune, int]) (rune, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (rune, Error) {
 		pos := buf.Position()
 
 		x, err := buf.Read(true)
@@ -182,7 +182,7 @@ func NoneOf(xs ...rune) Parser[rune] {
 }
 
 func Eq(x rune) Parser[rune] {
-	return func(buf c.Buffer[rune, int]) (rune, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (rune, Error) {
 		pos := buf.Position()
 
 		y, err := buf.Read(true)
@@ -222,7 +222,7 @@ func Between[T any](
 ) Parser[T] {
 	var t T
 
-	return func(buf c.Buffer[rune, int]) (T, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (T, Error) {
 		_, err := before(buf)
 		if err != nil {
 			return t, err

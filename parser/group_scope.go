@@ -51,9 +51,9 @@ func (cfg *GroupScope) makeParser(
 		parsers = append(parsers, f)
 	}
 
-	return func(buf c.Buffer[rune, int]) (node.Node, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
 		pos := buf.Position()
-		errs := make([]*ParsingError, 0, len(parsers))
+		errs := make([]Error, 0, len(parsers))
 
 		for i, parse := range parsers {
 			fmt.Println("try to parse group", i)

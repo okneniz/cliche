@@ -11,75 +11,82 @@ import (
 type (
 	Error interface {
 		Position() int
-		error
+		NestedErrors() []Error
+		Error() string
 	}
 
-	ExpectationError struct {
-		Expectation string
-		Position    int
-		Actual      error
+	expectationError struct {
+		expectation string
+		position    int
+		actual      error
 	}
 
-	ParsingError struct {
-		Errors []*ExpectationError
+	parsingError struct {
+		position     int
+		nestedErrors []Error
 	}
 )
 
-func Expected(expect string, pos int, actual error) *ParsingError {
-	err := &ExpectationError{
-		Expectation: expect,
-		Position:    pos,
-		Actual:      actual,
-	}
-
-	return &ParsingError{
-		Errors: []*ExpectationError{
-			err,
-		},
+func Expected(expect string, pos int, actual error) Error {
+	return &expectationError{
+		expectation: expect,
+		position:    pos,
+		actual:      actual,
 	}
 }
 
-func (err *ExpectationError) Error() string {
-	if err.Actual == nil || isParsecStandardError(err.Actual) {
+func (err *expectationError) Position() int {
+	return err.position
+}
+
+func (err *expectationError) Error() string {
+	if err.actual == nil || isParsecStandardError(err.actual) {
 		return fmt.Sprintf(
 			"expected %s at position %d",
-			err.Expectation,
-			err.Position,
+			err.expectation,
+			err.position,
 		)
 	}
 
 	return fmt.Sprintf(
 		"expected %s at position %d, but actual %s",
-		err.Expectation,
-		err.Position,
-		err.Actual.Error(),
+		err.expectation,
+		err.position,
+		err.actual.Error(),
 	)
 }
 
-func MergeErrors(errs ...*ParsingError) *ParsingError {
-	total := 0
+func (err *expectationError) NestedErrors() []Error {
+	return nil
+}
+
+func MergeErrors(errs ...Error) Error {
+	merged := make([]Error, 0, len(errs))
 	for _, x := range errs {
-		total += len(x.Errors) // TODO : may be uniq?
+		merged = append(merged, x.NestedErrors()...)
 	}
 
-	merged := make([]*ExpectationError, 0, total)
-	for _, x := range errs {
-		merged = append(merged, x.Errors...)
-	}
-
-	return &ParsingError{
-		Errors: merged,
+	return &parsingError{
+		nestedErrors: merged,
 	}
 }
 
-func (err *ParsingError) Error() string {
-	messages := make([]string, len(err.Errors))
+func (err *parsingError) Position() int {
+	return err.position
+}
 
-	for i, x := range err.Errors {
+func (err *parsingError) Error() string {
+	messages := make([]string, len(err.nestedErrors))
+
+	for i, x := range err.nestedErrors {
 		messages[i] = x.Error()
 	}
 
 	return strings.Join(messages, ", ")
+}
+
+func (err *parsingError) NestedErrors() []Error {
+	return err.nestedErrors
 }
 
 func Explain(err Error) string {

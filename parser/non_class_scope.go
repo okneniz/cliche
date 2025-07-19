@@ -18,7 +18,7 @@ func (scope *NonClassScope) makeParser(except ...rune) Parser[node.Node] {
 	parseItem := scope.items.makeParser(except...)
 	parseRune := NoneOf(except...)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
 		pos := buf.Position()
 
 		item, itemErr := parseItem(buf)

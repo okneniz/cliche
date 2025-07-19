@@ -24,7 +24,7 @@ func (scope *ClassScope) Items() *Scope[node.Table] {
 func (scope *ClassScope) makeParser() Parser[node.Node] {
 	parseTable := scope.makeTableParser(false)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
 		table, err := parseTable(buf)
 		if err != nil {
 			return nil, err
@@ -45,7 +45,7 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 
 	parseTable := func(
 		buf c.Buffer[rune, int],
-	) (node.Table, *ParsingError) {
+	) (node.Table, Error) {
 		pos := buf.Position()
 
 		classItem, classErr := parseClassItem(buf)
@@ -81,7 +81,7 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 
 	parseSequenceOfTables := func(
 		buf c.Buffer[rune, int],
-	) ([]node.Table, *ParsingError) {
+	) ([]node.Table, Error) {
 		result := make([]node.Table, 0)
 		start := buf.Position()
 
@@ -109,7 +109,7 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 	leftSquare := Eq('[')
 	rightSquare := Eq(']')
 
-	parseClass = func(buf c.Buffer[rune, int]) (node.Table, *ParsingError) {
+	parseClass = func(buf c.Buffer[rune, int]) (node.Table, Error) {
 		pos := buf.Position()
 		isNegative := true
 
@@ -160,7 +160,7 @@ func (scope *ClassScope) makeRangeOrCharParser(except ...rune) Parser[node.Table
 	parsePredefinedRune := scope.runes.makeParser(except...)
 	parseAnyRune := NoneOf(except...)
 
-	parseRune := func(buf c.Buffer[rune, int]) (rune, *ParsingError) {
+	parseRune := func(buf c.Buffer[rune, int]) (rune, Error) {
 		pos := buf.Position()
 
 		x, err := parsePredefinedRune(buf)
@@ -181,7 +181,7 @@ func (scope *ClassScope) makeRangeOrCharParser(except ...rune) Parser[node.Table
 		return x, nil
 	}
 
-	return func(buf c.Buffer[rune, int]) (node.Table, *ParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Table, Error) {
 		pos := buf.Position()
 
 		from, err := parseRune(buf)
