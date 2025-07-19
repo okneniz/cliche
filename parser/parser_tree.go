@@ -50,7 +50,7 @@ func makeParserTree[T any](
 		strings.Join(prefixes, ", "),
 	)
 
-	return func(buf c.Buffer[rune, int]) (T, *MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (T, *ParsingError) {
 		current := root.children
 		start := buf.Position()
 
@@ -128,7 +128,7 @@ func makeGroupsParserTree(
 		strings.Join(prefixes, ", "),
 	)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *ParsingError) {
 		current := root.children
 		start := buf.Position()
 

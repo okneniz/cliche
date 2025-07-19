@@ -10,13 +10,13 @@ type Combinator[T any, P any, S any, E error] func(
 	c.Buffer[T, P],
 ) (S, E)
 
-type Parser[S any] Combinator[rune, int, S, *MultipleParsingError]
+type Parser[S any] Combinator[rune, int, S, *ParsingError]
 
 type ParserBuilder[S any] func(except ...rune) Parser[S]
 
 func Const[T any](value T) ParserBuilder[T] {
 	return func(_ ...rune) Parser[T] {
-		return func(_ c.Buffer[rune, int]) (T, *MultipleParsingError) {
+		return func(_ c.Buffer[rune, int]) (T, *ParsingError) {
 			return value, nil
 		}
 	}
@@ -28,7 +28,7 @@ func NodeAsTable(
 	return func(except ...rune) Parser[node.Node] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
+		return func(buf c.Buffer[rune, int]) (node.Node, *ParsingError) {
 			table, err := parse(buf)
 			if err != nil {
 				return nil, err
@@ -45,7 +45,7 @@ func RuneAsTable(
 	return func(except ...rune) Parser[node.Table] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (node.Table, *MultipleParsingError) {
+		return func(buf c.Buffer[rune, int]) (node.Table, *ParsingError) {
 			r, err := parse(buf)
 			if err != nil {
 				return nil, err
@@ -62,7 +62,7 @@ func NumberAsRune(
 	return func(except ...rune) Parser[rune] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (rune, *MultipleParsingError) {
+		return func(buf c.Buffer[rune, int]) (rune, *ParsingError) {
 			x, err := parse(buf)
 			if err != nil {
 				return -1, err

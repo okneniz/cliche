@@ -28,7 +28,7 @@ func parseNameReference(
 
 	return func(
 		buf c.Buffer[rune, int],
-	) (node.Node, *parser.MultipleParsingError) {
+	) (node.Node, *parser.ParsingError) {
 		name, err := parse(buf)
 		if err != nil {
 			return nil, err
@@ -64,7 +64,7 @@ func parseBackReference(except ...rune) parser.Parser[node.Node] {
 
 	return func(
 		buf c.Buffer[rune, int],
-	) (node.Node, *parser.MultipleParsingError) {
+	) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		runes, err := parse(buf)
@@ -93,7 +93,7 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 			parser.OneOf([]rune("0123456789abcdefABCDEF")...),
 		)
 
-		return func(buf c.Buffer[rune, int]) (int, *parser.MultipleParsingError) {
+		return func(buf c.Buffer[rune, int]) (int, *parser.ParsingError) {
 			pos := buf.Position()
 
 			runes, err := parse(buf)
@@ -123,7 +123,7 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 		allowed := []rune("01234567")
 		parse := c.Count(size, c.OneOf[rune, int](allowed...))
 
-		return func(buf c.Buffer[rune, int]) (int, *parser.MultipleParsingError) {
+		return func(buf c.Buffer[rune, int]) (int, *parser.ParsingError) {
 			pos := buf.Position()
 
 			_, err := leftBraces(buf)
@@ -157,7 +157,7 @@ func parseGroup(
 	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
 ) parser.Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		alt, err := parseAlternation(buf)
@@ -173,7 +173,7 @@ func parseNotCapturedGroup(
 	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
 ) parser.Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		alt, err := parseAlternation(buf)
@@ -197,7 +197,7 @@ func parseNamedGroup(
 		c.Some(0, c.Try(allowedForNamedSymbols)),
 	)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		name, err := parseGroupName(buf)
@@ -223,7 +223,7 @@ func parseAtomicGroup(
 	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
 ) parser.Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		alt, err := parseAlternation(buf)
@@ -239,7 +239,7 @@ func parseLookAhead(
 	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
 ) parser.Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		alt, err := parseAlternation(buf)
@@ -255,7 +255,7 @@ func parseNegativeLookAhead(
 	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
 ) parser.Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		alt, err := parseAlternation(buf)
@@ -271,7 +271,7 @@ func parseLookBehind(
 	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
 ) parser.Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		alt, err := parseAlternation(buf)
@@ -292,7 +292,7 @@ func parseNegativeLookBehind(
 	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
 ) parser.Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		alt, err := parseAlternation(buf)
@@ -327,7 +327,7 @@ func parseCondition(
 
 	parseBackReference := func(
 		buf c.Buffer[rune, int],
-	) (*node.Predicate, *parser.MultipleParsingError) {
+	) (*node.Predicate, *parser.ParsingError) {
 		pos := buf.Position()
 
 		runes, err := backReference(buf)
@@ -353,7 +353,7 @@ func parseCondition(
 
 	parseNameReference := func(
 		buf c.Buffer[rune, int],
-	) (*node.Predicate, *parser.MultipleParsingError) {
+	) (*node.Predicate, *parser.ParsingError) {
 		pos := buf.Position()
 
 		name, err := nameReference(buf)
@@ -375,7 +375,7 @@ func parseCondition(
 
 	reference := func(
 		buf c.Buffer[rune, int],
-	) (*node.Predicate, *parser.MultipleParsingError) {
+	) (*node.Predicate, *parser.ParsingError) {
 		pos := buf.Position()
 
 		ref, err := parseBackReference(buf)
@@ -396,7 +396,7 @@ func parseCondition(
 	condition := parser.Parens(reference)
 	before := parser.Eq('?')
 
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		_, err := before(buf)
@@ -437,7 +437,7 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
 		comma := parser.Eq(',')
 		rightBrace := parser.Eq('}')
 
-		full := func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.MultipleParsingError) { // {1,1}
+		full := func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.ParsingError) { // {1,1}
 			pos := buf.Position()
 
 			from, err := number(buf)
@@ -468,7 +468,7 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
 			return quantity.New(from, to), nil
 		}
 
-		fromZero := func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.MultipleParsingError) { // {,1}
+		fromZero := func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.ParsingError) { // {,1}
 			_, err := comma(buf)
 			if err != nil {
 				return nil, err
@@ -487,7 +487,7 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
 			return quantity.New(0, to), nil
 		}
 
-		endless := func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.MultipleParsingError) { // {1,}
+		endless := func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.ParsingError) { // {1,}
 			from, err := number(buf)
 			if err != nil {
 				return nil, err
@@ -506,7 +506,7 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
 			return quantity.NewEndlessQuantity(from), nil
 		}
 
-		fixed := func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.MultipleParsingError) { // {1}
+		fixed := func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.ParsingError) { // {1}
 			fmt.Println("parse fixed quantity:", buf)
 
 			from, err := number(buf)
@@ -525,7 +525,7 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
 			return quantity.New(from, from), nil
 		}
 
-		return func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.MultipleParsingError) {
+		return func(buf c.Buffer[rune, int]) (*quantity.Quantity, *parser.ParsingError) {
 			pos := buf.Position()
 
 			q, fullErr := full(buf)
@@ -572,7 +572,7 @@ func parseComment(
 ) parser.Parser[node.Node] {
 	parse := c.Many(10, c.Try(c.NoneOf[rune, int](except...)))
 
-	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.ParsingError) {
 		pos := buf.Position()
 
 		runes, err := parse(buf)
@@ -589,7 +589,7 @@ func parseNumber(_ ...rune) parser.Parser[int] {
 
 	digit := parser.OneOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
-	return func(buf c.Buffer[rune, int]) (int, *parser.MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (int, *parser.ParsingError) {
 		pos := buf.Position()
 
 		token, err := digit(buf)

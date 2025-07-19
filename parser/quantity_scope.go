@@ -18,7 +18,7 @@ func (scope *QuantityScope) makeParser(except ...rune) Parser[*quantity.Quantity
 
 	return func(
 		buf c.Buffer[rune, int],
-	) (*quantity.Quantity, *MultipleParsingError) {
+	) (*quantity.Quantity, *ParsingError) {
 		pos := buf.Position()
 
 		q, err := parse(buf)

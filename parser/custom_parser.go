@@ -72,7 +72,7 @@ func (p *CustomParser) makeAlternationParser(
 	)
 
 	parseNode := p.makeOptionalQuantifierParser(
-		func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
+		func(buf c.Buffer[rune, int]) (node.Node, *ParsingError) {
 			group, groupErr := parseGroup(buf)
 			if groupErr == nil {
 				fmt.Println("parsed node group", group.GetKey(), group.GetExpressions())
@@ -111,7 +111,7 @@ func (p *CustomParser) makeAlternationParser(
 
 	parseVariants := func(
 		buf c.Buffer[rune, int],
-	) ([]node.Node, *MultipleParsingError) {
+	) ([]node.Node, *ParsingError) {
 		pos := buf.Position()
 
 		variant, err := parseVariant(buf)
@@ -154,7 +154,7 @@ func (p *CustomParser) makeAlternationParser(
 
 	parseAlternation := func(
 		buf c.Buffer[rune, int],
-	) (node.Alternation, *MultipleParsingError) {
+	) (node.Alternation, *ParsingError) {
 		variants, err := parseVariants(buf)
 		if err != nil {
 			fmt.Println("parsing alternation failed", err)
@@ -181,7 +181,7 @@ func (p *CustomParser) makeAlternationParser(
 
 	parseGroup = func(
 		buf c.Buffer[rune, int],
-	) (node.Node, *MultipleParsingError) {
+	) (node.Node, *ParsingError) {
 		pos := buf.Position()
 
 		_, err := leftParens(buf)
@@ -222,7 +222,7 @@ func (p *CustomParser) makeOptionalQuantifierParser(
 ) Parser[node.Node] {
 	parseQuantity := p.config.quantity.makeParser(except...)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *ParsingError) {
 		exp, err := expression(buf)
 		if err != nil {
 			return nil, err
@@ -243,7 +243,7 @@ func (p *CustomParser) makeOptionalQuantifierParser(
 }
 
 func (p *CustomParser) makeChainParser(parse Parser[node.Node]) Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *ParsingError) {
 		first, err := parse(buf)
 		if err != nil {
 			return nil, err

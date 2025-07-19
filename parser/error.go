@@ -9,34 +9,37 @@ import (
 )
 
 type (
-	// TODO : rename to ErrExpectation?
+	Error interface {
+		Position() int
+		error
+	}
 
-	ParsingError struct {
+	ExpectationError struct {
 		Expectation string
 		Position    int
 		Actual      error
 	}
 
-	MultipleParsingError struct {
-		Errors []*ParsingError
+	ParsingError struct {
+		Errors []*ExpectationError
 	}
 )
 
-func Expected(expect string, pos int, actual error) *MultipleParsingError {
-	err := &ParsingError{
+func Expected(expect string, pos int, actual error) *ParsingError {
+	err := &ExpectationError{
 		Expectation: expect,
 		Position:    pos,
 		Actual:      actual,
 	}
 
-	return &MultipleParsingError{
-		Errors: []*ParsingError{
+	return &ParsingError{
+		Errors: []*ExpectationError{
 			err,
 		},
 	}
 }
 
-func (err *ParsingError) Error() string {
+func (err *ExpectationError) Error() string {
 	if err.Actual == nil || isParsecStandardError(err.Actual) {
 		return fmt.Sprintf(
 			"expected %s at position %d",
@@ -53,23 +56,23 @@ func (err *ParsingError) Error() string {
 	)
 }
 
-func MergeErrors(errs ...*MultipleParsingError) *MultipleParsingError {
+func MergeErrors(errs ...*ParsingError) *ParsingError {
 	total := 0
 	for _, x := range errs {
 		total += len(x.Errors) // TODO : may be uniq?
 	}
 
-	merged := make([]*ParsingError, 0, total)
+	merged := make([]*ExpectationError, 0, total)
 	for _, x := range errs {
 		merged = append(merged, x.Errors...)
 	}
 
-	return &MultipleParsingError{
+	return &ParsingError{
 		Errors: merged,
 	}
 }
 
-func (err *MultipleParsingError) Error() string {
+func (err *ParsingError) Error() string {
 	messages := make([]string, len(err.Errors))
 
 	for i, x := range err.Errors {
@@ -79,7 +82,7 @@ func (err *MultipleParsingError) Error() string {
 	return strings.Join(messages, ", ")
 }
 
-func Explain(err *MultipleParsingError) string {
+func Explain(err Error) string {
 	return fmt.Sprintf("%#v", err)
 }
 

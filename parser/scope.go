@@ -43,7 +43,7 @@ func (scope *Scope[T]) StringAsFunc(
 	prefix string, nodeBuilder func() T,
 ) *Scope[T] {
 	return scope.WithPrefix(prefix, func(_ ...rune) Parser[T] {
-		return func(_ c.Buffer[rune, int]) (T, *MultipleParsingError) {
+		return func(_ c.Buffer[rune, int]) (T, *ParsingError) {
 			return nodeBuilder(), nil
 		}
 	},
@@ -64,9 +64,9 @@ func (scope *Scope[T]) makeParser(except ...rune) Parser[T] {
 		parsers = append(parsers, parser)
 	}
 
-	return func(buf c.Buffer[rune, int]) (T, *MultipleParsingError) {
+	return func(buf c.Buffer[rune, int]) (T, *ParsingError) {
 		pos := buf.Position()
-		errs := make([]*MultipleParsingError, 0, len(parsers))
+		errs := make([]*ParsingError, 0, len(parsers))
 
 		for _, parse := range parsers {
 			value, err := parse(buf)
