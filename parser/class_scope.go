@@ -49,7 +49,6 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 		pos := buf.Position()
 
 		classItem, classErr := parseClassItem(buf)
-		fmt.Println("class item", classItem, classErr)
 		if classErr == nil {
 			return classItem, nil
 		}
@@ -57,7 +56,6 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 		buf.Seek(pos)
 
 		subClass, subClassErr := parseSubClass(buf)
-		fmt.Println("sub class", subClass, subClassErr)
 		if subClassErr == nil {
 			return subClass, nil
 		}
@@ -65,7 +63,6 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 		buf.Seek(pos)
 
 		classChar, charErr := parseClassChar(buf)
-		fmt.Println("class char", classChar, charErr)
 		if charErr == nil {
 			return classChar, nil
 		}
@@ -164,28 +161,18 @@ func (scope *ClassScope) makeRangeOrCharParser(except ...rune) Parser[node.Table
 		pos := buf.Position()
 
 		x, runeErr := parsePredefinedRune(buf)
-		fmt.Println("predefined class char", x, runeErr)
 		if runeErr == nil {
 			return x, nil
 		}
 
 		buf.Seek(pos)
-
-		// return parseAnyRune(buf)
-		x, aErr := parseAnyRune(buf)
-		fmt.Println("WTF", x, aErr)
-		if aErr != nil {
-			return -1, aErr
-		}
-
-		return x, nil
+		return parseAnyRune(buf)
 	}
 
 	return func(buf c.Buffer[rune, int]) (node.Table, Error) {
 		pos := buf.Position()
 
 		from, err := parseRune(buf)
-		fmt.Println("first in range", from, err)
 		if err != nil {
 			return nil, Expected("char or range of chars", pos, err)
 		}
@@ -195,25 +182,17 @@ func (scope *ClassScope) makeRangeOrCharParser(except ...rune) Parser[node.Table
 
 		pos = buf.Position()
 
-		sep, sepErr := parseSeparator(buf)
-		fmt.Printf("separator %#v %#v %#v\n", sep, sepErr, err)
+		_, sepErr := parseSeparator(buf)
 		if sepErr != nil {
-			fmt.Printf("but??? %T %#v\n", sepErr, sepErr)
-			fmt.Println("but why?", sepErr, sepErr.Error(), sepErr != nil, sepErr == nil)
 			buf.Seek(pos)
 			return unicode.NewTable(from), nil
 		}
 
-		fmt.Println("WOW???")
-
 		to, err := parseRune(buf)
-		fmt.Println("second in range", to, err)
 		if err != nil {
 			buf.Seek(pos)
 			return unicode.NewTable(from), nil
 		}
-
-		fmt.Println("validation")
 
 		if from > to {
 			// TODO : how to return errors right here?

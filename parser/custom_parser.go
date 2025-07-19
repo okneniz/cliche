@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	"golang.org/x/exp/slices"
 
 	"github.com/okneniz/cliche/buf"
@@ -48,10 +46,6 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 		newNode = variants[0]
 	}
 
-	// TODO: add specail error class with merge method
-	// (required to pretty errors (expected: char or class ... explanation))
-	// and merge expectations in choice
-
 	newNode.Traverse(func(x node.Node) {
 		if len(x.GetNestedNodes()) == 0 {
 			x.AddExpression(str)
@@ -75,27 +69,18 @@ func (p *CustomParser) makeAlternationParser(
 		func(buf c.Buffer[rune, int]) (node.Node, Error) {
 			group, groupErr := parseGroup(buf)
 			if groupErr == nil {
-				fmt.Println("parsed node group", group.GetKey(), group.GetExpressions())
 				return group, nil
 			}
 
-			fmt.Println("parsing node group failed:", groupErr)
-
 			class, classErr := parseClass(buf)
 			if classErr == nil {
-				fmt.Println("parsed node class", class.GetKey(), class.GetExpressions())
 				return class, nil
 			}
 
-			fmt.Println("parsing node class failed:", classErr)
-
 			nonClass, nonClassErr := parseNonClass(buf)
 			if nonClassErr == nil {
-				fmt.Println("parsed node non class", nonClass.GetKey(), nonClass.GetExpressions())
 				return nonClass, nil
 			}
-
-			fmt.Println("parsing node non class failed:", nonClassErr)
 
 			return nil, MergeErrors(
 				groupErr,
@@ -121,14 +106,10 @@ func (p *CustomParser) makeAlternationParser(
 		}
 
 		pos = buf.Position()
-		fmt.Println("parsed variant", variant.GetKey(), variant.GetExpressions())
 
 		list := make([]node.Node, 1)
 		list[0] = variant
 
-		i := 1
-
-		fmt.Println("try to parse more than one variant")
 		for {
 			_, sepErr := parseSeparator(buf)
 			if sepErr != nil {
@@ -142,8 +123,6 @@ func (p *CustomParser) makeAlternationParser(
 				break
 			}
 
-			i += 1
-			fmt.Println("parsed next variant", i, variant.GetKey(), variant.GetExpressions())
 			pos = buf.Position()
 
 			list = append(list, variant)
@@ -157,11 +136,8 @@ func (p *CustomParser) makeAlternationParser(
 	) (node.Alternation, Error) {
 		variants, err := parseVariants(buf)
 		if err != nil {
-			fmt.Println("parsing alternation failed", err)
 			return nil, err
 		}
-
-		fmt.Println("parsed alternation with", len(variants), "variants", buf)
 
 		return node.NewAlternation(variants), nil
 	}
@@ -186,12 +162,9 @@ func (p *CustomParser) makeAlternationParser(
 
 		_, leftErr := leftParens(buf)
 		if leftErr != nil {
-			fmt.Println("parsing left parens of group failed", leftErr)
 			buf.Seek(pos)
 			return nil, leftErr
 		}
-
-		fmt.Println("left parens parsed")
 
 		value, gErr := parseGroupValue(buf)
 		if gErr != nil {
@@ -199,16 +172,11 @@ func (p *CustomParser) makeAlternationParser(
 			return nil, gErr
 		}
 
-		fmt.Println("group value parsed", value, gErr, buf)
-
 		_, rightErr := rightParens(buf)
 		if rightErr != nil {
-			fmt.Println("parsing right parens of group failed", rightErr)
 			buf.Seek(pos)
 			return nil, rightErr
 		}
-
-		fmt.Println("group parsed", value.GetKey(), value.GetExpressions())
 
 		return value, nil
 	}
@@ -228,15 +196,10 @@ func (p *CustomParser) makeOptionalQuantifierParser(
 			return nil, err
 		}
 
-		fmt.Println("try to parse quantity", buf)
-
 		quantity, qErr := parseQuantity(buf)
 		if qErr != nil {
-			fmt.Println("quantificator parsing failed:", qErr)
 			return exp, nil
 		}
-
-		fmt.Println("success", quantity)
 
 		return node.NewQuantifier(quantity, exp), nil
 	}
@@ -249,13 +212,10 @@ func (p *CustomParser) makeChainParser(parse Parser[node.Node]) Parser[node.Node
 			return nil, err
 		}
 
-		fmt.Println("in chain", first.GetKey(), first.GetExpressions())
-
 		last := first
 
 		for !buf.IsEOF() {
 			pos := buf.Position()
-			fmt.Println("parse chain at", buf.Position())
 
 			next, err := parse(buf)
 			if err != nil {
@@ -266,8 +226,6 @@ func (p *CustomParser) makeChainParser(parse Parser[node.Node]) Parser[node.Node
 			last.GetNestedNodes()[next.GetKey()] = next
 			last = next
 		}
-
-		fmt.Println("return chain", buf, last.GetKey(), last.GetExpressions())
 
 		return first, nil
 	}

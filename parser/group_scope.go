@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"fmt"
-
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
 )
@@ -12,7 +10,6 @@ type GroupParserBuilder[T any] func(
 	except ...rune,
 ) Parser[T]
 
-// can use parser from common, need only for named group, not captured group, look around, conditions
 type GroupScope struct {
 	prefixes map[string]GroupParserBuilder[node.Node]
 	parsers  []GroupParserBuilder[node.Node] // alternation wrapped to node
@@ -55,15 +52,11 @@ func (cfg *GroupScope) makeParser(
 		pos := buf.Position()
 		errs := make([]Error, 0, len(parsers))
 
-		for i, parse := range parsers {
-			fmt.Println("try to parse group", i)
-
+		for _, parse := range parsers {
 			value, valErr := parse(buf)
 			if valErr == nil {
 				return value, nil
 			}
-
-			fmt.Println("group value parsing failed:", valErr)
 
 			buf.Seek(pos)
 			errs = append(errs, valErr)

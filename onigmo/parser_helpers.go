@@ -504,18 +504,13 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
 		}
 
 		fixed := func(buf c.Buffer[rune, int]) (*quantity.Quantity, parser.Error) { // {1}
-			fmt.Println("parse fixed quantity:", buf)
-
 			from, numErr := number(buf)
 			if numErr != nil {
 				return nil, numErr
 			}
 
-			fmt.Println("parsed number:", from)
-
 			_, braceErr := rightBrace(buf)
 			if braceErr != nil {
-				fmt.Println("right brace?", braceErr)
 				return nil, braceErr
 			}
 
