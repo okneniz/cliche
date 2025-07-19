@@ -184,11 +184,11 @@ func (p *CustomParser) makeAlternationParser(
 	) (node.Node, Error) {
 		pos := buf.Position()
 
-		_, err := leftParens(buf)
-		if err != nil {
-			fmt.Println("parsing left parens of group failed", err)
+		_, leftErr := leftParens(buf)
+		if leftErr != nil {
+			fmt.Println("parsing left parens of group failed", leftErr)
 			buf.Seek(pos)
-			return nil, err
+			return nil, leftErr
 		}
 
 		fmt.Println("left parens parsed")
@@ -199,13 +199,13 @@ func (p *CustomParser) makeAlternationParser(
 			return nil, gErr
 		}
 
-		fmt.Println("group value parsed", value, err, buf)
+		fmt.Println("group value parsed", value, gErr, buf)
 
-		_, err = rightParens(buf)
-		if err != nil {
-			fmt.Println("parsing right parens of group failed", err)
+		_, rightErr := rightParens(buf)
+		if rightErr != nil {
+			fmt.Println("parsing right parens of group failed", rightErr)
 			buf.Seek(pos)
-			return nil, err
+			return nil, rightErr
 		}
 
 		fmt.Println("group parsed", value.GetKey(), value.GetExpressions())

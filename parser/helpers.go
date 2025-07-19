@@ -223,19 +223,19 @@ func Between[T any](
 	var t T
 
 	return func(buf c.Buffer[rune, int]) (T, Error) {
-		_, err := before(buf)
-		if err != nil {
-			return t, err
+		_, beforeErr := before(buf)
+		if beforeErr != nil {
+			return t, beforeErr
 		}
 
-		value, err := body(buf)
-		if err != nil {
-			return t, err
+		value, valErr := body(buf)
+		if valErr != nil {
+			return t, valErr
 		}
 
-		_, err = after(buf)
-		if err != nil {
-			return t, err
+		_, afterErr := after(buf)
+		if afterErr != nil {
+			return t, afterErr
 		}
 
 		return value, nil

@@ -58,15 +58,15 @@ func (cfg *GroupScope) makeParser(
 		for i, parse := range parsers {
 			fmt.Println("try to parse group", i)
 
-			value, err := parse(buf)
-			if err == nil {
+			value, valErr := parse(buf)
+			if valErr == nil {
 				return value, nil
 			}
 
-			fmt.Println("group value parsing failed:", err)
+			fmt.Println("group value parsing failed:", valErr)
 
 			buf.Seek(pos)
-			errs = append(errs, err)
+			errs = append(errs, valErr)
 		}
 
 		return nil, MergeErrors(errs...)

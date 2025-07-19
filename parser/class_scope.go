@@ -120,8 +120,8 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 		}
 
 		beforePrefixPos := buf.Position()
-		_, err = negativePrefix(buf)
-		if err != nil {
+		_, prefixErr := negativePrefix(buf)
+		if prefixErr != nil {
 			isNegative = false
 			buf.Seek(beforePrefixPos)
 		}
@@ -132,10 +132,10 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 			return nil, seqErr
 		}
 
-		_, err = rightSquare(buf)
+		_, squareErr := rightSquare(buf)
 		if err != nil {
 			buf.Seek(pos)
-			return nil, err
+			return nil, squareErr
 		}
 
 		table := unicode.MergeTables(tables...)
@@ -163,9 +163,9 @@ func (scope *ClassScope) makeRangeOrCharParser(except ...rune) Parser[node.Table
 	parseRune := func(buf c.Buffer[rune, int]) (rune, Error) {
 		pos := buf.Position()
 
-		x, err := parsePredefinedRune(buf)
-		fmt.Println("predefined class char", x, err)
-		if err == nil {
+		x, runeErr := parsePredefinedRune(buf)
+		fmt.Println("predefined class char", x, runeErr)
+		if runeErr == nil {
 			return x, nil
 		}
 

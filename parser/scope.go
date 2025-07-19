@@ -69,14 +69,14 @@ func (scope *Scope[T]) makeParser(except ...rune) Parser[T] {
 		errs := make([]Error, 0, len(parsers))
 
 		for _, parse := range parsers {
-			value, err := parse(buf)
-			if err == nil {
+			value, valErr := parse(buf)
+			if valErr == nil {
 				return value, nil
 			}
 
 			buf.Seek(pos)
 
-			errs = append(errs, err)
+			errs = append(errs, valErr)
 		}
 
 		var t T
