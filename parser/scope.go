@@ -5,26 +5,26 @@ import (
 )
 
 type Scope[T any] struct {
-	prefixes map[string]ParserBuilder[T, *MultipleParsingError]
-	parsers  []ParserBuilder[T, *MultipleParsingError]
+	prefixes map[string]ParserBuilder[T]
+	parsers  []ParserBuilder[T]
 }
 
 func NewScope[T any]() *Scope[T] {
 	scope := new(Scope[T])
-	scope.prefixes = make(map[string]ParserBuilder[T, *MultipleParsingError], 0)
-	scope.parsers = make([]ParserBuilder[T, *MultipleParsingError], 0)
+	scope.prefixes = make(map[string]ParserBuilder[T], 0)
+	scope.parsers = make([]ParserBuilder[T], 0)
 	return scope
 }
 
 func (scope *Scope[T]) Parse(
-	builders ...ParserBuilder[T, *MultipleParsingError],
+	builders ...ParserBuilder[T],
 ) *Scope[T] {
 	scope.parsers = append(scope.parsers, builders...)
 	return scope
 }
 
 func (scope *Scope[T]) WithPrefix(
-	prefix string, builder ParserBuilder[T, *MultipleParsingError],
+	prefix string, builder ParserBuilder[T],
 ) *Scope[T] {
 	scope.prefixes[prefix] = builder
 	return scope
@@ -42,25 +42,21 @@ func (scope *Scope[T]) StringAsValue(
 func (scope *Scope[T]) StringAsFunc(
 	prefix string, nodeBuilder func() T,
 ) *Scope[T] {
-	return scope.WithPrefix(
-		prefix,
-		func(_ ...rune) Parser[T, *MultipleParsingError] {
-			return func(_ c.Buffer[rune, int]) (T, *MultipleParsingError) {
-				return nodeBuilder(), nil
-			}
-		},
+	return scope.WithPrefix(prefix, func(_ ...rune) Parser[T] {
+		return func(_ c.Buffer[rune, int]) (T, *MultipleParsingError) {
+			return nodeBuilder(), nil
+		}
+	},
 	)
 }
 
-func (scope *Scope[T]) makeParser(
-	except ...rune,
-) Parser[T, *MultipleParsingError] {
+func (scope *Scope[T]) makeParser(except ...rune) Parser[T] {
 	parseByPrefix := makeParserTree(
 		scope.prefixes,
 		except...,
 	)
 
-	parsers := make([]Parser[T, *MultipleParsingError], 0, len(scope.parsers)+1)
+	parsers := make([]Parser[T], 0, len(scope.parsers)+1)
 	parsers = append(parsers, parseByPrefix)
 
 	for _, buildParser := range scope.parsers {

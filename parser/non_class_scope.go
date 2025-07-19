@@ -14,9 +14,7 @@ func (scope *NonClassScope) Items() *Scope[node.Node] {
 	return scope.items
 }
 
-func (scope *NonClassScope) makeParser(
-	except ...rune,
-) Parser[node.Node, *MultipleParsingError] {
+func (scope *NonClassScope) makeParser(except ...rune) Parser[node.Node] {
 	parseItem := scope.items.makeParser(except...)
 	parseRune := NoneOf(except...)
 

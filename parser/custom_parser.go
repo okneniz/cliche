@@ -12,7 +12,7 @@ import (
 
 type CustomParser struct {
 	config *Config
-	parse  Parser[node.Alternation, *MultipleParsingError]
+	parse  Parser[node.Alternation]
 }
 
 type Option[T any] func(T)
@@ -63,12 +63,12 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 
 func (p *CustomParser) makeAlternationParser(
 	except ...rune,
-) Parser[node.Alternation, *MultipleParsingError] {
+) Parser[node.Alternation] {
 	parseClass := p.config.class.makeParser()
 	parseNonClass := p.config.nonClass.makeParser(except...)
 
 	var (
-		parseGroup Parser[node.Node, *MultipleParsingError]
+		parseGroup Parser[node.Node]
 	)
 
 	parseNode := p.makeOptionalQuantifierParser(
@@ -217,9 +217,9 @@ func (p *CustomParser) makeAlternationParser(
 }
 
 func (p *CustomParser) makeOptionalQuantifierParser(
-	expression Parser[node.Node, *MultipleParsingError],
+	expression Parser[node.Node],
 	except ...rune,
-) Parser[node.Node, *MultipleParsingError] {
+) Parser[node.Node] {
 	parseQuantity := p.config.quantity.makeParser(except...)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
@@ -242,9 +242,7 @@ func (p *CustomParser) makeOptionalQuantifierParser(
 	}
 }
 
-func (p *CustomParser) makeChainParser(
-	parse Parser[node.Node, *MultipleParsingError],
-) Parser[node.Node, *MultipleParsingError] {
+func (p *CustomParser) makeChainParser(parse Parser[node.Node]) Parser[node.Node] {
 	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
 		first, err := parse(buf)
 		if err != nil {

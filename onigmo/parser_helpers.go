@@ -18,7 +18,7 @@ import (
 
 func parseNameReference(
 	except ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	parse := parser.Angles(
 		parser.Some(
 			"named backreference",
@@ -38,9 +38,7 @@ func parseNameReference(
 	}
 }
 
-func parseBackReference(
-	except ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+func parseBackReference(except ...rune) parser.Parser[node.Node] {
 	digits := []rune("0123456789")
 
 	if len(except) > 0 {
@@ -85,10 +83,8 @@ func parseBackReference(
 	}
 }
 
-func parseHexNumber(
-	from, to int,
-) parser.ParserBuilder[int, *parser.MultipleParsingError] {
-	return func(_ ...rune) parser.Parser[int, *parser.MultipleParsingError] {
+func parseHexNumber(from, to int) parser.ParserBuilder[int] {
+	return func(_ ...rune) parser.Parser[int] {
 		// TODO : don't ignore except
 
 		parse := parser.Quantifier(
@@ -117,12 +113,11 @@ func parseHexNumber(
 	}
 }
 
-func parseOctalCharNumber(
-	size int,
-) parser.ParserBuilder[int, *parser.MultipleParsingError] {
+func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 	leftBraces := c.Eq[rune, int]('{')
 	rightBraces := c.Eq[rune, int]('}')
-	return func(_ ...rune) parser.Parser[int, *parser.MultipleParsingError] {
+
+	return func(_ ...rune) parser.Parser[int] {
 		// TODO : don't ignore except
 
 		allowed := []rune("01234567")
@@ -159,9 +154,9 @@ func parseOctalCharNumber(
 }
 
 func parseGroup(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
 		pos := buf.Position()
 
@@ -175,12 +170,10 @@ func parseGroup(
 }
 
 func parseNotCapturedGroup(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
-	return func(
-		buf c.Buffer[rune, int],
-	) (node.Node, *parser.MultipleParsingError) {
+) parser.Parser[node.Node] {
+	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
 		pos := buf.Position()
 
 		alt, err := parseAlternation(buf)
@@ -193,9 +186,9 @@ func parseNotCapturedGroup(
 }
 
 func parseNamedGroup(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	except ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	endOfName := c.Eq[rune, int]('>')
 	allowedForNamedSymbols := c.NoneOf[rune, int](append(except, '>')...)
 
@@ -227,9 +220,9 @@ func parseNamedGroup(
 }
 
 func parseAtomicGroup(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
 		pos := buf.Position()
 
@@ -243,9 +236,9 @@ func parseAtomicGroup(
 }
 
 func parseLookAhead(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
 		pos := buf.Position()
 
@@ -259,9 +252,9 @@ func parseLookAhead(
 }
 
 func parseNegativeLookAhead(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
 		pos := buf.Position()
 
@@ -275,9 +268,9 @@ func parseNegativeLookAhead(
 }
 
 func parseLookBehind(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
 		pos := buf.Position()
 
@@ -296,9 +289,9 @@ func parseLookBehind(
 }
 
 func parseNegativeLookBehind(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
 		pos := buf.Position()
 
@@ -318,9 +311,9 @@ func parseNegativeLookBehind(
 
 // (?('test')c|d)
 func parseCondition(
-	parseAlternation parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	parseAlternation parser.Parser[node.Alternation],
 	_ ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	// TODO : don't ignore except
 
 	digits := []rune("0123456789")
@@ -438,8 +431,8 @@ func parseCondition(
 	}
 }
 
-func parseQuantity() parser.ParserBuilder[*quantity.Quantity, *parser.MultipleParsingError] {
-	return func(except ...rune) parser.Parser[*quantity.Quantity, *parser.MultipleParsingError] {
+func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
+	return func(except ...rune) parser.Parser[*quantity.Quantity] {
 		number := parseNumber(except...)
 		comma := parser.Eq(',')
 		rightBrace := parser.Eq('}')
@@ -574,9 +567,9 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity, *parser.MultiplePa
 }
 
 func parseComment(
-	_ parser.Parser[node.Alternation, *parser.MultipleParsingError],
+	_ parser.Parser[node.Alternation],
 	except ...rune,
-) parser.Parser[node.Node, *parser.MultipleParsingError] {
+) parser.Parser[node.Node] {
 	parse := c.Many(10, c.Try(c.NoneOf[rune, int](except...)))
 
 	return func(buf c.Buffer[rune, int]) (node.Node, *parser.MultipleParsingError) {
@@ -591,7 +584,7 @@ func parseComment(
 	}
 }
 
-func parseNumber(_ ...rune) parser.Parser[int, *parser.MultipleParsingError] {
+func parseNumber(_ ...rune) parser.Parser[int] {
 	const zero = rune('0')
 
 	digit := parser.OneOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')

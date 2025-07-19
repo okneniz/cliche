@@ -21,7 +21,7 @@ func (scope *ClassScope) Items() *Scope[node.Table] {
 	return scope.items
 }
 
-func (scope *ClassScope) makeParser() Parser[node.Node, *MultipleParsingError] {
+func (scope *ClassScope) makeParser() Parser[node.Node] {
 	parseTable := scope.makeTableParser(false)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
@@ -34,12 +34,10 @@ func (scope *ClassScope) makeParser() Parser[node.Node, *MultipleParsingError] {
 	}
 }
 
-func (scope *ClassScope) makeTableParser(
-	isSubclass bool,
-) Parser[node.Table, *MultipleParsingError] {
+func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 	var (
-		parseClass    Parser[node.Table, *MultipleParsingError]
-		parseSubClass Parser[node.Table, *MultipleParsingError]
+		parseClass    Parser[node.Table]
+		parseSubClass Parser[node.Table]
 	)
 
 	parseClassItem := scope.items.makeParser(']')
@@ -157,9 +155,7 @@ func (scope *ClassScope) makeTableParser(
 	return parseClass
 }
 
-func (scope *ClassScope) makeRangeOrCharParser(
-	except ...rune,
-) Parser[node.Table, *MultipleParsingError] {
+func (scope *ClassScope) makeRangeOrCharParser(except ...rune) Parser[node.Table] {
 	parseSeparator := Eq('-')
 	parsePredefinedRune := scope.runes.makeParser(except...)
 	parseAnyRune := NoneOf(except...)

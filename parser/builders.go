@@ -10,14 +10,12 @@ type Combinator[T any, P any, S any, E error] func(
 	c.Buffer[T, P],
 ) (S, E)
 
-type Parser[S any, E error] Combinator[rune, int, S, E]
+type Parser[S any] Combinator[rune, int, S, *MultipleParsingError]
 
-type ParserBuilder[S any, E error] func(
-	except ...rune,
-) Parser[S, E]
+type ParserBuilder[S any] func(except ...rune) Parser[S]
 
-func Const[T any](value T) ParserBuilder[T, *MultipleParsingError] {
-	return func(_ ...rune) Parser[T, *MultipleParsingError] {
+func Const[T any](value T) ParserBuilder[T] {
+	return func(_ ...rune) Parser[T] {
 		return func(_ c.Buffer[rune, int]) (T, *MultipleParsingError) {
 			return value, nil
 		}
@@ -25,9 +23,9 @@ func Const[T any](value T) ParserBuilder[T, *MultipleParsingError] {
 }
 
 func NodeAsTable(
-	makeParser ParserBuilder[node.Table, *MultipleParsingError],
-) ParserBuilder[node.Node, *MultipleParsingError] {
-	return func(except ...rune) Parser[node.Node, *MultipleParsingError] {
+	makeParser ParserBuilder[node.Table],
+) ParserBuilder[node.Node] {
+	return func(except ...rune) Parser[node.Node] {
 		parse := makeParser(except...)
 
 		return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
@@ -42,9 +40,9 @@ func NodeAsTable(
 }
 
 func RuneAsTable(
-	makeParser ParserBuilder[rune, *MultipleParsingError],
-) ParserBuilder[node.Table, *MultipleParsingError] {
-	return func(except ...rune) Parser[node.Table, *MultipleParsingError] {
+	makeParser ParserBuilder[rune],
+) ParserBuilder[node.Table] {
+	return func(except ...rune) Parser[node.Table] {
 		parse := makeParser(except...)
 
 		return func(buf c.Buffer[rune, int]) (node.Table, *MultipleParsingError) {
@@ -59,9 +57,9 @@ func RuneAsTable(
 }
 
 func NumberAsRune(
-	makeParser ParserBuilder[int, *MultipleParsingError],
-) ParserBuilder[rune, *MultipleParsingError] {
-	return func(except ...rune) Parser[rune, *MultipleParsingError] {
+	makeParser ParserBuilder[int],
+) ParserBuilder[rune] {
+	return func(except ...rune) Parser[rune] {
 		parse := makeParser(except...)
 
 		return func(buf c.Buffer[rune, int]) (rune, *MultipleParsingError) {

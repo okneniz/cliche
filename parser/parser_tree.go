@@ -10,11 +10,11 @@ import (
 )
 
 func makeParserTree[T any](
-	cases map[string]ParserBuilder[T, *MultipleParsingError],
+	cases map[string]ParserBuilder[T],
 	except ...rune,
-) Parser[T, *MultipleParsingError] {
+) Parser[T] {
 	type branch struct {
-		parser   Parser[T, *MultipleParsingError]
+		parser   Parser[T]
 		children map[rune]*branch
 	}
 
@@ -54,7 +54,7 @@ func makeParserTree[T any](
 		current := root.children
 		start := buf.Position()
 
-		var parserWithLongestPrefix Parser[T, *MultipleParsingError]
+		var parserWithLongestPrefix Parser[T]
 
 		for len(current) > 0 {
 			pos := buf.Position()
@@ -87,14 +87,14 @@ func makeParserTree[T any](
 }
 
 func makeGroupsParserTree(
-	parseAlternation Parser[node.Alternation, *MultipleParsingError],
+	parseAlternation Parser[node.Alternation],
 	cases map[string]GroupParserBuilder[node.Node],
 	except ...rune,
-) Parser[node.Node, *MultipleParsingError] {
+) Parser[node.Node] {
 	parseAny := NoneOf(except...) // to parse prefix rune by rune
 
 	type branch struct {
-		parser   Parser[node.Node, *MultipleParsingError]
+		parser   Parser[node.Node]
 		children map[rune]*branch
 	}
 
@@ -132,7 +132,7 @@ func makeGroupsParserTree(
 		current := root.children
 		start := buf.Position()
 
-		var parserWithLongestPrefix Parser[node.Node, *MultipleParsingError]
+		var parserWithLongestPrefix Parser[node.Node]
 
 		for len(current) > 0 {
 			pos := buf.Position()

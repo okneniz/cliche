@@ -13,9 +13,7 @@ func (cfg *QuantityScope) Items() *Scope[*quantity.Quantity] {
 	return cfg.items
 }
 
-func (scope *QuantityScope) makeParser(
-	except ...rune,
-) Parser[*quantity.Quantity, *MultipleParsingError] {
+func (scope *QuantityScope) makeParser(except ...rune) Parser[*quantity.Quantity] {
 	parse := scope.items.makeParser(except...)
 
 	return func(

@@ -9,10 +9,7 @@ import (
 
 // TODO : move to parsec
 
-func Quantifier[T any](
-	from, to int,
-	f Parser[T, *MultipleParsingError],
-) Parser[[]T, *MultipleParsingError] {
+func Quantifier[T any](from, to int, f Parser[T]) Parser[[]T] {
 	return func(buffer c.Buffer[rune, int]) ([]T, *MultipleParsingError) {
 		pos := buffer.Position()
 
@@ -50,9 +47,7 @@ func Quantifier[T any](
 	}
 }
 
-func Many[T any](
-	expect string, parseItem Parser[T, *MultipleParsingError],
-) Parser[[]T, *MultipleParsingError] {
+func Many[T any](expect string, parseItem Parser[T]) Parser[[]T] {
 	return func(buf c.Buffer[rune, int]) ([]T, *MultipleParsingError) {
 		list := make([]T, 0)
 
@@ -72,9 +67,7 @@ func Many[T any](
 	}
 }
 
-func Some[T any](
-	expect string, parse Parser[T, *MultipleParsingError],
-) Parser[[]T, *MultipleParsingError] {
+func Some[T any](expect string, parse Parser[T]) Parser[[]T] {
 	return func(buf c.Buffer[rune, int]) ([]T, *MultipleParsingError) {
 		list := make([]T, 0)
 
@@ -100,7 +93,7 @@ func Some[T any](
 	}
 }
 
-func Try[T any](parse Parser[T, *MultipleParsingError]) Parser[T, *MultipleParsingError] {
+func Try[T any](parse Parser[T]) Parser[T] {
 	return func(buf c.Buffer[rune, int]) (T, *MultipleParsingError) {
 		pos := buf.Position()
 
@@ -116,10 +109,7 @@ func Try[T any](parse Parser[T, *MultipleParsingError]) Parser[T, *MultipleParsi
 	}
 }
 
-func Skip[T any, S any](
-	before Parser[S, *MultipleParsingError],
-	parse Parser[T, *MultipleParsingError],
-) Parser[T, *MultipleParsingError] {
+func Skip[T any, S any](before Parser[S], parse Parser[T]) Parser[T] {
 	return func(buf c.Buffer[rune, int]) (T, *MultipleParsingError) {
 		_, err := before(buf)
 		if err != nil {
@@ -131,7 +121,7 @@ func Skip[T any, S any](
 	}
 }
 
-func OneOf(xs ...rune) Parser[rune, *MultipleParsingError] {
+func OneOf(xs ...rune) Parser[rune] {
 	list := make(map[rune]struct{})
 	for _, x := range xs {
 		list[x] = struct{}{}
@@ -161,7 +151,7 @@ func OneOf(xs ...rune) Parser[rune, *MultipleParsingError] {
 	}
 }
 
-func NoneOf(xs ...rune) Parser[rune, *MultipleParsingError] {
+func NoneOf(xs ...rune) Parser[rune] {
 	list := make(map[rune]struct{})
 	for _, x := range xs {
 		list[x] = struct{}{}
@@ -191,7 +181,7 @@ func NoneOf(xs ...rune) Parser[rune, *MultipleParsingError] {
 	}
 }
 
-func Eq(x rune) Parser[rune, *MultipleParsingError] {
+func Eq(x rune) Parser[rune] {
 	return func(buf c.Buffer[rune, int]) (rune, *MultipleParsingError) {
 		pos := buf.Position()
 
@@ -226,10 +216,10 @@ func Eq(x rune) Parser[rune, *MultipleParsingError] {
 }
 
 func Between[T any](
-	before Parser[rune, *MultipleParsingError],
-	body Parser[T, *MultipleParsingError],
-	after Parser[rune, *MultipleParsingError],
-) Parser[T, *MultipleParsingError] {
+	before Parser[rune],
+	body Parser[T],
+	after Parser[rune],
+) Parser[T] {
 	var t T
 
 	return func(buf c.Buffer[rune, int]) (T, *MultipleParsingError) {
@@ -252,26 +242,18 @@ func Between[T any](
 	}
 }
 
-func Parens[T any](
-	body Parser[T, *MultipleParsingError],
-) Parser[T, *MultipleParsingError] {
+func Parens[T any](body Parser[T]) Parser[T] {
 	return Between(Eq('('), body, Eq(')'))
 }
 
-func Braces[T any](
-	body Parser[T, *MultipleParsingError],
-) Parser[T, *MultipleParsingError] {
+func Braces[T any](body Parser[T]) Parser[T] {
 	return Between(Eq('{'), body, Eq('}'))
 }
 
-func Angles[T any](
-	body Parser[T, *MultipleParsingError],
-) Parser[T, *MultipleParsingError] {
+func Angles[T any](body Parser[T]) Parser[T] {
 	return Between(Eq('<'), body, Eq('>'))
 }
 
-func Squares[T any](
-	body Parser[T, *MultipleParsingError],
-) Parser[T, *MultipleParsingError] {
+func Squares[T any](body Parser[T]) Parser[T] {
 	return Between(Eq('['), body, Eq(']'))
 }

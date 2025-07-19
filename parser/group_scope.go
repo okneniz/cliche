@@ -8,9 +8,9 @@ import (
 )
 
 type GroupParserBuilder[T any] func(
-	parseAlternation Parser[node.Alternation, *MultipleParsingError],
+	parseAlternation Parser[node.Alternation],
 	except ...rune,
-) Parser[T, *MultipleParsingError]
+) Parser[T]
 
 // can use parser from common, need only for named group, not captured group, look around, conditions
 type GroupScope struct {
@@ -33,9 +33,9 @@ func (cfg *GroupScope) ParsePrefix(
 }
 
 func (cfg *GroupScope) makeParser(
-	parseAlternation Parser[node.Alternation, *MultipleParsingError],
+	parseAlternation Parser[node.Alternation],
 	except ...rune,
-) Parser[node.Node, *MultipleParsingError] {
+) Parser[node.Node] {
 
 	parseScopeByPrefix := makeGroupsParserTree(
 		parseAlternation,
@@ -43,7 +43,7 @@ func (cfg *GroupScope) makeParser(
 		except...,
 	)
 
-	parsers := make([]Parser[node.Node, *MultipleParsingError], 0, len(cfg.parsers)+1)
+	parsers := make([]Parser[node.Node], 0, len(cfg.parsers)+1)
 	parsers = append(parsers, parseScopeByPrefix)
 
 	for _, buildParser := range cfg.parsers {
