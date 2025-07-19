@@ -1,19 +1,20 @@
 package parser
 
 import (
-	// "fmt"
+	"fmt"
+	"strings"
 
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
+	"golang.org/x/exp/maps"
 )
 
 func makeParserTree[T any](
-	parse c.Combinator[rune, int, rune],
-	cases map[string]ParserBuilder[T],
+	cases map[string]ParserBuilder[T, *MultipleParsingError],
 	except ...rune,
-) c.Combinator[rune, int, T] {
+) Parser[T, *MultipleParsingError] {
 	type branch struct {
-		parser   c.Combinator[rune, int, T]
+		parser   Parser[T, *MultipleParsingError]
 		children map[rune]*branch
 	}
 
@@ -43,22 +44,26 @@ func makeParserTree[T any](
 
 	var null T
 
-	return func(buf c.Buffer[rune, int]) (T, error) {
-		current := root.children
+	prefixes := maps.Keys(cases)
+	errMessage := fmt.Sprintf(
+		"one of %s",
+		strings.Join(prefixes, ", "),
+	)
 
-		var parserWithLongesPrefix c.Combinator[rune, int, T]
-		// parsedPrefix := []rune{} // TODO : remove it
+	return func(buf c.Buffer[rune, int]) (T, *MultipleParsingError) {
+		current := root.children
+		start := buf.Position()
+
+		var parserWithLongestPrefix Parser[T, *MultipleParsingError]
 
 		for len(current) > 0 {
 			pos := buf.Position()
 
-			r, err := parse(buf)
+			r, err := buf.Read(true)
 			if err != nil {
 				buf.Seek(pos)
 				break
 			}
-
-			// parsedPrefix = append(parsedPrefix, r)
 
 			next, exists := current[r]
 			if !exists {
@@ -67,30 +72,29 @@ func makeParserTree[T any](
 			}
 
 			if next.parser != nil {
-				parserWithLongesPrefix = next.parser
+				parserWithLongestPrefix = next.parser
 			}
 
 			current = next.children
 		}
 
-		// fmt.Println("parsed prefix", string(parsedPrefix))
-
-		if parserWithLongesPrefix != nil {
-			return parserWithLongesPrefix(buf)
+		if parserWithLongestPrefix != nil {
+			return parserWithLongestPrefix(buf)
 		}
 
-		return null, c.NothingMatched
+		return null, Expected(errMessage, start, c.NothingMatched)
 	}
 }
 
 func makeGroupsParserTree(
-	parse c.Combinator[rune, int, rune],
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation Parser[node.Alternation, *MultipleParsingError],
 	cases map[string]GroupParserBuilder[node.Node],
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
+) Parser[node.Node, *MultipleParsingError] {
+	parseAny := NoneOf(except...) // to parse prefix rune by rune
+
 	type branch struct {
-		parser   c.Combinator[rune, int, node.Node]
+		parser   Parser[node.Node, *MultipleParsingError]
 		children map[rune]*branch
 	}
 
@@ -118,24 +122,26 @@ func makeGroupsParserTree(
 		current.parser = buildeParser(parseAlternation, except...)
 	}
 
-	var null node.Node
+	prefixes := maps.Keys(cases)
+	errMessage := fmt.Sprintf(
+		"one of %s",
+		strings.Join(prefixes, ", "),
+	)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
 		current := root.children
+		start := buf.Position()
 
-		var parserWithLongesPrefix c.Combinator[rune, int, node.Node]
-		// parsedPrefix := []rune{} // TODO : remove it
+		var parserWithLongestPrefix Parser[node.Node, *MultipleParsingError]
 
 		for len(current) > 0 {
 			pos := buf.Position()
 
-			r, err := parse(buf)
+			r, err := parseAny(buf)
 			if err != nil {
 				buf.Seek(pos)
 				break
 			}
-
-			// parsedPrefix = append(parsedPrefix, r)
 
 			next, exists := current[r]
 			if !exists {
@@ -144,18 +150,16 @@ func makeGroupsParserTree(
 			}
 
 			if next.parser != nil {
-				parserWithLongesPrefix = next.parser
+				parserWithLongestPrefix = next.parser
 			}
 
 			current = next.children
 		}
 
-		// fmt.Println("parsed group prefix", string(parsedPrefix))
-
-		if parserWithLongesPrefix != nil {
-			return parserWithLongesPrefix(buf)
+		if parserWithLongestPrefix != nil {
+			return parserWithLongestPrefix(buf)
 		}
 
-		return null, c.NothingMatched
+		return nil, Expected(errMessage, start, c.NothingMatched)
 	}
 }

@@ -6,21 +6,31 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-type ParserBuilder[T any] func(except ...rune) c.Combinator[rune, int, T]
+type Combinator[T any, P any, S any, E error] func(
+	c.Buffer[T, P],
+) (S, E)
 
-func Const[T any](value T) ParserBuilder[T] {
-	return func(_ ...rune) c.Combinator[rune, int, T] {
-		return func(_ c.Buffer[rune, int]) (T, error) {
+type Parser[S any, E error] Combinator[rune, int, S, E]
+
+type ParserBuilder[S any, E error] func(
+	except ...rune,
+) Parser[S, E]
+
+func Const[T any](value T) ParserBuilder[T, *MultipleParsingError] {
+	return func(_ ...rune) Parser[T, *MultipleParsingError] {
+		return func(_ c.Buffer[rune, int]) (T, *MultipleParsingError) {
 			return value, nil
 		}
 	}
 }
 
-func NodeAsTable(parsetTable ParserBuilder[node.Table]) ParserBuilder[node.Node] {
-	return func(except ...rune) c.Combinator[rune, int, node.Node] {
-		parse := parsetTable(except...)
+func NodeAsTable(
+	makeParser ParserBuilder[node.Table, *MultipleParsingError],
+) ParserBuilder[node.Node, *MultipleParsingError] {
+	return func(except ...rune) Parser[node.Node, *MultipleParsingError] {
+		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (node.Node, error) {
+		return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
 			table, err := parse(buf)
 			if err != nil {
 				return nil, err
@@ -31,12 +41,13 @@ func NodeAsTable(parsetTable ParserBuilder[node.Table]) ParserBuilder[node.Node]
 	}
 }
 
-// TODO move to encoding package?
-func RuneAsTable(makeParser ParserBuilder[rune]) ParserBuilder[node.Table] {
-	return func(except ...rune) c.Combinator[rune, int, node.Table] {
+func RuneAsTable(
+	makeParser ParserBuilder[rune, *MultipleParsingError],
+) ParserBuilder[node.Table, *MultipleParsingError] {
+	return func(except ...rune) Parser[node.Table, *MultipleParsingError] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (node.Table, error) {
+		return func(buf c.Buffer[rune, int]) (node.Table, *MultipleParsingError) {
 			r, err := parse(buf)
 			if err != nil {
 				return nil, err
@@ -47,32 +58,19 @@ func RuneAsTable(makeParser ParserBuilder[rune]) ParserBuilder[node.Table] {
 	}
 }
 
-func NumberAsRune(makeParser ParserBuilder[int]) ParserBuilder[rune] {
-	return func(except ...rune) c.Combinator[rune, int, rune] {
+func NumberAsRune(
+	makeParser ParserBuilder[int, *MultipleParsingError],
+) ParserBuilder[rune, *MultipleParsingError] {
+	return func(except ...rune) Parser[rune, *MultipleParsingError] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (rune, error) {
+		return func(buf c.Buffer[rune, int]) (rune, *MultipleParsingError) {
 			x, err := parse(buf)
 			if err != nil {
 				return -1, err
 			}
 
 			return rune(x), nil
-		}
-	}
-}
-
-func InvertTable(makeParser ParserBuilder[node.Table]) ParserBuilder[node.Table] {
-	return func(except ...rune) c.Combinator[rune, int, node.Table] {
-		parse := makeParser(except...)
-
-		return func(buf c.Buffer[rune, int]) (node.Table, error) {
-			table, err := parse(buf)
-			if err != nil {
-				return nil, err
-			}
-
-			return table.Invert(), nil
 		}
 	}
 }

@@ -3,12 +3,11 @@ package cliche
 import (
 	"bytes"
 	"encoding/json"
+	"golang.org/x/exp/maps"
 
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
-	// pp "github.com/okneniz/cliche/parser"
 	"github.com/okneniz/cliche/scanner"
-	"golang.org/x/exp/maps"
 )
 
 type Tree interface {

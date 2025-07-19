@@ -15,6 +15,20 @@ func (cfg *QuantityScope) Items() *Scope[*quantity.Quantity] {
 
 func (scope *QuantityScope) makeParser(
 	except ...rune,
-) c.Combinator[rune, int, *quantity.Quantity] {
-	return c.Try(scope.items.makeParser(except...))
+) Parser[*quantity.Quantity, *MultipleParsingError] {
+	parse := scope.items.makeParser(except...)
+
+	return func(
+		buf c.Buffer[rune, int],
+	) (*quantity.Quantity, *MultipleParsingError) {
+		pos := buf.Position()
+
+		q, err := parse(buf)
+		if err != nil {
+			buf.Seek(pos)
+			return nil, err
+		}
+
+		return q, nil
+	}
 }

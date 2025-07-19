@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
@@ -19,10 +21,10 @@ func (scope *ClassScope) Items() *Scope[node.Table] {
 	return scope.items
 }
 
-func (scope *ClassScope) makeParser() c.Combinator[rune, int, node.Node] {
+func (scope *ClassScope) makeParser() Parser[node.Node, *MultipleParsingError] {
 	parseTable := scope.makeTableParser(false)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
 		table, err := parseTable(buf)
 		if err != nil {
 			return nil, err
@@ -34,71 +36,117 @@ func (scope *ClassScope) makeParser() c.Combinator[rune, int, node.Node] {
 
 func (scope *ClassScope) makeTableParser(
 	isSubclass bool,
-) c.Combinator[rune, int, node.Table] {
+) Parser[node.Table, *MultipleParsingError] {
 	var (
-		parseClass    c.Combinator[rune, int, node.Table]
-		parseSubClass c.Combinator[rune, int, node.Table]
+		parseClass    Parser[node.Table, *MultipleParsingError]
+		parseSubClass Parser[node.Table, *MultipleParsingError]
 	)
 
 	parseClassItem := scope.items.makeParser(']')
 	parseClassChar := scope.makeRangeOrCharParser(']')
 
-	parseTable := func(buf c.Buffer[rune, int]) (node.Table, error) {
+	parseTable := func(
+		buf c.Buffer[rune, int],
+	) (node.Table, *MultipleParsingError) {
 		pos := buf.Position()
 
-		classItem, err := parseClassItem(buf)
-		if err == nil {
+		classItem, classErr := parseClassItem(buf)
+		fmt.Println("class item", classItem, classErr)
+		if classErr == nil {
 			return classItem, nil
 		}
 
 		buf.Seek(pos)
 
-		subClass, err := parseSubClass(buf)
-		if err == nil {
+		subClass, subClassErr := parseSubClass(buf)
+		fmt.Println("sub class", subClass, subClassErr)
+		if subClassErr == nil {
 			return subClass, nil
 		}
 
 		buf.Seek(pos)
 
-		classChar, err := parseClassChar(buf)
-		if err == nil {
+		classChar, charErr := parseClassChar(buf)
+		fmt.Println("class char", classChar, charErr)
+		if charErr == nil {
 			return classChar, nil
 		}
 
 		buf.Seek(pos)
 
-		return nil, err
+		return nil, MergeErrors(
+			classErr,
+			subClassErr,
+			charErr,
+		)
 	}
 
-	parseSequenceOfTables := c.Some(1, c.Try(parseTable))
+	parseSequenceOfTables := func(
+		buf c.Buffer[rune, int],
+	) ([]node.Table, *MultipleParsingError) {
+		result := make([]node.Table, 0)
+		start := buf.Position()
 
-	parsePositive := func(buf c.Buffer[rune, int]) (node.Table, error) {
-		tables, err := parseSequenceOfTables(buf)
+		for !buf.IsEOF() {
+			pos := buf.Position()
+
+			table, err := parseTable(buf)
+			if err != nil {
+				buf.Seek(pos)
+				break
+			}
+
+			result = append(result, table)
+		}
+
+		if len(result) == 0 {
+			// TODO : what about empty class? []
+			return nil, Expected("sequence of class items", start, c.NotEnoughElements)
+		}
+
+		return result, nil
+	}
+
+	negativePrefix := Eq('^')
+	leftSquare := Eq('[')
+	rightSquare := Eq(']')
+
+	parseClass = func(buf c.Buffer[rune, int]) (node.Table, *MultipleParsingError) {
+		pos := buf.Position()
+		isNegative := true
+
+		_, err := leftSquare(buf)
 		if err != nil {
+			buf.Seek(pos)
 			return nil, err
 		}
 
-		return unicode.MergeTables(tables...), nil
-	}
+		beforePrefixPos := buf.Position()
+		_, err = negativePrefix(buf)
+		if err != nil {
+			isNegative = false
+			buf.Seek(beforePrefixPos)
+		}
 
-	parseNegative := c.Skip(
-		c.Eq[rune, int]('^'),
-		func(buf c.Buffer[rune, int]) (node.Table, error) {
-			table, err := parsePositive(buf)
-			if err != nil {
-				return nil, err
-			}
+		tables, seqErr := parseSequenceOfTables(buf)
+		if seqErr != nil {
+			buf.Seek(pos)
+			return nil, seqErr
+		}
 
+		_, err = rightSquare(buf)
+		if err != nil {
+			buf.Seek(pos)
+			return nil, err
+		}
+
+		table := unicode.MergeTables(tables...)
+		if isNegative {
 			return table.Invert(), nil
-		},
-	)
+		}
 
-	parseClass = Squares(
-		c.Choice(
-			c.Try(parseNegative),
-			parsePositive,
-		),
-	)
+		return table, nil
+	}
 
 	if isSubclass {
 		parseSubClass = parseClass
@@ -106,40 +154,76 @@ func (scope *ClassScope) makeTableParser(
 		parseSubClass = scope.makeTableParser(true)
 	}
 
-	return c.Try(parseClass)
+	return parseClass
 }
 
 func (scope *ClassScope) makeRangeOrCharParser(
 	except ...rune,
-) c.Combinator[rune, int, node.Table] {
-	parseSeparator := c.Eq[rune, int]('-')
+) Parser[node.Table, *MultipleParsingError] {
+	parseSeparator := Eq('-')
+	parsePredefinedRune := scope.runes.makeParser(except...)
+	parseAnyRune := NoneOf(except...)
 
-	parseRune := c.Choice(
-		c.Try(scope.runes.makeParser(except...)),
-		c.NoneOf[rune, int](except...),
-	)
-
-	return func(buf c.Buffer[rune, int]) (node.Table, error) {
-		from, err := parseRune(buf)
-		if err != nil {
-			return nil, err
-		}
-
+	parseRune := func(buf c.Buffer[rune, int]) (rune, *MultipleParsingError) {
 		pos := buf.Position()
 
-		_, err = parseSeparator(buf)
+		x, err := parsePredefinedRune(buf)
+		fmt.Println("predefined class char", x, err)
+		if err == nil {
+			return x, nil
+		}
+
+		buf.Seek(pos)
+
+		// return parseAnyRune(buf)
+		x, aErr := parseAnyRune(buf)
+		fmt.Println("WTF", x, aErr)
+		if aErr != nil {
+			return -1, aErr
+		}
+
+		return x, nil
+	}
+
+	return func(buf c.Buffer[rune, int]) (node.Table, *MultipleParsingError) {
+		pos := buf.Position()
+
+		from, err := parseRune(buf)
+		fmt.Println("first in range", from, err)
 		if err != nil {
+			return nil, Expected("char or range of chars", pos, err)
+		}
+
+		// TODO : разобраться с nil values и тд
+		// https://go.dev/doc/faq#nil_error
+
+		pos = buf.Position()
+
+		sep, sepErr := parseSeparator(buf)
+		fmt.Printf("separator %#v %#v %#v\n", sep, sepErr, err)
+		if sepErr != nil {
+			fmt.Printf("but??? %T %#v\n", sepErr, sepErr)
+			fmt.Println("but why?", sepErr, sepErr.Error(), sepErr != nil, sepErr == nil)
 			buf.Seek(pos)
 			return unicode.NewTable(from), nil
 		}
+
+		fmt.Println("WOW???")
 
 		to, err := parseRune(buf)
+		fmt.Println("second in range", to, err)
 		if err != nil {
 			buf.Seek(pos)
 			return unicode.NewTable(from), nil
 		}
 
-		// TODO : check bounds and return spsecial error
+		fmt.Println("validation")
+
+		if from > to {
+			// TODO : how to return errors right here?
+			// validate tree after?
+			return nil, Expected("range of chars", pos, fmt.Errorf("invalid bounds"))
+		}
 
 		return unicode.NewTableByPredicate(func(x rune) bool {
 			return from <= x && x <= to

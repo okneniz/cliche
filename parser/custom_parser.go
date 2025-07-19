@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"golang.org/x/exp/slices"
 
 	"github.com/okneniz/cliche/buf"
@@ -10,7 +12,7 @@ import (
 
 type CustomParser struct {
 	config *Config
-	parse  c.Combinator[rune, int, node.Alternation]
+	parse  Parser[node.Alternation, *MultipleParsingError]
 }
 
 type Option[T any] func(T)
@@ -24,7 +26,7 @@ func New(opts ...Option[*Config]) *CustomParser {
 	}
 
 	p.config = cfg
-	p.parse = p.alternationParser('|')
+	p.parse = p.makeAlternationParser('|')
 
 	return p
 }
@@ -59,103 +61,203 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 	return newNode, nil
 }
 
-func (p *CustomParser) alternationParser(
+func (p *CustomParser) makeAlternationParser(
 	except ...rune,
-) c.Combinator[rune, int, node.Alternation] {
+) Parser[node.Alternation, *MultipleParsingError] {
 	parseClass := p.config.class.makeParser()
 	parseNonClass := p.config.nonClass.makeParser(except...)
 
 	var (
-		parseGroup c.Combinator[rune, int, node.Node]
+		parseGroup Parser[node.Node, *MultipleParsingError]
 	)
 
-	parseNode := p.optionalQuantifierParser(
-		func(buf c.Buffer[rune, int]) (node.Node, error) {
-			group, err := parseGroup(buf)
-			if err == nil {
+	parseNode := p.makeOptionalQuantifierParser(
+		func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
+			group, groupErr := parseGroup(buf)
+			if groupErr == nil {
+				fmt.Println("parsed node group", group.GetKey(), group.GetExpressions())
 				return group, nil
 			}
 
-			class, err := parseClass(buf)
-			if err == nil {
+			fmt.Println("parsing node group failed:", groupErr)
+
+			class, classErr := parseClass(buf)
+			if classErr == nil {
+				fmt.Println("parsed node class", class.GetKey(), class.GetExpressions())
 				return class, nil
 			}
 
-			nonClass, err := parseNonClass(buf)
-			if err == nil {
+			fmt.Println("parsing node class failed:", classErr)
+
+			nonClass, nonClassErr := parseNonClass(buf)
+			if nonClassErr == nil {
+				fmt.Println("parsed node non class", nonClass.GetKey(), nonClass.GetExpressions())
 				return nonClass, nil
 			}
 
-			return nil, err
+			fmt.Println("parsing node non class failed:", nonClassErr)
+
+			return nil, MergeErrors(
+				groupErr,
+				classErr,
+				nonClassErr,
+			)
 		},
 		except...,
 	)
 
-	parseChain := p.chainParser(parseNode)
-	parseVariant := c.Try(parseChain)
-	parseSeparator := c.Eq[rune, int]('|')
-	parseVariants := c.SepBy1(0, parseVariant, parseSeparator)
+	parseVariant := p.makeChainParser(parseNode)
+	parseSeparator := Eq('|')
 
-	parseAlternation := func(buf c.Buffer[rune, int]) (node.Alternation, error) {
-		variants, err := parseVariants(buf)
+	parseVariants := func(
+		buf c.Buffer[rune, int],
+	) ([]node.Node, *MultipleParsingError) {
+		pos := buf.Position()
+
+		variant, err := parseVariant(buf)
 		if err != nil {
+			buf.Seek(pos)
 			return nil, err
 		}
+
+		pos = buf.Position()
+		fmt.Println("parsed variant", variant.GetKey(), variant.GetExpressions())
+
+		list := make([]node.Node, 1)
+		list[0] = variant
+
+		i := 1
+
+		fmt.Println("try to parse more than one variant")
+		for {
+			_, sepErr := parseSeparator(buf)
+			if sepErr != nil {
+				buf.Seek(pos)
+				break
+			}
+
+			variant, err := parseVariant(buf)
+			if err != nil {
+				buf.Seek(pos)
+				break
+			}
+
+			i += 1
+			fmt.Println("parsed next variant", i, variant.GetKey(), variant.GetExpressions())
+			pos = buf.Position()
+
+			list = append(list, variant)
+		}
+
+		return list, nil
+	}
+
+	parseAlternation := func(
+		buf c.Buffer[rune, int],
+	) (node.Alternation, *MultipleParsingError) {
+		variants, err := parseVariants(buf)
+		if err != nil {
+			fmt.Println("parsing alternation failed", err)
+			return nil, err
+		}
+
+		fmt.Println("parsed alternation with", len(variants), "variants", buf)
 
 		return node.NewAlternation(variants), nil
 	}
 
 	groupAlternation := parseAlternation
 	if !slices.Contains(except, ')') {
-		groupAlternation = p.alternationParser(append(except, ')')...)
+		groupAlternation = p.makeAlternationParser(append(except, ')')...)
 	}
 
-	parseGroup = c.Try(
-		Parens(
-			p.config.group.makeParser(
-				groupAlternation,
-				append(except, ')')...,
-			),
-		),
+	parseGroupValue := p.config.group.makeParser(
+		groupAlternation,
+		append(except, ')')...,
 	)
+
+	leftParens := Eq('(')
+	rightParens := Eq(')')
+
+	parseGroup = func(
+		buf c.Buffer[rune, int],
+	) (node.Node, *MultipleParsingError) {
+		pos := buf.Position()
+
+		_, err := leftParens(buf)
+		if err != nil {
+			fmt.Println("parsing left parens of group failed", err)
+			buf.Seek(pos)
+			return nil, err
+		}
+
+		fmt.Println("left parens parsed")
+
+		value, gErr := parseGroupValue(buf)
+		if gErr != nil {
+			buf.Seek(pos)
+			return nil, gErr
+		}
+
+		fmt.Println("group value parsed", value, err, buf)
+
+		_, err = rightParens(buf)
+		if err != nil {
+			fmt.Println("parsing right parens of group failed", err)
+			buf.Seek(pos)
+			return nil, err
+		}
+
+		fmt.Println("group parsed", value.GetKey(), value.GetExpressions())
+
+		return value, nil
+	}
 
 	return parseAlternation
 }
 
-func (p *CustomParser) optionalQuantifierParser(
-	expression c.Combinator[rune, int, node.Node],
+func (p *CustomParser) makeOptionalQuantifierParser(
+	expression Parser[node.Node, *MultipleParsingError],
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	parseQuantity := p.config.quntity.makeParser(except...)
+) Parser[node.Node, *MultipleParsingError] {
+	parseQuantity := p.config.quantity.makeParser(except...)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
 		exp, err := expression(buf)
 		if err != nil {
 			return nil, err
 		}
 
-		quantity, err := parseQuantity(buf)
-		if err != nil {
+		fmt.Println("try to parse quantity", buf)
+
+		quantity, qErr := parseQuantity(buf)
+		if qErr != nil {
+			fmt.Println("quantificator parsing failed:", qErr)
 			return exp, nil
 		}
+
+		fmt.Println("success", quantity)
 
 		return node.NewQuantifier(quantity, exp), nil
 	}
 }
 
-func (p *CustomParser) chainParser(
-	parse c.Combinator[rune, int, node.Node],
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
+func (p *CustomParser) makeChainParser(
+	parse Parser[node.Node, *MultipleParsingError],
+) Parser[node.Node, *MultipleParsingError] {
+	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
 		first, err := parse(buf)
 		if err != nil {
 			return nil, err
 		}
 
+		fmt.Println("in chain", first.GetKey(), first.GetExpressions())
+
 		last := first
 
 		for !buf.IsEOF() {
 			pos := buf.Position()
+			fmt.Println("parse chain at", buf.Position())
 
 			next, err := parse(buf)
 			if err != nil {
@@ -166,6 +268,8 @@ func (p *CustomParser) chainParser(
 			last.GetNestedNodes()[next.GetKey()] = next
 			last = next
 		}
+
+		fmt.Println("return chain", buf, last.GetKey(), last.GetExpressions())
 
 		return first, nil
 	}

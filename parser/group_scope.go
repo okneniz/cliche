@@ -1,14 +1,16 @@
 package parser
 
 import (
+	"fmt"
+
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
 )
 
 type GroupParserBuilder[T any] func(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation Parser[node.Alternation, *MultipleParsingError],
 	except ...rune,
-) c.Combinator[rune, int, T]
+) Parser[T, *MultipleParsingError]
 
 // can use parser from common, need only for named group, not captured group, look around, conditions
 type GroupScope struct {
@@ -31,25 +33,42 @@ func (cfg *GroupScope) ParsePrefix(
 }
 
 func (cfg *GroupScope) makeParser(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation Parser[node.Alternation, *MultipleParsingError],
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	parseAny := c.NoneOf[rune, int](except...) // to parse prefix rune by rune
+) Parser[node.Node, *MultipleParsingError] {
 
 	parseScopeByPrefix := makeGroupsParserTree(
-		parseAny,
 		parseAlternation,
 		cfg.prefixes,
 		except...,
 	)
 
-	parsers := make([]c.Combinator[rune, int, node.Node], 0, len(cfg.parsers)+1)
-	parsers = append(parsers, c.Try(parseScopeByPrefix))
+	parsers := make([]Parser[node.Node, *MultipleParsingError], 0, len(cfg.parsers)+1)
+	parsers = append(parsers, parseScopeByPrefix)
 
 	for _, buildParser := range cfg.parsers {
-		parser := buildParser(parseAlternation, except...)
-		parsers = append(parsers, c.Try(parser))
+		f := buildParser(parseAlternation, except...)
+		parsers = append(parsers, f)
 	}
 
-	return c.Choice(parsers...)
+	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
+		pos := buf.Position()
+		errs := make([]*MultipleParsingError, 0, len(parsers))
+
+		for i, parse := range parsers {
+			fmt.Println("try to parse group", i)
+
+			value, err := parse(buf)
+			if err == nil {
+				return value, nil
+			}
+
+			fmt.Println("group value parsing failed:", err)
+
+			buf.Seek(pos)
+			errs = append(errs, err)
+		}
+
+		return nil, MergeErrors(errs...)
+	}
 }

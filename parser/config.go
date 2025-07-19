@@ -9,7 +9,7 @@ type Config struct {
 	nonClass *NonClassScope
 	group    *GroupScope
 	class    *ClassScope
-	quntity  *QuantityScope
+	quantity *QuantityScope
 }
 
 func NewConfig() *Config {
@@ -26,8 +26,8 @@ func NewConfig() *Config {
 	cfg.class.runes = NewScope[rune]()
 	cfg.class.items = NewScope[node.Table]()
 
-	cfg.quntity = new(QuantityScope)
-	cfg.quntity.items = NewScope[*quantity.Quantity]()
+	cfg.quantity = new(QuantityScope)
+	cfg.quantity.items = NewScope[*quantity.Quantity]()
 
 	return cfg
 }
@@ -44,6 +44,6 @@ func (cfg *Config) NonClass() *NonClassScope {
 	return cfg.nonClass
 }
 
-func (cfg *Config) Quntifier() *QuantityScope {
-	return cfg.quntity
+func (cfg *Config) Quantifier() *QuantityScope {
+	return cfg.quantity
 }

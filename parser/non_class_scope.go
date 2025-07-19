@@ -16,27 +16,30 @@ func (scope *NonClassScope) Items() *Scope[node.Node] {
 
 func (scope *NonClassScope) makeParser(
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
+) Parser[node.Node, *MultipleParsingError] {
 	parseItem := scope.items.makeParser(except...)
-	parseRune := c.NoneOf[rune, int](except...)
+	parseRune := NoneOf(except...)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, error) {
+	return func(buf c.Buffer[rune, int]) (node.Node, *MultipleParsingError) {
 		pos := buf.Position()
 
-		item, err := parseItem(buf)
-		if err == nil {
+		item, itemErr := parseItem(buf)
+		if itemErr == nil {
 			return item, nil
 		}
 
 		buf.Seek(pos)
 
-		r, err := parseRune(buf)
-		if err == nil {
+		r, runeErr := parseRune(buf)
+		if runeErr == nil {
 			return node.NewForTable(unicode.NewTable(r)), nil
 		}
 
 		buf.Seek(pos)
 
-		return nil, err
+		return nil, MergeErrors(
+			itemErr,
+			runeErr,
+		)
 	}
 }

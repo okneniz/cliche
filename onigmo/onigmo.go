@@ -74,7 +74,7 @@ var (
 	parseHexCharTable = parser.RuneAsTable(parseHexChar)
 	parseHexCharNode  = parser.NodeAsTable(parseHexCharTable)
 
-	parseOctalChar      = parser.NumberAsRune(braces(parseOctal(3)))
+	parseOctalChar      = parser.NumberAsRune(parseOctalCharNumber(3))
 	parseOctalCharTable = parser.RuneAsTable(parseOctalChar)
 	parseOctalCharNode  = parser.NodeAsTable(parseOctalCharTable)
 
@@ -194,7 +194,7 @@ var (
 			WithPrefix(`\k`, parseNameReference)
 
 		cfg.Groups().
-			Parse(parseCondition).
+			Parse(parseCondition). // TODO : fix endless recursion
 			Parse(parseGroup).
 			ParsePrefix("?:", parseNotCapturedGroup).
 			ParsePrefix("?<", parseNamedGroup).
@@ -210,10 +210,10 @@ var (
 		configureProperty(cfg, unicode.Scripts)
 		configureProperty(cfg, unicode.Categories)
 
-		cfg.Quntifier().Items().StringAsValue("?", quantity.New(0, 1))
-		cfg.Quntifier().Items().StringAsValue("+", quantity.NewEndlessQuantity(1))
-		cfg.Quntifier().Items().StringAsValue("*", quantity.NewEndlessQuantity(0))
-		cfg.Quntifier().Items().WithPrefix("{", parseQuanty)
+		cfg.Quantifier().Items().StringAsValue("?", quantity.New(0, 1))
+		cfg.Quantifier().Items().StringAsValue("+", quantity.NewEndlessQuantity(1))
+		cfg.Quantifier().Items().StringAsValue("*", quantity.NewEndlessQuantity(0))
+		cfg.Quantifier().Items().WithPrefix("{", parseQuantity())
 	})
 )
 

@@ -386,8 +386,6 @@ https://www.regular-expressions.info/freespacing.html
 - можно якоря / anchor типа \b жать как (?<!subexp)` / negative look-behind
 - типа границы слова это что-то, что до слова и после слова (пробелы или знаки препинания)
 
-// TODO : return error for invalid escaped chars like '\x' (check on rubular)
-
 ## Features
 
 для выражений типа [:printed:]

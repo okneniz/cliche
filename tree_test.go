@@ -106,6 +106,7 @@ func TestTree_Match(t *testing.T) {
 
 				t.Run(test.Name, func(t *testing.T) {
 					// t.Parallel()
+					t.Logf("input: '%s'", test.Input)
 
 					tr := New(DefaultParser)
 					err := tr.Add(test.Expressions...)
@@ -115,7 +116,6 @@ func TestTree_Match(t *testing.T) {
 					require.NoError(t, err)
 
 					t.Logf("tree: %s", tr)
-					t.Logf("input: '%s'", test.Input)
 
 					actual := tableTests.TestMatchesToExpectations(matches...)
 					for _, w := range actual {
