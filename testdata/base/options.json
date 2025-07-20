@@ -97,6 +97,40 @@
       	   ]
     	  }    
       ]
+    },
+    {
+      "Name": "multiline",
+      "Expressions": [
+        "foo.bar",
+        "foo.*bar"
+      ],
+      "Input": " foo\nbar ",
+      "Options": [
+        "multiline"
+      ],
+      "Want": [
+        {
+          "SubString": "foo\nbar",
+          "Span": {
+            "From": 1, 
+            "To": 7,
+            "Empty": false
+          },
+          "Expressions": [
+            "foo.bar",
+            "foo.*bar"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not multiline",
+      "Expressions": [
+        "foo.bar",
+        "foo.*bar"
+      ],
+      "Input": " foo\nbar ",
+      "Want": []
     }
   ]
 }

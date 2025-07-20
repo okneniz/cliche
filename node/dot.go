@@ -1,7 +1,5 @@
 package node
 
-// not simple node with table because §diferent behaviour for different scan options
-// TODO : add something to empty json value, and in another spec symbols
 type dot struct {
 	*base
 }
@@ -25,7 +23,16 @@ func (n *dot) Visit(scanner Scanner, input Input, from, to int, onMatch Callback
 		return
 	}
 
-	if input.ReadAt(from) != '\n' {
+	x := input.ReadAt(from)
+	matched := false
+
+	if scanner.OptionsInclude(ScanOptionMultiline) {
+		matched = true
+	} else {
+		matched = x != '\n'
+	}
+
+	if matched {
 		pos := scanner.Position()
 
 		scanner.Match(n, from, from, n.IsLeaf(), false)

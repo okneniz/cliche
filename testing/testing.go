@@ -241,6 +241,8 @@ func ToScanOption(x string) (node.ScanOption, error) {
 	switch x {
 	case "case insensetive":
 		return node.ScanOptionCaseInsensetive, nil
+	case "multiline":
+		return node.ScanOptionMultiline, nil
 	default:
 		return 0, fmt.Errorf("invalid scan options: %v", x)
 	}

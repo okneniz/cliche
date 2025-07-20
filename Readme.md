@@ -353,7 +353,6 @@ https://www.regular-expressions.info/freespacing.html
 
 - add options
   - by scan options
-    - multi line
     - named groups
   - by expressions
     - case insensetive
