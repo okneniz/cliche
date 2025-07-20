@@ -1,0 +1,102 @@
+{
+  "Name": "options",
+  "Tests": [
+    {
+      "Name": "case insensetive",
+      "Expressions": [
+        "abc",
+        "ABC",
+        "Abc",
+        "aBC",
+        "aBc"
+      ],
+      "Input": "123 abc x AbC $\naaBc",
+      "Options": [
+      	"case insensetive"
+  	  ],
+      "Want": [
+        {
+          "SubString": "abc",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+  	        "abc",
+  	        "ABC",
+  	        "Abc",
+  	        "aBC",
+  	        "aBc"
+          ]
+        },      
+    	  {
+    	   "SubString": "AbC",
+    	   "Span": {
+    	     "From": 10,
+    	     "To": 12,
+    	     "Empty": false
+    	   },
+    	   "Expressions": [
+    	     "ABC",
+    	     "Abc",
+    	     "aBC",
+    	     "aBc",
+    	     "abc"
+    	   ]
+    	 },
+    	 {
+    	   "SubString": "aBc",
+    	   "Span": {
+    	     "From": 17,
+    	     "To": 19,
+    	     "Empty": false
+    	   },
+    	   "Expressions": [
+    	     "ABC",
+    	     "Abc",
+    	     "aBC",
+    	     "aBc",
+    	     "abc"
+    	   ]
+    	  }    
+      ]
+    },
+    {
+      "Name": "case sensetive",
+      "Expressions": [
+        "abc",
+        "ABC",
+        "Abc",
+        "aBC",
+        "aBc"
+      ],
+      "Input": "123 abc x AbC $\naaBc",
+      "Options": [],
+      "Want": [
+        {
+          "SubString": "abc",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+  	        "abc"
+          ]
+        },
+    	  {
+      	   "SubString": "aBc",
+      	   "Span": {
+      	     "From": 17,
+      	     "To": 19,
+      	     "Empty": false
+      	   },
+      	   "Expressions": [
+      	     "aBc"
+      	   ]
+    	  }    
+      ]
+    }
+  ]
+}

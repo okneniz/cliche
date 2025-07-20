@@ -352,14 +352,18 @@ https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
 - add options
-  - case insensetive
-  - multi line
-  - named groups      
+  - by scan options
+    - multi line
+    - named groups
+  - by expressions
+    - case insensetive
+    - multi line
+    - named groups
+- support empty regexp
 - transform tree (alter)
   - more compactions
     - quatifiers to sequence \w{3} -> \w\w\w
     - anchors to assertions / look-behind / look-aheads
-- support empty regexp
 - matches list test
 - tests:
   - complex tests

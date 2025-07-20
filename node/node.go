@@ -24,7 +24,7 @@ type Node interface {
 	// make special type for this case?
 
 	// TODO : what about alternation of chains?
-	// Iterate over all sizes in asserts (lookaheads / lookbehinds)
+	// iterate over all sizes in asserts (lookaheads / lookbehinds)
 
 	// TODO : trie have few size / heights (leafs)
 	// TODO : node with different sizes must have chain value instead trie to simpliy this moment
@@ -80,7 +80,18 @@ type Scanner interface {
 	MarkAsHole(from int, to int)
 	HolesPosition() int
 	RewindHoles(pos int)
+
+	OptionsInclude(opt ScanOption) bool
+	// TODO : add methods to manage Options (enable / disable)
 }
+
+type ScanOption uint
+
+const (
+	ScanOptionCaseInsensetive    ScanOption = 1
+	ScanOptionMultiline          ScanOption = 2
+	ScanOptionDisableNamedGroups ScanOption = 3
+)
 
 type Input interface {
 	ReadAt(int) rune

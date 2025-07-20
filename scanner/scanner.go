@@ -9,35 +9,38 @@ import (
 	"github.com/okneniz/cliche/structs"
 )
 
-type FullScanner struct {
-	input       node.Input
-	output      node.Output
-	expression  *structs.TruncatedList[nodeMatch]
-	groups      Captures
-	namedGroups NamedCaptures
-	holes       *structs.TruncatedList[quantity.Interface]
-	roots       map[string]node.Node
-}
+type (
+	FullScanner struct {
+		input       node.Input
+		output      node.Output
+		expression  *structs.TruncatedList[nodeMatch]
+		groups      Captures
+		namedGroups NamedCaptures
+		holes       *structs.TruncatedList[quantity.Interface]
+		roots       map[string]node.Node
+		options     map[node.ScanOption]struct{}
+	}
 
-type Captures interface {
-	Append(...quantity.Interface)
-	Truncate(int)
-	Size() int
-	At(int) (quantity.Interface, bool)
-	First() (quantity.Interface, bool)
-	Last() (quantity.Interface, bool)
-	Slice() []quantity.Interface
-}
+	Captures interface {
+		Append(...quantity.Interface)
+		Truncate(int)
+		Size() int
+		At(int) (quantity.Interface, bool)
+		First() (quantity.Interface, bool)
+		Last() (quantity.Interface, bool)
+		Slice() []quantity.Interface
+	}
 
-type NamedCaptures interface {
-	Get(string) (quantity.Interface, bool)
-	Put(string, quantity.Interface)
-	Truncate(int)
-	Empty() bool
-	Size() int
-	Map() map[string]quantity.Interface
-	String() string // TODO : remove and use map when it needed
-}
+	NamedCaptures interface {
+		Get(string) (quantity.Interface, bool)
+		Put(string, quantity.Interface)
+		Truncate(int)
+		Empty() bool
+		Size() int
+		Map() map[string]quantity.Interface
+		String() string // TODO : remove and use map when it needed
+	}
+)
 
 var (
 	_ node.Scanner  = new(FullScanner)
@@ -51,6 +54,7 @@ func NewFullScanner(
 	input node.Input,
 	output node.Output,
 	roots map[string]node.Node, // add traverse method for tree
+	options ...node.ScanOption,
 ) *FullScanner {
 	s := new(FullScanner)
 	s.input = input
@@ -67,6 +71,11 @@ func NewFullScanner(
 	// TODO : capacity = max count of assertions / lookaheads / lookbehins in expression
 	s.holes = structs.NewTruncatedList[quantity.Interface](3)
 
+	s.options = make(map[node.ScanOption]struct{})
+	for _, x := range options {
+		s.options[x] = struct{}{}
+	}
+
 	return s
 }
 
@@ -78,6 +87,11 @@ func (s *FullScanner) String() string {
 		s.groups.Slice(),
 		s.holes.Slice(),
 	)
+}
+
+func (s *FullScanner) OptionsInclude(opt node.ScanOption) bool {
+	_, exists := s.options[opt]
+	return exists
 }
 
 func (s *FullScanner) Position() int {

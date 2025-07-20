@@ -88,6 +88,7 @@ func TestTree_New(t *testing.T) {
 }
 
 func TestTree_Match(t *testing.T) {
+	// TODO : enable parallel
 	// t.Parallel()
 
 	files, err := tableTests.LoadAllTestFiles("./testdata/base/")
@@ -112,10 +113,15 @@ func TestTree_Match(t *testing.T) {
 					err := tr.Add(test.Expressions...)
 					require.NoError(t, err)
 
-					matches := tr.Match(test.Input)
+					t.Logf("tree: %s", tr)
+
+					options, err := tableTests.ToScanOptions(test.Options...)
 					require.NoError(t, err)
 
-					t.Logf("tree: %s", tr)
+					t.Logf("options: %v", test.Options)
+
+					matches := tr.Match(test.Input, options...)
+					require.NoError(t, err)
 
 					actual := tableTests.TestMatchesToExpectations(matches...)
 					for _, w := range actual {

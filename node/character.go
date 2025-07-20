@@ -1,5 +1,9 @@
 package node
 
+import (
+	"unicode"
+)
+
 type character struct {
 	match func(rune) bool
 	*base
@@ -25,7 +29,16 @@ func (n *character) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 		return
 	}
 
-	if n.match(input.ReadAt(from)) {
+	x := input.ReadAt(from)
+	matched := false
+
+	if scanner.OptionsInclude(ScanOptionCaseInsensetive) {
+		matched = n.match(unicode.ToUpper(x)) || n.match(unicode.ToLower(x))
+	} else {
+		matched = n.match(x)
+	}
+
+	if matched {
 		pos := scanner.Position()
 
 		scanner.Match(n, from, from, n.IsLeaf(), false)

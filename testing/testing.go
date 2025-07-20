@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/scanner"
 )
 
@@ -23,6 +24,7 @@ type (
 		Name        string
 		Expressions []string
 		Input       string
+		Options     []string
 		Want        []*Expectation
 	}
 
@@ -218,4 +220,28 @@ func TestMatchesToExpectations(xs ...*scanner.Match) []*Expectation {
 	}
 
 	return exs
+}
+
+func ToScanOptions(xs ...string) ([]node.ScanOption, error) {
+	opts := make([]node.ScanOption, len(xs))
+
+	for i, x := range xs {
+		opt, err := ToScanOption(x)
+		if err != nil {
+			return nil, err
+		}
+
+		opts[i] = opt
+	}
+
+	return opts, nil
+}
+
+func ToScanOption(x string) (node.ScanOption, error) {
+	switch x {
+	case "case insensetive":
+		return node.ScanOptionCaseInsensetive, nil
+	default:
+		return 0, fmt.Errorf("invalid scan options: %v", x)
+	}
 }

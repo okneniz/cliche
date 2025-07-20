@@ -15,7 +15,7 @@ type Tree interface {
 	Size() int
 	MarshalJSON() ([]byte, error)
 	String() string
-	Match(string) []*scanner.Match
+	Match(text string, options ...node.ScanOption) []*scanner.Match
 }
 
 type Parser interface {
@@ -31,7 +31,7 @@ type tree struct {
 	parser Parser
 }
 
-func New(parser Parser) *tree {
+func New(parser Parser) Tree {
 	tr := new(tree)
 	tr.nodes = make(map[string]node.Node)
 	tr.parser = parser
@@ -83,10 +83,10 @@ func (t *tree) Size() int {
 	return size
 }
 
-func (t *tree) Match(text string) []*scanner.Match {
+func (t *tree) Match(text string, options ...node.ScanOption) []*scanner.Match {
 	input := buf.NewRunesBuffer(text)
 	output := scanner.NewOutput()
-	scanner := scanner.NewFullScanner(input, output, t.nodes)
+	scanner := scanner.NewFullScanner(input, output, t.nodes, options...)
 
 	scanner.Scan(0, input.Size())
 
