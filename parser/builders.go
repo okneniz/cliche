@@ -22,7 +22,7 @@ func Const[T any](value T) ParserBuilder[T] {
 	}
 }
 
-func NodeAsTable(
+func TableAsClass(
 	makeParser ParserBuilder[node.Table],
 ) ParserBuilder[node.Node] {
 	return func(except ...rune) Parser[node.Node] {
@@ -34,7 +34,7 @@ func NodeAsTable(
 				return nil, err
 			}
 
-			return node.NewForTable(table), nil
+			return node.NewClass(table), nil
 		}
 	}
 }

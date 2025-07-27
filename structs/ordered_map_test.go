@@ -63,7 +63,7 @@ func TestOrderedMap_Get(t *testing.T) {
 				{"foo", 1},
 				{"bar", 2},
 			},
-			truncate: -1,
+			truncate: -1, // must skip it
 			key:      "foo",
 			value:    1,
 			exists:   true,
@@ -73,7 +73,7 @@ func TestOrderedMap_Get(t *testing.T) {
 				{"foo", 1},
 				{"bar", 2},
 			},
-			truncate: -1,
+			truncate: -1, // must skip it
 			key:      "bar",
 			value:    2,
 			exists:   true,
@@ -116,7 +116,7 @@ func TestOrderedMap_Get(t *testing.T) {
 			},
 			truncate: -1,
 			key:      "bar",
-			value:    2,
+			value:    3,
 			exists:   true,
 		},
 		{
@@ -126,6 +126,17 @@ func TestOrderedMap_Get(t *testing.T) {
 				{"bar", 3},
 			},
 			truncate: -1,
+			key:      "foo",
+			value:    1,
+			exists:   true,
+		},
+		{
+			input: []pair{
+				{"foo", 1},
+				{"bar", 2},
+				{"bar", 3},
+			},
+			truncate: 1,
 			key:      "foo",
 			value:    1,
 			exists:   true,
@@ -148,6 +159,17 @@ func TestOrderedMap_Get(t *testing.T) {
 				{"bar", 3},
 			},
 			truncate: 2,
+			key:      "foo",
+			value:    1,
+			exists:   true,
+		},
+		{
+			input: []pair{
+				{"foo", 1},
+				{"bar", 2},
+				{"bar", 3},
+			},
+			truncate: 2,
 			key:      "bar",
 			value:    2,
 			exists:   true,
@@ -160,6 +182,8 @@ func TestOrderedMap_Get(t *testing.T) {
 
 		t.Run(name, func(t *testing.T) {
 			m := NewOrderedMap[string, int](0)
+
+			t.Logf("test: %v", test)
 
 			for _, pair := range test.input {
 				m.Put(pair.key, pair.value)
@@ -248,7 +272,7 @@ func TestOrderedMap_Put(t *testing.T) {
 			},
 			truncate: -1,
 			data: map[string]int{
-				"foo": 1,
+				"foo": 2,
 				"bar": 2,
 			},
 		},
@@ -291,7 +315,7 @@ func TestOrderedMap_Put(t *testing.T) {
 			},
 			truncate: -1,
 			data: map[string]int{
-				"foo": 1,
+				"foo": 2,
 			},
 		},
 		{
@@ -319,6 +343,8 @@ func TestOrderedMap_Put(t *testing.T) {
 		test := example
 
 		t.Run(name, func(t *testing.T) {
+			t.Logf("test: %v", test)
+
 			m := NewOrderedMap[string, int](0)
 
 			for _, pair := range test.input {
@@ -538,7 +564,7 @@ func TestOrderedMap_Empty(t *testing.T) {
 				{"foo", 2},
 			},
 			truncate: -1,
-			size:     2,
+			size:     3,
 		},
 		{
 			input: []pair{
@@ -573,7 +599,7 @@ func TestOrderedMap_Empty(t *testing.T) {
 				{"foo", 2},
 			},
 			truncate: -1,
-			size:     1,
+			size:     2,
 		},
 		{
 			input: []pair{

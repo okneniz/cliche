@@ -63,8 +63,14 @@ func (err *expectationError) NestedErrors() []Error {
 func MergeErrors(errs ...Error) Error {
 	merged := make([]Error, 0, len(errs))
 	for _, x := range errs {
+		if x == nil {
+			continue
+		}
+
 		merged = append(merged, x.NestedErrors()...)
 	}
+
+	// what about nil err? (len merged == 0)
 
 	return &parsingError{
 		nestedErrors: merged,

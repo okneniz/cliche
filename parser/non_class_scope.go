@@ -3,6 +3,7 @@ package parser
 import (
 	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
+
 	c "github.com/okneniz/parsec/common"
 )
 
@@ -30,7 +31,7 @@ func (scope *NonClassScope) makeParser(except ...rune) Parser[node.Node] {
 
 		r, runeErr := parseRune(buf)
 		if runeErr == nil {
-			return node.NewForTable(unicode.NewTable(r)), nil
+			return node.NewClass(unicode.NewTable(r)), nil
 		}
 
 		buf.Seek(pos)

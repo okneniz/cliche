@@ -153,11 +153,36 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 	}
 }
 
+// TODO : use c.Map from parsec
+func makeOptionsParser(
+	opts map[rune]node.ScanOption,
+	except ...rune,
+) parser.Parser[[]node.ScanOption] {
+	parseRune := parser.NoneOf(except...)
+
+	parseOption := func(buf c.Buffer[rune, int]) (node.ScanOption, parser.Error) {
+		pos := buf.Position()
+
+		x, optErr := parseRune(buf)
+		if optErr != nil {
+			return 0, parser.Expected("parse option", pos, optErr)
+		}
+
+		if opt, exists := opts[x]; exists {
+			return opt, nil
+		}
+
+		return 0, parser.Expected("parse option", pos, optErr)
+	}
+
+	return parser.Many("parser options", parseOption)
+}
+
 func parseGroup(
 	parseAlternation parser.Parser[node.Alternation],
-	_ ...rune,
+	except ...rune,
 ) parser.Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, parser.Error) {
+	parseCapturedGroup := func(buf c.Buffer[rune, int]) (node.Node, parser.Error) {
 		pos := buf.Position()
 
 		alt, altErr := parseAlternation(buf)
@@ -166,6 +191,82 @@ func parseGroup(
 		}
 
 		return node.NewGroup(alt), nil
+	}
+
+	prefix := parser.Try(parser.Eq('?'))
+	comma := parser.Try(parser.Eq(':'))
+
+	optsDict := map[rune]node.ScanOption{
+		'i': node.ScanOptionCaseInsensetive,
+		'm': node.ScanOptionMultiline,
+	}
+
+	parseOptions := parser.Try(
+		makeOptionsParser(optsDict, append(except, '-', ':')...),
+	)
+
+	parseDiableOptions := parser.Try(
+		parser.Skip(
+			parser.Eq('-'),
+			parseOptions,
+		),
+	)
+
+	parseNotCapturedGroupWithOptions := func(buf c.Buffer[rune, int]) (node.Node, parser.Error) {
+		pos := buf.Position()
+
+		_, prefErr := prefix(buf)
+		if prefErr != nil {
+			return nil, parser.Expected("not captured group with options", pos, prefErr)
+		}
+
+		pos = buf.Position()
+
+		enable, enableOptErr := parseOptions(buf)
+		disable, disableOptErr := parseDiableOptions(buf)
+
+		if len(enable) == 0 && len(disable) == 0 {
+			return nil, parser.Expected(
+				"not captured group with options",
+				pos,
+				parser.MergeErrors(enableOptErr, disableOptErr),
+			)
+		}
+
+		_, commaErr := comma(buf)
+		if commaErr != nil {
+			return node.NewOptionsSwitcher(enable, disable), nil
+		}
+
+		alt, altErr := parseAlternation(buf)
+		if altErr != nil {
+			return nil, parser.Expected("not captured group with options", pos, altErr)
+		}
+
+		group := node.NewGroup(alt)
+
+		switcher := node.NewOptionsSwitcher(enable, disable)
+		switcher.GetNestedNodes()[group.GetKey()] = group
+
+		return switcher, nil
+	}
+
+	return func(buf c.Buffer[rune, int]) (node.Node, parser.Error) {
+		pos := buf.Position()
+
+		groupWithOptions, withOptsErr := parseNotCapturedGroupWithOptions(buf)
+		if withOptsErr == nil {
+			return groupWithOptions, nil
+		}
+
+		buf.Seek(pos)
+
+		group, groupErr := parseCapturedGroup(buf)
+		if groupErr == nil {
+			return group, nil
+		}
+
+		return nil, parser.MergeErrors(withOptsErr, groupErr)
 	}
 }
 

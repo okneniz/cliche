@@ -41,14 +41,14 @@ var (
 	notXdigit = xdigit.Invert()
 	notWord   = word.Invert()
 
-	parseDigit     = parser.NodeAsTable(parser.Const(digit))
-	parseNotDigit  = parser.NodeAsTable(parser.Const(notDigit))
-	parseWord      = parser.NodeAsTable(parser.Const(word))
-	parseNotWord   = parser.NodeAsTable(parser.Const(notWord))
-	parseSpace     = parser.NodeAsTable(parser.Const(space))
-	parseNotSpace  = parser.NodeAsTable(parser.Const(notSpace))
-	parseXdigit    = parser.NodeAsTable(parser.Const(xdigit))
-	parseNotXdigit = parser.NodeAsTable(parser.Const(notXdigit))
+	parseDigit     = parser.TableAsClass(parser.Const(digit))
+	parseNotDigit  = parser.TableAsClass(parser.Const(notDigit))
+	parseWord      = parser.TableAsClass(parser.Const(word))
+	parseNotWord   = parser.TableAsClass(parser.Const(notWord))
+	parseSpace     = parser.TableAsClass(parser.Const(space))
+	parseNotSpace  = parser.TableAsClass(parser.Const(notSpace))
+	parseXdigit    = parser.TableAsClass(parser.Const(xdigit))
+	parseNotXdigit = parser.TableAsClass(parser.Const(notXdigit))
 
 	dot          = unicodeEncoding.NewTable('.')
 	question     = unicodeEncoding.NewTable('?')
@@ -59,28 +59,28 @@ var (
 	leftBracket  = unicodeEncoding.NewTable('[')
 	bar          = unicodeEncoding.NewTable('|')
 
-	parseDot          = parser.NodeAsTable(parser.Const(dot))
-	parseQuestion     = parser.NodeAsTable(parser.Const(question))
-	parsePlus         = parser.NodeAsTable(parser.Const(plus))
-	parseAsterisk     = parser.NodeAsTable(parser.Const(asterisk))
-	parseCircumFlexus = parser.NodeAsTable(parser.Const(circumFlexus))
+	parseDot          = parser.TableAsClass(parser.Const(dot))
+	parseQuestion     = parser.TableAsClass(parser.Const(question))
+	parsePlus         = parser.TableAsClass(parser.Const(plus))
+	parseAsterisk     = parser.TableAsClass(parser.Const(asterisk))
+	parseCircumFlexus = parser.TableAsClass(parser.Const(circumFlexus))
 
-	parseDollar      = parser.NodeAsTable(parser.Const(dollar))
-	parseLeftBracket = parser.NodeAsTable(parser.Const(leftBracket))
-	parseBar         = parser.NodeAsTable(parser.Const(bar))
+	parseDollar      = parser.TableAsClass(parser.Const(dollar))
+	parseLeftBracket = parser.TableAsClass(parser.Const(leftBracket))
+	parseBar         = parser.TableAsClass(parser.Const(bar))
 
 	// TODO : check size in different docs
 	parseHexChar      = parser.NumberAsRune(parseHexNumber(2, 2))
 	parseHexCharTable = parser.RuneAsTable(parseHexChar)
-	parseHexCharNode  = parser.NodeAsTable(parseHexCharTable)
+	parseHexCharNode  = parser.TableAsClass(parseHexCharTable)
 
 	parseOctalChar      = parser.NumberAsRune(parseOctalCharNumber(3))
 	parseOctalCharTable = parser.RuneAsTable(parseOctalChar)
-	parseOctalCharNode  = parser.NodeAsTable(parseOctalCharTable)
+	parseOctalCharNode  = parser.TableAsClass(parseOctalCharTable)
 
 	parseUnicodeChar  = parser.NumberAsRune(parseHexNumber(1, 4))
 	parseUnicodeTable = parser.RuneAsTable(parseUnicodeChar)
-	parseUnicodeNode  = parser.NodeAsTable(parseUnicodeTable)
+	parseUnicodeNode  = parser.TableAsClass(parseUnicodeTable)
 
 	OnigmoParser = parser.New(func(cfg *parser.Config) {
 		cfg.Class().
@@ -153,13 +153,13 @@ var (
 			WithPrefix(`\$`, parseDollar).
 			WithPrefix(`\[`, parseLeftBracket).
 			WithPrefix(`\|`, parseBar).
-			WithPrefix(`\n`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\n')))).
-			WithPrefix(`\t`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\t')))).
-			WithPrefix(`\v`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\u000B')))).
-			WithPrefix(`\r`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\r')))).
-			WithPrefix(`\f`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\f')))).
-			WithPrefix(`\a`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\a')))).
-			WithPrefix(`\e`, parser.NodeAsTable(parser.Const(unicodeEncoding.NewTable('\u001b'))))
+			WithPrefix(`\n`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\n')))).
+			WithPrefix(`\t`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\t')))).
+			WithPrefix(`\v`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\u000B')))).
+			WithPrefix(`\r`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\r')))).
+			WithPrefix(`\f`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\f')))).
+			WithPrefix(`\a`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\a')))).
+			WithPrefix(`\e`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\u001b'))))
 
 		cfg.Class().
 			Items().
@@ -194,7 +194,7 @@ var (
 			WithPrefix(`\k`, parseNameReference)
 
 		cfg.Groups().
-			Parse(parseCondition). // TODO : fix endless recursion
+			Parse(parseCondition).
 			Parse(parseGroup).
 			ParsePrefix("?:", parseNotCapturedGroup).
 			ParsePrefix("?<", parseNamedGroup).
@@ -228,9 +228,9 @@ func configureProperty(cfg *parser.Config, props map[string]*unicode.RangeTable)
 
 		cfg.NonClass().
 			Items().
-			WithPrefix(fmt.Sprintf("\\p{%s}", name), parser.NodeAsTable(positive)).
-			WithPrefix(fmt.Sprintf("\\p{^%s}", name), parser.NodeAsTable(negative)).
-			WithPrefix(fmt.Sprintf("\\P{%s}", name), parser.NodeAsTable(negative))
+			WithPrefix(fmt.Sprintf("\\p{%s}", name), parser.TableAsClass(positive)).
+			WithPrefix(fmt.Sprintf("\\p{^%s}", name), parser.TableAsClass(negative)).
+			WithPrefix(fmt.Sprintf("\\P{%s}", name), parser.TableAsClass(negative))
 
 		cfg.Class().
 			Items().

@@ -4,19 +4,19 @@ import (
 	"unicode"
 )
 
-type character struct {
-	match func(rune) bool
+type class struct {
+	table Table
 	*base
 }
 
-func NewForTable(table Table) Node {
-	return &character{
-		match: table.Include,
+func NewClass(table Table) Node {
+	return &class{
+		table: table,
 		base:  newBase(table.String()),
 	}
 }
 
-func (n *character) Traverse(f func(Node)) {
+func (n *class) Traverse(f func(Node)) {
 	f(n)
 
 	for _, x := range n.nested {
@@ -24,7 +24,7 @@ func (n *character) Traverse(f func(Node)) {
 	}
 }
 
-func (n *character) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *class) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -33,9 +33,9 @@ func (n *character) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 	matched := false
 
 	if scanner.OptionsInclude(ScanOptionCaseInsensetive) {
-		matched = n.match(unicode.ToUpper(x)) || n.match(unicode.ToLower(x))
+		matched = n.table.Include(unicode.ToUpper(x)) || n.table.Include(unicode.ToLower(x))
 	} else {
-		matched = n.match(x)
+		matched = n.table.Include(x)
 	}
 
 	if matched {
@@ -49,7 +49,7 @@ func (n *character) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 	}
 }
 
-func (n *character) Size() (int, bool) {
+func (n *class) Size() (int, bool) {
 	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
 		return 1 + nestedSize, true
 	}

@@ -4,49 +4,40 @@ import (
 	"encoding/json"
 )
 
-// TODO : add unit tests
-
 type OrderedMap[K comparable, V any] struct {
-	keys   map[K]int
-	values *TruncatedList[V]
-	order  *TruncatedList[K]
+	data  map[K]*TruncatedList[V]
+	order *TruncatedList[K]
 }
 
 func NewOrderedMap[K comparable, V any](capacity int) *OrderedMap[K, V] {
 	return &OrderedMap[K, V]{
-		keys:   make(map[K]int, capacity),
-		values: NewTruncatedList[V](0),
-		order:  NewTruncatedList[K](0),
+		data:  make(map[K]*TruncatedList[V], capacity),
+		order: NewTruncatedList[K](0),
 	}
 }
 
 func (c *OrderedMap[K, V]) Get(key K) (V, bool) {
-	idx, exists := c.keys[key]
+	values, exists := c.data[key]
 	if !exists {
 		var x V
 		return x, false
 	}
 
-	return c.values.At(idx)
+	return values.Last()
 }
-
-// TODO : what about rewriting same key and Truncation?
-// test it
-// may be store list of indexes in keys?
 
 // TODO :
 // RUBY : /(?<test>.)(?<test>.)(?<test>.)/.match("123").named_captures => {"test"=>"3"}
-// OrderedMap save only last value
 
 func (c *OrderedMap[K, V]) Put(key K, s V) {
-	_, exists := c.keys[key]
-	if exists {
-		return
+	values, exists := c.data[key]
+	if !exists {
+		values = NewTruncatedList[V](1)
+		c.data[key] = values
 	}
 
 	c.order.Append(key)
-	c.values.Append(s)
-	c.keys[key] = c.values.Size() - 1
+	values.Append(s)
 }
 
 func (c *OrderedMap[K, V]) Empty() bool {
@@ -54,7 +45,7 @@ func (c *OrderedMap[K, V]) Empty() bool {
 }
 
 func (c *OrderedMap[K, V]) Size() int {
-	return c.values.Size()
+	return c.order.Size()
 }
 
 func (c *OrderedMap[K, V]) Truncate(pos int) {
@@ -65,12 +56,14 @@ func (c *OrderedMap[K, V]) Truncate(pos int) {
 	for i := c.order.Size() - 1; i >= pos; i-- {
 		key, _ := c.order.At(i)
 
-		if idx, exists := c.keys[key]; exists && idx >= pos {
-			delete(c.keys, key)
+		values, exists := c.data[key]
+		if !exists {
+			continue
 		}
+
+		values.Truncate(values.Size() - 1)
 	}
 
-	c.values.Truncate(pos)
 	c.order.Truncate(pos)
 }
 
@@ -84,11 +77,12 @@ func (c *OrderedMap[K, V]) String() string {
 }
 
 func (c *OrderedMap[K, V]) Map() map[K]V {
-	m := make(map[K]V, len(c.keys))
+	m := make(map[K]V, len(c.data))
 
-	for k, v := range c.keys {
-		if x, ok := c.values.At(v); ok {
-			m[k] = x
+	for key, values := range c.data {
+		value, ok := values.Last()
+		if ok {
+			m[key] = value
 		}
 	}
 

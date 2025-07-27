@@ -131,6 +131,54 @@
       ],
       "Input": " foo\nbar ",
       "Want": []
+    },
+    {
+      "Name": "options as expressions",
+      "Expressions": [
+        "a(?i-m)b",
+        "a(?m)b",
+        "a(?i)b",        
+        "a(?m-i).B"
+      ],
+      "Input": "ab aB a\nB",
+      "Want": [
+        {
+          "SubString": "ab",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(?i-m)b",
+            "a(?m)b",
+            "a(?i)b"
+          ]
+        },
+        {
+          "SubString": "aB",
+          "Span": {
+            "From": 3,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(?i-m)b",
+            "a(?i)b"
+          ]
+        },
+        {
+          "SubString": "a\nB",
+          "Span": {
+            "From": 6,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(?m-i).B"
+          ]
+        }
+      ]
     }
   ]
 }

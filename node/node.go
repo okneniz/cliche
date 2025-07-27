@@ -82,7 +82,10 @@ type Scanner interface {
 	RewindHoles(pos int)
 
 	OptionsInclude(opt ScanOption) bool
-	// TODO : add methods to manage Options (enable / disable)
+	OptionsEnable(opt ScanOption)
+	OptionsDisable(opt ScanOption)
+	OptionsPosition() int
+	RewindOptions(pos int)
 }
 
 type ScanOption uint

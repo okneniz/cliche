@@ -22,19 +22,50 @@ func (scope *ClassScope) Items() *Scope[node.Table] {
 }
 
 func (scope *ClassScope) makeParser() Parser[node.Node] {
-	parseTable := scope.makeTableParser(false)
+	negativePrefix := Eq('^')
+	leftSquare := Eq('[')
+	rightSquare := Eq(']')
+
+	parseTable := scope.makeTableParser()
 
 	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
-		table, err := parseTable(buf)
+		pos := buf.Position()
+		isNegative := true
+
+		_, err := leftSquare(buf)
 		if err != nil {
+			buf.Seek(pos)
 			return nil, err
 		}
 
-		return node.NewForTable(table), nil
+		beforePrefixPos := buf.Position()
+		_, prefixErr := negativePrefix(buf)
+		if prefixErr != nil {
+			isNegative = false
+			buf.Seek(beforePrefixPos)
+		}
+
+		table, seqErr := parseTable(buf)
+		if seqErr != nil {
+			buf.Seek(pos)
+			return nil, seqErr
+		}
+
+		_, squareErr := rightSquare(buf)
+		if err != nil {
+			buf.Seek(pos)
+			return nil, squareErr
+		}
+
+		if isNegative {
+			return node.NewNegativeClass(table), nil
+		}
+
+		return node.NewClass(table), nil
 	}
 }
 
-func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
+func (scope *ClassScope) makeTableParser() Parser[node.Table] {
 	var (
 		parseClass    Parser[node.Table]
 		parseSubClass Parser[node.Table]
@@ -108,6 +139,20 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 
 	parseClass = func(buf c.Buffer[rune, int]) (node.Table, Error) {
 		pos := buf.Position()
+
+		tables, seqErr := parseSequenceOfTables(buf)
+		if seqErr != nil {
+			buf.Seek(pos)
+			return nil, seqErr
+		}
+
+		table := unicode.MergeTables(tables...)
+
+		return table, nil
+	}
+
+	parseSubClass = func(buf c.Buffer[rune, int]) (node.Table, Error) {
+		pos := buf.Position()
 		isNegative := true
 
 		_, err := leftSquare(buf)
@@ -141,12 +186,6 @@ func (scope *ClassScope) makeTableParser(isSubclass bool) Parser[node.Table] {
 		}
 
 		return table, nil
-	}
-
-	if isSubclass {
-		parseSubClass = parseClass
-	} else {
-		parseSubClass = scope.makeTableParser(true)
 	}
 
 	return parseClass

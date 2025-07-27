@@ -352,12 +352,15 @@ https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
 - add options
-  - by scan options
+  - as parser options
     - named groups
-  - by expressions
-    - case insensetive
-    - multi line
+    - unicode
+  - as scan options
     - named groups
+    - unicode
+  - as sub-expressions
+    - named groups
+    - unicode
 - support empty regexp
 - transform tree (alter)
   - more compactions
@@ -378,12 +381,18 @@ https://www.regular-expressions.info/freespacing.html
     - RE2 / golang - https://github.com/golang/go/tree/master/src/regexp/testdata
     - Onigmo / ruby - https://github.com/k-takata/Onigmo/blob/master/test.rb
 - refactor traverse
+- add options
+  - as parser options
+    - extended form
 - add recursive calls \g
 - think about reluctant and possessive quantifiers (Is it possible with this architecture?)
 
 ## Compact
 
 - \w{3} -> \w\w\w
+- (?i)(?-i)(?i) -> (?i)
+- (?im) -> (?i)(?m)
+- (?i:foo) -> (?i)(?:foo)
 
 - можно якоря / anchor типа \b жать как (?<!subexp)` / negative look-behind
 - типа границы слова это что-то, что до слова и после слова (пробелы или знаки препинания)

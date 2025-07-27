@@ -18,7 +18,7 @@ type (
 		namedGroups NamedCaptures
 		holes       *structs.TruncatedList[quantity.Interface]
 		roots       map[string]node.Node
-		options     map[node.ScanOption]struct{}
+		options     ScanOptionsHistory
 	}
 
 	Captures interface {
@@ -40,14 +40,25 @@ type (
 		Map() map[string]quantity.Interface
 		String() string // TODO : remove and use map when it needed
 	}
+
+	ScanOptionsHistory interface {
+		Get(node.ScanOption) (bool, bool)
+		Put(node.ScanOption, bool)
+		Truncate(int)
+		Empty() bool
+		Size() int
+		Map() map[node.ScanOption]bool
+		String() string // TODO : remove and use map when it needed
+	}
 )
 
 var (
-	_ node.Scanner  = new(FullScanner)
-	_ node.Input    = buf.NewRunesBuffer("")
-	_ node.Output   = NewOutput()
-	_ Captures      = structs.NewTruncatedList[quantity.Interface](0)
-	_ NamedCaptures = structs.NewOrderedMap[string, quantity.Interface](0)
+	_ node.Scanner       = new(FullScanner)
+	_ node.Input         = buf.NewRunesBuffer("")
+	_ node.Output        = NewOutput()
+	_ Captures           = structs.NewTruncatedList[quantity.Interface](0)
+	_ NamedCaptures      = structs.NewOrderedMap[string, quantity.Interface](0)
+	_ ScanOptionsHistory = structs.NewOrderedMap[node.ScanOption, bool](0)
 )
 
 func NewFullScanner(
@@ -71,9 +82,11 @@ func NewFullScanner(
 	// TODO : capacity = max count of assertions / lookaheads / lookbehins in expression
 	s.holes = structs.NewTruncatedList[quantity.Interface](3)
 
-	s.options = make(map[node.ScanOption]struct{})
+	// TODO : what about default options?
+
+	s.options = structs.NewOrderedMap[node.ScanOption, bool](10)
 	for _, x := range options {
-		s.options[x] = struct{}{}
+		s.options.Put(x, true)
 	}
 
 	return s
@@ -90,8 +103,28 @@ func (s *FullScanner) String() string {
 }
 
 func (s *FullScanner) OptionsInclude(opt node.ScanOption) bool {
-	_, exists := s.options[opt]
-	return exists
+	value, exists := s.options.Get(opt)
+	if !exists {
+		return false
+	}
+
+	return value
+}
+
+func (s *FullScanner) OptionsEnable(opt node.ScanOption) {
+	s.options.Put(opt, true)
+}
+
+func (s *FullScanner) OptionsDisable(opt node.ScanOption) {
+	s.options.Put(opt, false)
+}
+
+func (s *FullScanner) OptionsPosition() int {
+	return s.options.Size()
+}
+
+func (s *FullScanner) RewindOptions(pos int) {
+	s.options.Truncate(pos)
 }
 
 func (s *FullScanner) Position() int {
