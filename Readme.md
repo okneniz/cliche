@@ -292,52 +292,49 @@ https://www.regular-expressions.info/conditional.html
 
 ### Options
 
+Options change default behaviour.
+
 ```
+ character set option (character range option)
+   d: Default (compatible with Ruby 1.9.3)
+      \w, \d and \s doesn't match non-ASCII characters.
+      \b, \B and POSIX brackets use the each encoding's
+      rules.
+   a: ASCII
+      ONIG_OPTION_ASCII_RANGE option is turned on.
+      \w, \d, \s and POSIX brackets doesn't match
+      non-ASCII characters.
+      \b and \B use the ASCII rules.
+   u: Unicode
+      ONIG_OPTION_ASCII_RANGE option is turned off.
+      \w (\W), \d (\D), \s (\S), \b (\B) and POSIX
+      brackets use the each encoding's rules.
+
   (?imxdau-imx)      option on/off
-                         i: ignore case
-                         m: multi-line (dot (.) also matches newline)
-                         x: extended form
-
-                       character set option (character range option)
-                         d: Default (compatible with Ruby 1.9.3)
-                            \w, \d and \s doesn't match non-ASCII characters.
-                            \b, \B and POSIX brackets use the each encoding's
-                            rules.
-                         a: ASCII
-                            ONIG_OPTION_ASCII_RANGE option is turned on.
-                            \w, \d, \s and POSIX brackets doesn't match
-                            non-ASCII characters.
-                            \b and \B use the ASCII rules.
-                         u: Unicode
-                            ONIG_OPTION_ASCII_RANGE option is turned off.
-                            \w (\W), \d (\D), \s (\S), \b (\B) and POSIX
-                            brackets use the each encoding's rules.
-
-  (?imxdau-imx:subexp) option on/off for subexp
-
-  Behavior of an unnamed group (...) changes with the following conditions.
-  (But named group is not changed.)
-
-  case 1. /.../     (named group is not used, no option)
-
-     (...) is treated as a capturing group.
-
-  case 2. /.../g    (named group is not used, 'g' option)
-
-     (...) is treated as a non-capturing group (?:...).
-
-  case 3. /..(?<name>..)../   (named group is used, no option)
-
-     (...) is treated as a non-capturing group.
-     numbered-backref/call is not allowed.
-
-  case 4. /..(?<name>..)../G  (named group is used, 'G' option)
-
-     (...) is treated as a capturing group.
-     numbered-backref/call is allowed.
-
-  ('g' and 'G' options are argued in ruby-dev ML)
 ```
+
+#### Scan options
+
+Scan option passed as arguments to `Scan` method and change behavoir all expression in three.
+
+| support | description |
+|--|--|
+|✅| ignore case |
+|✅| multi-line (dot (.) also matches newline) | 
+
+#### Expression options
+
+| support | example | description |
+|--|--|--|
+|✅| `/(?i)A/` or `/(?i:A)/` match 'a' | ignore case |
+|✅| `/(?m).A/` or `/(?m:.A)/` match '\na' | multi-line (dot (.) also matches newline) | 
+
+#### Parser options
+
+| support | example | description |
+|--|--|--|
+|❌| `/(?x)a\nb\c/` parsed as `/abc/` | extended form - expressions items separated by whitespaces |
+
 
 ### Other
 
@@ -352,15 +349,10 @@ https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
 - add options
-  - as parser options
-    - named groups
-    - unicode
   - as scan options
-    - named groups
-    - unicode
+    - u - unicode
   - as sub-expressions
-    - named groups
-    - unicode
+    - u - unicode
 - support empty regexp
 - transform tree (alter)
   - more compactions
