@@ -226,17 +226,17 @@ func TestOnigmo(t *testing.T) {
 	x(t, `a|b|cd|efg|h|ijk|lmn|o|pq|rstuvwx|yz`, "pqr", 0, 2)
 	n(t, `a|b|cd|efg|h|ijk|lmn|o|pq|rstuvwx|yz`, "mn")
 
-	// x(t, `a|^z`, "ba", 1, 2)
-	x(t, `a|^z`, "za", 0, 1) // important
+	x(t, `a|^z`, "ba", 1, 1)
+	x(t, `a|^z`, "za", 0, 1)
 
 	// x(/a|\Gz/, 'bza', 2, 3)
 	// x(/a|\Gz/, 'za', 0, 1)
 	// x(/a|\Az/, 'bza', 2, 3)
-	// x(t, `a|\Az`, `za`, 0, 1) // TODO - is simple
-	// x(/a|b\Z/, 'ba', 1, 2)
+	x(t, `a|\Az`, `za`, 0, 1)
+	x(t, `a|b\Z`, "ba", 1, 1)
 	x(t, `a|b\Z`, `b`, 0, 1)
 
-	// x(t, `a|b\z`, `ba`, 1, 1) // TODO
+	x(t, `a|b\z`, `ba`, 1, 1) // TODO : why 2 matches?
 	x(t, `a|b\z`, `b`, 0, 1)
 
 	x(t, `\w|\s`, " ", 0, 1)
@@ -291,7 +291,6 @@ func TestOnigmo(t *testing.T) {
 	x(t, `(?:^a+|b+)*c`, `aabbbabc`, 6, 2)
 	x(t, `(?:^a+|b+)*c`, `aabbbbc`, 0, 7)
 
-	// options not implemented yet
 	x(t, `a|(?i)c`, "C", 0, 1)
 	x(t, `(?i)c|a`, "C", 0, 1)
 	// i(/(?i)c|a/, 'A', 0, 1)  # different spec.
