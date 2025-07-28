@@ -279,25 +279,6 @@ https://www.regular-expressions.info/conditional.html
 
 Options change default behaviour.
 
-```
- character set option (character range option)
-   d: Default (compatible with Ruby 1.9.3)
-      \w, \d and \s doesn't match non-ASCII characters.
-      \b, \B and POSIX brackets use the each encoding's
-      rules.
-   a: ASCII
-      ONIG_OPTION_ASCII_RANGE option is turned on.
-      \w, \d, \s and POSIX brackets doesn't match
-      non-ASCII characters.
-      \b and \B use the ASCII rules.
-   u: Unicode
-      ONIG_OPTION_ASCII_RANGE option is turned off.
-      \w (\W), \d (\D), \s (\S), \b (\B) and POSIX
-      brackets use the each encoding's rules.
-
-  (?imxdau-imx)      option on/off
-```
-
 #### Scan options
 
 Scan option passed as arguments to `Scan` method and change behavoir all expression in three.
@@ -335,7 +316,7 @@ Usually linters hihglight them as mistakes.
 |--|--|--|
 |❌|`//` | empty expression |
 |❌|`()` | empty group |
-|❌|`/a|/`, `/|a/` or `(a|b|)` | empty variant in alternation |
+|❌|`/a\|/`, `/\|a/` or `(a\|b\|)` | empty variant in alternation |
 ```
 
 ## Roadmap
@@ -343,20 +324,13 @@ Usually linters hihglight them as mistakes.
 https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
-- add options
-  - as scan options
-    - u - unicode
-  - as sub-expressions
-    - u - unicode
-- support empty regexp
 - transform tree (alter)
   - more compactions
     - quatifiers to sequence \w{3} -> \w\w\w
     - anchors to assertions / look-behind / look-aheads
-- matches list test
 - tests:
-  - complex tests
   - property-based testing
+  - complex tests
   - split tests to different groups (maybe by tags), for example:
     - POSIX
     - ERE
@@ -367,10 +341,7 @@ https://www.regular-expressions.info/freespacing.html
   - use testdata from another libs
     - RE2 / golang - https://github.com/golang/go/tree/master/src/regexp/testdata
     - Onigmo / ruby - https://github.com/k-takata/Onigmo/blob/master/test.rb
-- refactor traverse
-- add options
-  - as parser options
-    - extended form
+- matches list test
 - add recursive calls \g
 - think about reluctant and possessive quantifiers (Is it possible with this architecture?)
 
