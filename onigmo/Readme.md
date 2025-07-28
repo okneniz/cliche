@@ -326,6 +326,16 @@ Scan option passed as arguments to `Scan` method and change behavoir all express
 | support | construction | description |
 |--|--|--|
 |✅| `(?# ... )` | comment |
+
+### Corner cases
+
+Usually linters hihglight them as mistakes.
+
+| support | construction | description |
+|--|--|--|
+|❌|`//` | empty expression |
+|❌|`()` | empty group |
+|❌|`/a|/`, `/|a/` or `(a|b|)` | empty variant in alternation |
 ```
 
 ## Roadmap
