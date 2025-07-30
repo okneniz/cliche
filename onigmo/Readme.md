@@ -324,10 +324,6 @@ Usually linters hihglight them as mistakes.
 https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
-- transform tree (alter)
-  - more compactions
-    - quatifiers to sequence \w{3} -> \w\w\w
-    - anchors to assertions / look-behind / look-aheads
 - tests:
   - property-based testing
   - complex tests
@@ -345,15 +341,25 @@ https://www.regular-expressions.info/freespacing.html
 - add recursive calls \g
 - think about reluctant and possessive quantifiers (Is it possible with this architecture?)
 
-## Compact
+## Compaction
 
+- alternation with one variant to this variant
+- remove comments
 - \w{3} -> \w\w\w
+- \w{1} -> \w
 - (?i)(?-i)(?i) -> (?i)
 - (?im) -> (?i)(?m)
 - (?i:foo) -> (?i)(?:foo)
+? not captured group with alternation with one variant to this variant
 
 - можно якоря / anchor типа \b жать как (?<!subexp)` / negative look-behind
-- типа границы слова это что-то, что до слова и после слова (пробелы или знаки препинания)
+- типа границы слова это что-то, что до слова и после слова (пробелы иoли знаки препинания)
+
+## Validation
+
+- empty class
+- endless comments
+- not fixed size lookaheads
 
 ## Features
 

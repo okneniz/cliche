@@ -50,3 +50,7 @@ func (n *endOfLine) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *endOfLine) Copy() Node {
+	return NewEndOfLine()
+}

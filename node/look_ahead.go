@@ -57,3 +57,7 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 func (n *lookAhead) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *lookAhead) Copy() Node {
+	return NewLookAhead(n.value.CopyAlternation())
+}

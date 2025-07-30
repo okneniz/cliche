@@ -50,3 +50,7 @@ func (n *dot) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *dot) Copy() Node {
+	return NewDot()
+}

@@ -90,3 +90,7 @@ func (n *optionsSwitcher) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *optionsSwitcher) Copy() Node {
+	return NewOptionsSwitcher(n.enable, n.disable)
+}

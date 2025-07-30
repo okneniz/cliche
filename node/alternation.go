@@ -23,7 +23,7 @@ func NewAlternation(variants []Node) Alternation {
 	}
 
 	n := new(alternation)
-	n.base = newBase(strings.Join(keys, "|"))
+	n.base = newBase("alternation<" + strings.Join(keys, "|") + ">")
 	n.variants = uniqVariants
 	n.lastNodes = make(map[Node]struct{}, len(uniqVariants))
 
@@ -136,4 +136,22 @@ func (n *alternation) Size() (int, bool) {
 	}
 
 	return 0, false
+}
+
+func (n *alternation) copyVariants() []Node {
+	variants := make([]Node, len(n.variants))
+
+	for i, x := range n.variants {
+		variants[i] = x.Copy()
+	}
+
+	return variants
+}
+
+func (n *alternation) Copy() Node {
+	return NewAlternation(n.copyVariants())
+}
+
+func (n *alternation) CopyAlternation() Alternation {
+	return NewAlternation(n.copyVariants())
 }

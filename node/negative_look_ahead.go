@@ -58,3 +58,7 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 func (n *negativeLookAhead) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *negativeLookAhead) Copy() Node {
+	return NewNegativeLookAhead(n.value.CopyAlternation())
+}

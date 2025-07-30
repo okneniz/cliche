@@ -89,3 +89,7 @@ func (n *quantifier) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *quantifier) Copy() Node {
+	return NewQuantifier(n.quantity, n.value.Copy())
+}

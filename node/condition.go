@@ -121,3 +121,11 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 func (n *condition) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *condition) Copy() Node {
+	if n.no == nil {
+		return NewGuard(n.cond, n.yes)
+	}
+
+	return NewCondition(n.cond, n.yes, n.no)
+}

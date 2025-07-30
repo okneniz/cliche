@@ -33,3 +33,7 @@ func (n *comment) Visit(scanner Scanner, input Input, from, to int, onMatch Call
 func (n *comment) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *comment) Copy() Node {
+	return NewComment(n.text)
+}

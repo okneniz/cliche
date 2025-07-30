@@ -80,3 +80,7 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, on
 func (n *nameReferenceNode) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *nameReferenceNode) Copy() Node {
+	return NewForNameReference(n.name)
+}

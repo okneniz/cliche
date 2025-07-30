@@ -3,6 +3,7 @@ package cliche
 import (
 	"bytes"
 	"encoding/json"
+
 	"golang.org/x/exp/maps"
 
 	"github.com/okneniz/cliche/buf"
@@ -19,7 +20,7 @@ type Tree interface {
 }
 
 type Parser interface {
-	Parse(string) (node.Node, error)
+	Parse(string) (node.Alternation, error)
 }
 
 var (
@@ -41,17 +42,19 @@ func New(parser Parser) Tree {
 
 func (t *tree) Add(expressions ...string) error {
 	for _, expression := range expressions {
-		newNode, err := t.parser.Parse(expression)
+		raw, err := t.parser.Parse(expression)
 		if err != nil {
 			return err
 		}
 
-		key := newNode.GetKey()
+		for _, newNode := range node.Unify(raw) {
+			key := newNode.GetKey()
 
-		if oldNode, exists := t.nodes[key]; exists {
-			t.merge(oldNode, newNode)
-		} else {
-			t.nodes[key] = newNode
+			if oldNode, exists := t.nodes[key]; exists {
+				t.merge(oldNode, newNode)
+			} else {
+				t.nodes[key] = newNode
+			}
 		}
 	}
 

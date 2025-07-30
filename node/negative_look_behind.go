@@ -70,3 +70,8 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 func (n *negativeLookBehind) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *negativeLookBehind) Copy() Node {
+	x, _ := NewNegativeLookBehind(n.value.CopyAlternation())
+	return x
+}

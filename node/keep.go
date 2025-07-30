@@ -42,3 +42,7 @@ func (n *keep) Visit(scanner Scanner, input Input, from, to int, onMatch Callbac
 func (n *keep) Size() (int, bool) {
 	return 0, false // TODO : fix it
 }
+
+func (n *keep) Copy() Node {
+	return NewKeep()
+}

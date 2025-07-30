@@ -31,6 +31,8 @@ type Node interface {
 	Size() (int, bool)
 
 	// TODO : what about anchors, is it endless or zero sized?
+
+	Copy() Node
 }
 
 type Callback func(x Node, from int, to int, empty bool)
@@ -46,6 +48,8 @@ type Alternation interface {
 		from, to int,
 		onMatch AlternationCallback,
 	)
+
+	CopyAlternation() Alternation
 }
 
 type Container interface {

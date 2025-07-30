@@ -63,6 +63,9 @@ func TestTreeCompaction(t *testing.T) {
 		{
 			"x{1}",
 			"x{1,1}",
+		}, {
+			"x",
+			"(?#123)x",
 		},
 	}
 

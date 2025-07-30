@@ -54,3 +54,7 @@ func (n *wordBoundary) isWord(input Input, pos int) bool {
 func (n *wordBoundary) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *wordBoundary) Copy() Node {
+	return NewWordBoundary()
+}

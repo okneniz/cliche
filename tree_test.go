@@ -91,7 +91,7 @@ func TestTree_Match(t *testing.T) {
 	// TODO : enable parallel
 	// t.Parallel()
 
-	files, err := tableTests.LoadAllTestFiles("./testdata/base/")
+	files, err := tableTests.LoadAllTestFiles(t, "./testdata/base/")
 	if err != nil {
 		t.Fatal(err)
 	}

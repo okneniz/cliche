@@ -78,3 +78,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 func (n *referenceNode) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *referenceNode) Copy() Node {
+	return NodeForReference(n.index)
+}

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"testing"
 
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/scanner"
@@ -104,7 +105,11 @@ func (s Span) String() string {
 	return fmt.Sprintf("[%d, %d, %v]", s.From, s.To, s.Empty)
 }
 
-func LoadTestFile(path string) (*TestFile, error) {
+func LoadTestFile(t testing.TB, path string) (*TestFile, error) {
+	t.Helper()
+
+	t.Log("open file", path)
+
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -124,7 +129,9 @@ func LoadTestFile(path string) (*TestFile, error) {
 	return testFile, nil
 }
 
-func LoadAllTestFiles(dir string) ([]*TestFile, error) {
+func LoadAllTestFiles(t testing.TB, dir string) ([]*TestFile, error) {
+	t.Helper()
+
 	var files []*TestFile
 
 	err := filepath.Walk(dir, func(path string, info fs.FileInfo, err error) error {
@@ -137,7 +144,7 @@ func LoadAllTestFiles(dir string) ([]*TestFile, error) {
 		}
 
 		if filepath.Ext(path) == ".json" {
-			testFile, err := LoadTestFile(path)
+			testFile, err := LoadTestFile(t, path)
 			if err != nil {
 				return err
 			}

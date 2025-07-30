@@ -65,3 +65,7 @@ func (n *namedGroup) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *namedGroup) Copy() Node {
+	return NewNamedGroup(n.name, n.value.CopyAlternation())
+}

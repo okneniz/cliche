@@ -56,3 +56,7 @@ func (n *negativeClass) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *negativeClass) Copy() Node {
+	return NewNegativeClass(n.table)
+}

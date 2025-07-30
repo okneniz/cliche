@@ -59,3 +59,8 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 func (n *lookBehind) Size() (int, bool) {
 	return 0, false
 }
+
+func (n *lookBehind) Copy() Node {
+	x, _ := NewLookBehind(n.value.CopyAlternation())
+	return x
+}

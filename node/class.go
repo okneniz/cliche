@@ -56,3 +56,7 @@ func (n *class) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *class) Copy() Node {
+	return NewClass(n.table)
+}

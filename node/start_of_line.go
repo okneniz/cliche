@@ -58,3 +58,7 @@ func (n *startOfLine) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *startOfLine) Copy() Node {
+	return NewStartOfLine()
+}

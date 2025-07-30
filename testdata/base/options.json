@@ -138,7 +138,8 @@
         "a(?i-m)b",
         "a(?m)b",
         "a(?i)b",        
-        "a(?m-i).B"
+        "a(?m-i).B",
+        "(?i)a(?m-i)B"
       ],
       "Input": "ab aB a\nB",
       "Want": [
@@ -164,6 +165,7 @@
           },
           "Expressions": [
             "a(?i-m)b",
+            "(?i)a(?m-i)B",
             "a(?i)b"
           ]
         },

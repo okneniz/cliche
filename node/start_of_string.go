@@ -33,3 +33,7 @@ func (n *startOfString) Visit(scanner Scanner, input Input, from, to int, onMatc
 func (n *startOfString) Size() (int, bool) {
 	return 0, true
 }
+
+func (n *startOfString) Copy() Node {
+	return NewStartOfString()
+}

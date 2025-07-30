@@ -10,7 +10,7 @@ import (
 type Quantity struct {
 	from int
 	to   *int
-	more bool
+	more bool // TODO : rename to endless?
 }
 
 func New(from int, to int) *Quantity {
@@ -38,6 +38,26 @@ func NewEndlessQuantity(from int) *Quantity {
 		to:   nil,
 		more: true,
 	}
+}
+
+func (n *Quantity) From() int {
+	return n.from
+}
+
+func (n *Quantity) To() (int, bool) {
+	if n.more {
+		return -1, false
+	}
+
+	if n.to == nil {
+		return n.from, true
+	}
+
+	return *n.to, true
+}
+
+func (n *Quantity) Endless() bool {
+	return n.more
 }
 
 func (n *Quantity) Optional() bool {

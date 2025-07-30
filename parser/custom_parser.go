@@ -29,7 +29,7 @@ func New(opts ...Option[*Config]) *CustomParser {
 	return p
 }
 
-func (p *CustomParser) Parse(str string) (node.Node, error) {
+func (p *CustomParser) Parse(str string) (node.Alternation, error) {
 	buffer := buf.NewRunesBuffer(str)
 
 	alt, err := p.parse(buffer)
@@ -37,22 +37,13 @@ func (p *CustomParser) Parse(str string) (node.Node, error) {
 		return nil, err
 	}
 
-	var newNode node.Node
-	newNode = alt
-
-	// TODO : move it to special component (alterer)
-	variants := alt.GetVariants()
-	if len(variants) == 1 {
-		newNode = variants[0]
-	}
-
-	newNode.Traverse(func(x node.Node) {
+	alt.Traverse(func(x node.Node) {
 		if len(x.GetNestedNodes()) == 0 {
 			x.AddExpression(str)
 		}
 	})
 
-	return newNode, nil
+	return alt, nil
 }
 
 func (p *CustomParser) makeAlternationParser(
@@ -205,6 +196,7 @@ func (p *CustomParser) makeOptionalQuantifierParser(
 	}
 }
 
+// TODO : move to parsec.Chainl or parser.Chainr ?
 func (p *CustomParser) makeChainParser(parse Parser[node.Node]) Parser[node.Node] {
 	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
 		first, err := parse(buf)

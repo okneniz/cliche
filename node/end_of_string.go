@@ -35,3 +35,7 @@ func (n *endOfString) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *endOfString) Copy() Node {
+	return NewEndOfString()
+}

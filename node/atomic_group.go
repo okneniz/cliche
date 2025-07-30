@@ -72,3 +72,7 @@ func (n *atomicGroup) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *atomicGroup) Copy() Node {
+	return NewAtomicGroup(n.value.CopyAlternation())
+}

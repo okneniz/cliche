@@ -58,3 +58,7 @@ func (n *notCapturedGroup) Size() (int, bool) {
 
 	return 0, false
 }
+
+func (n *notCapturedGroup) Copy() Node {
+	return NewNotCapturedGroup(n.value.CopyAlternation())
+}
