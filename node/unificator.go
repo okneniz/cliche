@@ -83,7 +83,6 @@ func unify(node Node) ([]Node, bool) {
 	// case *quantifier:
 	// 	return stretchQuantificator(n)
 	default:
-		fmt.Println("skip unify for", n)
 		return nil, false
 	}
 }
