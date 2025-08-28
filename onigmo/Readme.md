@@ -325,8 +325,6 @@ https://www.regular-expressions.info/branchreset.html
 https://www.regular-expressions.info/freespacing.html
 
 - tests:
-  - property-based testing
-  - complex tests
   - split tests to different groups (maybe by tags), for example:
     - POSIX
     - ERE
