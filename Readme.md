@@ -14,6 +14,16 @@ Main features:
 - with focus on efficient matching - can match / unmatch few expressions by one comparison
 - custom parsing
 
+## Installation
+
+```bash
+go get github.com/okneniz/cliche
+```
+
+## Documentation
+
+[GoDoc documentation](https://pkg.go.dev/github.com/okneniz/cliche).
+
 ## Compabilities
 
 Cliche have default compabilities common for most regular expressions engine.
