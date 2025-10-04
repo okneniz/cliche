@@ -1,5 +1,12 @@
 # Cliche
 
+![Downloads](https://img.shields.io/github/downloads/okneniz/cliche/total)
+![Contributors](https://img.shields.io/github/contributors/okneniz/cliche?color=dark-green)
+![Forks](https://img.shields.io/github/forks/okneniz/cliche?style=social)
+![Stargazers](https://img.shields.io/github/stars/okneniz/cliche?style=social)
+![Issues](https://img.shields.io/github/issues/okneniz/cliche)
+![License](https://img.shields.io/github/license/okneniz/cliche) 
+
 Regular expressions engine.
 
 Main features:
