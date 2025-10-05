@@ -1,6 +1,9 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+	"unicode"
+)
 
 // back reference \1, \2 or \9
 type referenceNode struct {
@@ -59,7 +62,15 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 			expected := input.ReadAt(prev)
 			actual := input.ReadAt(current)
 
-			if expected != actual {
+			matched := false
+
+			if scanner.OptionsInclude(ScanOptionCaseInsensetive) {
+				matched = unicode.ToUpper(expected) == unicode.ToUpper(actual)
+			} else {
+				matched = expected == actual
+			}
+
+			if !matched {
 				scanner.Rewind(pos)
 				return
 			}
