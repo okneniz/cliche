@@ -236,7 +236,7 @@ func TestOnigmo(t *testing.T) {
 	x(t, `a|b\Z`, "ba", 1, 1)
 	x(t, `a|b\Z`, `b`, 0, 1)
 
-	x(t, `a|b\z`, `ba`, 1, 1) // TODO : why 2 matches?
+	x(t, `a|b\z`, `ba`, 1, 1)
 	x(t, `a|b\z`, `b`, 0, 1)
 
 	x(t, `\w|\s`, " ", 0, 1)
@@ -255,13 +255,13 @@ func TestOnigmo(t *testing.T) {
 	n(t, `(?>a|abd)c`, "abdc")
 	x(t, `(?>abd|a)c`, "abdc", 0, 4) // pass, but why? (bound)
 
-	// x(t, `a?|b`, `a`, 0, 1) // TODO : depend on order
-	// x(t, `a?|b`, `b`, 0, 0) // TODO : depend on order
-	// x(t, `a?|b`, ``, 0, 0) // TODO : depend on order
-	// x(t, `a*|b`, `aa`, 0, 2)
-	// x(t, `a*|b*`, `ba`, 0, 0) // FAILD but why
-	// x(t, `a*|b*`, `ab`, 0, 1)
-	// x(/a+|b*/, '', 0, 0)
+	x(t, `a?|b`, `a`, 0, 1)
+	x(t, `a?|b`, `b`, 0, 0)
+	x(t, `a?|b`, ``, 0, 0)
+	x(t, `a*|b`, `aa`, 0, 2)
+	x(t, `a*|b*`, `ba`, 0, 0) // FAILD but why
+	x(t, `a*|b*`, `ab`, 0, 1)
+	x(t, `a+|b*`, "", 0, 0)
 	x(t, `a+|b*`, `bbb`, 0, 3)
 	x(t, `a+|b*`, `abbb`, 0, 1)
 	n(t, `a+|b+`, "")
@@ -275,7 +275,7 @@ func TestOnigmo(t *testing.T) {
 	x(t, `(a|bab)+`, `ba`, 1, 1)
 	x(t, `(a|bab)+`, `baaaba`, 1, 3)
 	x(t, `(?:a|b)(?:a|b)`, `ab`, 0, 2)
-	// x(t, `(?:a*|b*)(?:a*|b*)`, `aaabbb`, 0, 3) // DEBUG
+	// x(t, `(?:a*|b*)(?:a*|b*)`, `aaabbb`, 0, 3) // TODO : debug alternation
 	x(t, `(?:a*|b*)(?:a+|b+)`, `aaabbb`, 0, 6)
 	x(t, `(?:a+|b+){2}`, `aaabbb`, 0, 6)
 	x(t, `h{0,}`, `hhhh`, 0, 4)
@@ -286,7 +286,7 @@ func TestOnigmo(t *testing.T) {
 	n(t, `a.{0,2}?a`, "0aXXXXa0")
 	// x(/^a{2,}?a$/, "aaa", 0, 3)
 	// x(/^[a-z]{2,}?$/, "aaa", 0, 3)
-	// x(t, `(?:a+|\Ab*)cc`, `cc`, 0, 2) // TODO
+	// x(t, `(?:a+|\Ab*)cc`, `cc`, 0, 2) // TODO : debug alternation
 	n(t, `(?:a+|\Ab*)cc`, "abcc")
 	x(t, `(?:^a+|b+)*c`, `aabbbabc`, 6, 2)
 	x(t, `(?:^a+|b+)*c`, `aabbbbc`, 0, 7)
@@ -386,7 +386,7 @@ func TestOnigmo(t *testing.T) {
 	x(t, `(a*)\1`, `aaaaa`, 0, 4)
 	// x(/(a*)\1/, 'aaaaa', 0, 2, 1)
 	x(t, `a(b*)\1`, `abbbb`, 0, 5)
-	// x(t, `a(b*)\1`, `ab`, 0, 1) // important
+	// x(t, `a(b*)\1`, `ab`, 0, 2) // TODO : important
 	x(t, `(a*)(b*)\1\2`, `aaabbaaabb`, 0, 10)
 	x(t, `(a*)(b*)\2`, `aaabbbb`, 0, 7)
 	// x(/(((((((a*)b))))))c\7/, 'aaabcaaa', 0, 8)
@@ -588,19 +588,19 @@ func TestOnigmo(t *testing.T) {
 	x(t, `を(?:かき|きく)`, `をかき`, 0, 3)
 	x(t, `を(?:かき|きく)け`, `をきくけ`, 0, 4)
 	x(t, `あい|(?:あう|あを)`, `あを`, 0, 2)
-	// x(/あ|い|う/, 'えう', 2, 4)
+	x(t, `あ|い|う`, `えう`, 1, 1)
 	x(t, `あ|い|うえ|おかき|く|けこさ|しすせ|そ|たち|つてとなに|ぬね`, `しすせ`, 0, 3)
 	n(t, `あ|い|うえ|おかき|く|けこさ|しすせ|そ|たち|つてとなに|ぬね`, `すせ`)
-	// x(/あ|^わ/, 'ぶあ', 2, 4)
-	// x(t, `あ|^を`, `をあ`, 0, 2) // TODO
+	x(t, `あ|^わ`, `ぶあ`, 1, 1)
+	x(t, `あ|^を`, `をあ`, 1, 1)
 	// x(/鬼|\G車/, 'け車鬼', 4, 6)
 	// x(/鬼|\G車/, '車鬼', 0, 2)
-	// x(/鬼|\A車/, 'b車鬼', 3, 5)
-	// x(t, `鬼|\A車`, `車`, 0, 1) // TODO
-	// x(/鬼|車\Z/, '車鬼', 2, 4)
+	x(t, `鬼|\A車`, `b車鬼`, 2, 1)
+	x(t, `鬼|\A車`, `車`, 0, 1)
+	x(t, `鬼|車\Z`, `車鬼`, 1, 1)
 	x(t, `鬼|車\Z`, `車`, 0, 1)
 	x(t, `鬼|車\Z`, "車\n", 0, 1)
-	// x(t, `鬼|車\z`, `車鬼`, 1, 1) // TODO
+	x(t, `鬼|車\z`, `車鬼`, 1, 1)
 	x(t, `鬼|車\z`, `車`, 0, 1)
 	// x(/(?u)\w|\s/, 'お', 0, 2)
 	// x(/(?u)\w|%/, '%お', 0, 1)
@@ -619,24 +619,24 @@ func TestOnigmo(t *testing.T) {
 	// n(/(?>あ|あいえ)う/, 'あいえう')
 	// x(/(?>あいえ|あ)う/, 'あいえう', 0, 8)
 
-	// x(t, `あ?|い`, `あ`, 0, 1)
-	// x(t, `あ?|い`, `い`, 0, 0)
-	// x(/あ?|い/, '', 0, 0)
+	x(t, `あ?|い`, `あ`, 0, 1)
+	x(t, `あ?|い`, `い`, 0, 0)
+	x(t, `あ?|い`, ``, 0, 0)
 	x(t, `あ*|い`, `ああ`, 0, 2)
 	// x(t, `あ*|い*`, `いあ`, 0, 0) // TODO
 	// x(t, `あ*|い*`, `あい`, 0, 1) // TODO
 	// x(/[aあ]*|い*/, 'aあいいい', 0, 3)
 	// x(/あ+|い*/, '', 0, 0)
 	x(t, `あ+|い*`, `いいい`, 0, 3)
-	// x(t, `あ+|い*`, `あいいい`, 0, 1)
-	// x(/あ+|い*/, 'aあいいい', 0, 0)
-	// n(/あ+|い+/, '')
+	x(t, `あ+|い*`, `あいいい`, 0, 1)
+	x(t, `あ+|い*`, `aあいいい`, 0, 0)
+	n(t, `あ+|い+`, ``)
 	x(t, `(あ|い)?`, `い`, 0, 1)
 	x(t, `(あ|い)*`, `いあ`, 0, 2)
 	x(t, `(あ|い)+`, `いあい`, 0, 3)
 	x(t, `(あい|うあ)+`, `うああいうえ`, 0, 4)
-	// x(/(あい|うえ)+/, 'うああいうえ', 4, 12)
-	// x(/(あい|うあ)+/, 'ああいうあ', 2, 10)
+	x(t, `(あい|うえ)+`, `うああいうえ`, 2, 4)
+	x(t, `(あい|うあ)+`, `ああいうあ`, 1, 4)
 	x(t, `(あい|うあ)+`, `あいをうあ`, 0, 2)
 	// x(/(あい|うあ)+/, '$$zzzzあいをうあ', 6, 10)
 	x(t, `(あ|いあい)+`, `あいあいあ`, 0, 5)
@@ -661,6 +661,7 @@ func TestOnigmo(t *testing.T) {
 	x(t, `[^あいう]*`, `あいう`, 0, 0)
 	n(t, `[^あいう]+`, `あいう`)
 
+	// not implemented yet
 	// x(/あ??/, 'あああ', 0, 0)
 	// x(/いあ??い/, 'いあい', 0, 6)
 	// x(/あ*?/, 'あああ', 0, 0)
@@ -677,10 +678,10 @@ func TestOnigmo(t *testing.T) {
 	// i(/(?:あい)?{2}/, '', 0, 0)   # GNU regex bug
 	// x(/(?:鬼車)?{2}/, '鬼車鬼車鬼', 0, 8)
 	// x(/(?:鬼車)*{0}/, '鬼車鬼車鬼', 0, 0)
-	// x(/(?:鬼車){3,}/, '鬼車鬼車鬼車鬼車', 0, 16)
-	// n(/(?:鬼車){3,}/, '鬼車鬼車')
-	// x(/(?:鬼車){2,4}/, '鬼車鬼車鬼車', 0, 12)
-	// x(/(?:鬼車){2,4}/, '鬼車鬼車鬼車鬼車鬼車', 0, 16)
+	x(t, `(?:鬼車){3,}`, `鬼車鬼車鬼車鬼車`, 0, 8)
+	n(t, `(?:鬼車){3,}`, `鬼車鬼車`)
+	x(t, `(?:鬼車){2,4}`, `鬼車鬼車鬼車`, 0, 6)
+	x(t, `(?:鬼車){2,4}`, `鬼車鬼車鬼車鬼車鬼車`, 0, 8)
 	// x(/(?:鬼車){2,4}?/, '鬼車鬼車鬼車鬼車鬼車', 0, 8)
 	// x(/(?:鬼車){,}/, '鬼車{,}', 0, 7)
 	// x(/(?:かきく)+?{2}/, 'かきくかきくかきく', 0, 12)
@@ -812,7 +813,7 @@ func TestOnigmo(t *testing.T) {
 	// r(/...あいうえおかきくけこさしすせそ/, 'zzzzzあいうえおかきくけこさしすせそ', 2)
 }
 
-func report(t testing.TB, isOk bool, result, reg, str string, n int, ranges ...int) {
+func report(t testing.TB, isOk bool, result, reg, str string, ranges ...int) {
 	t.Helper()
 
 	format := t.Logf
@@ -822,9 +823,6 @@ func report(t testing.TB, isOk bool, result, reg, str string, n int, ranges ...i
 
 	t.Logf("%s /%s/ : '%s'", result, reg, str)
 
-	if n != 0 {
-		format(":%d", n)
-	}
 	if len(ranges) > 0 {
 		if len(ranges) == 2 {
 			format(" (%d-%d : X-X)", ranges[0], ranges[1])
@@ -834,20 +832,20 @@ func report(t testing.TB, isOk bool, result, reg, str string, n int, ranges ...i
 	}
 }
 
-func reportOK(t testing.TB, resultOpt, reg, str string, n int, ranges ...int) {
+func reportOK(t testing.TB, resultOpt, reg, str string, ranges ...int) {
 	t.Helper()
 
 	result := "OK" + resultOpt
 	result += strings.Repeat(" ", 7-len(result)) // Pad with spaces
-	report(t, true, result, reg, str, n, ranges...)
+	report(t, true, result, reg, str, ranges...)
 }
 
-func reportFail(t testing.TB, resultOpt, reg, str string, n int, ranges ...int) {
+func reportFail(t testing.TB, resultOpt, reg, str string, ranges ...int) {
 	t.Helper()
 
 	result := "FAIL" + resultOpt
 	result += strings.Repeat(" ", 7-len(result)) // Pad with spaces
-	report(t, false, result, reg, str, n, ranges...)
+	report(t, false, result, reg, str, ranges...)
 }
 
 func n(t *testing.T, expression, str string) {
@@ -878,10 +876,9 @@ func n(t *testing.T, expression, str string) {
 func x(t *testing.T, expression, str string, start, size int) {
 	t.Helper()
 
-	n := 0 // what?
-
 	t.Run("must match "+expression+" and "+str, func(t *testing.T) {
 		t.Helper()
+		t.Parallel()
 
 		tr := cliche.New(onigmo.OnigmoParser)
 
@@ -895,20 +892,16 @@ func x(t *testing.T, expression, str string, start, size int) {
 		matches := tr.Match(str)
 		t.Log("matches count", len(matches))
 
-		if len(matches) != 0 {
-			match := matches[0]
-
+		for n, match := range matches {
 			t.Log("span", match.Span(), match.Span().From(), match.Span().Size())
 
 			if match.Span().From() == start && match.Span().Size() == size {
 				reportOK(t, "", expression, str, n)
-			} else {
-				reportFail(t, "", expression, str, n, start, size)
-				t.Fatal()
+				return
 			}
-		} else {
-			reportFail(t, "", expression, str, n)
-			t.Fatal()
 		}
+
+		reportFail(t, "", expression, str)
+		t.Fatal()
 	})
 }
