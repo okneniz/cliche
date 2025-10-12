@@ -6,17 +6,11 @@ import (
 	c "github.com/okneniz/parsec/common"
 )
 
-type Combinator[T any, P any, S any, E error] func(
-	c.Buffer[T, P],
-) (S, E)
-
-type Parser[S any] Combinator[rune, int, S, Error]
-
-type ParserBuilder[S any] func(except ...rune) Parser[S]
+type ParserBuilder[S any] func(except ...rune) c.Combinator[rune, int, S]
 
 func Const[T any](value T) ParserBuilder[T] {
-	return func(_ ...rune) Parser[T] {
-		return func(_ c.Buffer[rune, int]) (T, Error) {
+	return func(_ ...rune) c.Combinator[rune, int, T] {
+		return func(_ c.Buffer[rune, int]) (T, c.Error[int]) {
 			return value, nil
 		}
 	}
@@ -25,10 +19,10 @@ func Const[T any](value T) ParserBuilder[T] {
 func TableAsClass(
 	makeParser ParserBuilder[node.Table],
 ) ParserBuilder[node.Node] {
-	return func(except ...rune) Parser[node.Node] {
+	return func(except ...rune) c.Combinator[rune, int, node.Node] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (node.Node, Error) {
+		return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
 			table, err := parse(buf)
 			if err != nil {
 				return nil, err
@@ -42,10 +36,10 @@ func TableAsClass(
 func RuneAsTable(
 	makeParser ParserBuilder[rune],
 ) ParserBuilder[node.Table] {
-	return func(except ...rune) Parser[node.Table] {
+	return func(except ...rune) c.Combinator[rune, int, node.Table] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (node.Table, Error) {
+		return func(buf c.Buffer[rune, int]) (node.Table, c.Error[int]) {
 			r, err := parse(buf)
 			if err != nil {
 				return nil, err
@@ -59,10 +53,10 @@ func RuneAsTable(
 func NumberAsRune(
 	makeParser ParserBuilder[int],
 ) ParserBuilder[rune] {
-	return func(except ...rune) Parser[rune] {
+	return func(except ...rune) c.Combinator[rune, int, rune] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (rune, Error) {
+		return func(buf c.Buffer[rune, int]) (rune, c.Error[int]) {
 			x, err := parse(buf)
 			if err != nil {
 				return -1, err

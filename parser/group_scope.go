@@ -6,9 +6,9 @@ import (
 )
 
 type GroupParserBuilder[T any] func(
-	parseAlternation Parser[node.Alternation],
+	parseAlternation c.Combinator[rune, int, node.Alternation],
 	except ...rune,
-) Parser[T]
+) c.Combinator[rune, int, T]
 
 type GroupScope struct {
 	prefixes map[string]GroupParserBuilder[node.Node]
@@ -30,38 +30,25 @@ func (cfg *GroupScope) ParsePrefix(
 }
 
 func (cfg *GroupScope) makeParser(
-	parseAlternation Parser[node.Alternation],
+	parseAlternation c.Combinator[rune, int, node.Alternation],
 	except ...rune,
-) Parser[node.Node] {
-
+) c.Combinator[rune, int, node.Node] {
 	parseScopeByPrefix := makeGroupsParserTree(
 		parseAlternation,
 		cfg.prefixes,
 		except...,
 	)
 
-	parsers := make([]Parser[node.Node], 0, len(cfg.parsers)+1)
-	parsers = append(parsers, parseScopeByPrefix)
+	parsers := make([]c.Combinator[rune, int, node.Node], 0, len(cfg.parsers)+1)
+	parsers = append(parsers, c.Try(parseScopeByPrefix))
 
 	for _, buildParser := range cfg.parsers {
-		f := buildParser(parseAlternation, except...)
-		parsers = append(parsers, f)
+		parser := buildParser(parseAlternation, except...)
+		parsers = append(parsers, c.Try(parser))
 	}
 
-	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
-		pos := buf.Position()
-		errs := make([]Error, 0, len(parsers))
-
-		for _, parse := range parsers {
-			value, valErr := parse(buf)
-			if valErr == nil {
-				return value, nil
-			}
-
-			buf.Seek(pos)
-			errs = append(errs, valErr)
-		}
-
-		return nil, MergeErrors(errs...)
-	}
+	return c.Choice(
+		"expected group",
+		parsers...,
+	)
 }

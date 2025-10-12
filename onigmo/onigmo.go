@@ -191,10 +191,10 @@ var (
 			WithPrefix(`\x`, parseHexCharNode).
 			WithPrefix(`\o`, parseOctalCharNode).
 			WithPrefix(`\u`, parseUnicodeNode).
-			WithPrefix(`\k`, parseNameReference)
+			WithPrefix(`\k`, parseNamedReference)
 
 		cfg.Groups().
-			Parse(parseCondition).
+			Parse(parseCondition). // TODO : parse with prefix ?(
 			Parse(parseGroup).
 			ParsePrefix("?:", parseNotCapturedGroup).
 			ParsePrefix("?<", parseNamedGroup).

@@ -8,9 +8,6 @@ import (
 
 func Unify(start Node) []Node {
 	changed := true
-
-	// fmt.Println("before", start.GetKey())
-
 	roots := []Node{start}
 
 	for changed {
@@ -22,11 +19,8 @@ func Unify(start Node) []Node {
 				key := nested.GetKey()
 
 				newNested, ok := unify(nested)
-				// fmt.Println("unify result", newNested, ok)
 				if ok {
 					changed = true
-
-					// fmt.Println("apply changes")
 
 					delete(parent.GetNestedNodes(), key)
 
@@ -54,17 +48,12 @@ func Unify(start Node) []Node {
 		roots = newRoots
 	}
 
-	// fmt.Println("after", roots[0].GetKey())
-
 	return roots
 }
 
 func traverse(n Node, f func(parent, child Node)) {
 	for _, nested := range n.GetNestedNodes() {
-		// fmt.Println("traverse nested of", n.GetKey())
 		traverse(nested, f)
-
-		// fmt.Println("traverse", n.GetKey())
 		f(n, nested)
 	}
 }

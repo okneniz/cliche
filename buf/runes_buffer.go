@@ -29,7 +29,7 @@ func NewRunesBuffer(str string) *RunesBuffer {
 // only for parsec
 func (b *RunesBuffer) Read(greedy bool) (rune, error) {
 	if b.IsEOF() {
-		return 0, c.EndOfFile
+		return 0, c.ErrEndOfFile
 	}
 
 	x := b.data[b.position]
@@ -53,8 +53,17 @@ func (b *RunesBuffer) String() string {
 }
 
 // Seek - change buffer position
-func (b *RunesBuffer) Seek(x int) {
-	b.position = x
+func (b *RunesBuffer) Seek(index int) error {
+	if index < 0 {
+		return c.ErrOutOfBounds
+	}
+
+	if index > len(b.data) {
+		return c.ErrOutOfBounds
+	}
+
+	b.position = index
+	return nil
 }
 
 // Position - return current buffer position

@@ -12,9 +12,9 @@ import (
 func makeParserTree[T any](
 	cases map[string]ParserBuilder[T],
 	except ...rune,
-) Parser[T] {
+) c.Combinator[rune, int, T] {
 	type branch struct {
-		parser   Parser[T]
+		parser   c.Combinator[rune, int, T]
 		children map[rune]*branch
 	}
 
@@ -50,24 +50,36 @@ func makeParserTree[T any](
 		strings.Join(prefixes, ", "),
 	)
 
-	return func(buf c.Buffer[rune, int]) (T, Error) {
+	return func(buf c.Buffer[rune, int]) (T, c.Error[int]) {
 		current := root.children
 		start := buf.Position()
 
-		var parserWithLongestPrefix Parser[T]
+		var parserWithLongestPrefix c.Combinator[rune, int, T]
 
 		for len(current) > 0 {
 			pos := buf.Position()
 
 			r, err := buf.Read(true)
 			if err != nil {
-				buf.Seek(pos)
+				if seekErr := buf.Seek(pos); seekErr != nil {
+					return null, c.NewParseError(
+						pos,
+						err.Error(),
+					)
+				}
+
 				break
 			}
 
 			next, exists := current[r]
 			if !exists {
-				buf.Seek(pos)
+				if seekErr := buf.Seek(pos); seekErr != nil {
+					return null, c.NewParseError(
+						pos,
+						err.Error(),
+					)
+				}
+
 				break
 			}
 
@@ -82,19 +94,25 @@ func makeParserTree[T any](
 			return parserWithLongestPrefix(buf)
 		}
 
-		return null, Expected(errMessage, start, c.NothingMatched)
+		return null, c.NewParseError(
+			start,
+			errMessage,
+		)
 	}
 }
 
 func makeGroupsParserTree(
-	parseAlternation Parser[node.Alternation],
+	parseAlternation c.Combinator[rune, int, node.Alternation],
 	cases map[string]GroupParserBuilder[node.Node],
 	except ...rune,
-) Parser[node.Node] {
-	parseAny := NoneOf(except...) // to parse prefix rune by rune
+) c.Combinator[rune, int, node.Node] {
+	parseAny := c.NoneOf[rune, int](
+		"expected predefined groups",
+		except...,
+	) // to parse prefix rune by rune
 
 	type branch struct {
-		parser   Parser[node.Node]
+		parser   c.Combinator[rune, int, node.Node]
 		children map[rune]*branch
 	}
 
@@ -128,24 +146,36 @@ func makeGroupsParserTree(
 		strings.Join(prefixes, ", "),
 	)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
+	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
 		current := root.children
 		start := buf.Position()
 
-		var parserWithLongestPrefix Parser[node.Node]
+		var parserWithLongestPrefix c.Combinator[rune, int, node.Node]
 
 		for len(current) > 0 {
 			pos := buf.Position()
 
 			r, err := parseAny(buf)
 			if err != nil {
-				buf.Seek(pos)
+				if seekErr := buf.Seek(pos); seekErr != nil {
+					return nil, c.NewParseError(
+						pos,
+						err.Error(),
+					)
+				}
+
 				break
 			}
 
 			next, exists := current[r]
 			if !exists {
-				buf.Seek(pos)
+				if seekErr := buf.Seek(pos); seekErr != nil {
+					return nil, c.NewParseError(
+						pos,
+						err.Error(),
+					)
+				}
+
 				break
 			}
 
@@ -160,6 +190,9 @@ func makeGroupsParserTree(
 			return parserWithLongestPrefix(buf)
 		}
 
-		return nil, Expected(errMessage, start, c.NothingMatched)
+		return nil, c.NewParseError(
+			start,
+			errMessage,
+		)
 	}
 }

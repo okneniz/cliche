@@ -181,7 +181,6 @@ https://www.regular-expressions.info/conditional.html
 |✅| `(?(n)yes-subexp)` | condition with one branch (n >= 1)|
 |✅| `(?(<cond>)yes-subexp)` | condition with one branch |
 
-
 ### Options
 
 Options change default behaviour.

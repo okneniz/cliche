@@ -42,44 +42,33 @@ func (scope *Scope[T]) StringAsValue(
 func (scope *Scope[T]) StringAsFunc(
 	prefix string, nodeBuilder func() T,
 ) *Scope[T] {
-	return scope.WithPrefix(prefix, func(_ ...rune) Parser[T] {
-		return func(_ c.Buffer[rune, int]) (T, Error) {
+	return scope.WithPrefix(prefix, func(_ ...rune) c.Combinator[rune, int, T] {
+		return func(_ c.Buffer[rune, int]) (T, c.Error[int]) {
 			return nodeBuilder(), nil
 		}
 	},
 	)
 }
 
-func (scope *Scope[T]) makeParser(except ...rune) Parser[T] {
+func (scope *Scope[T]) makeParser(
+	errMessage string,
+	except ...rune,
+) c.Combinator[rune, int, T] {
 	parseByPrefix := makeParserTree(
 		scope.prefixes,
 		except...,
 	)
 
-	parsers := make([]Parser[T], 0, len(scope.parsers)+1)
-	parsers = append(parsers, parseByPrefix)
+	parsers := make([]c.Combinator[rune, int, T], 0, len(scope.parsers)+1)
+	parsers = append(parsers, c.Try(parseByPrefix))
 
 	for _, buildParser := range scope.parsers {
 		parser := buildParser(except...)
-		parsers = append(parsers, parser)
+		parsers = append(parsers, c.Try(parser))
 	}
 
-	return func(buf c.Buffer[rune, int]) (T, Error) {
-		pos := buf.Position()
-		errs := make([]Error, 0, len(parsers))
-
-		for _, parse := range parsers {
-			value, valErr := parse(buf)
-			if valErr == nil {
-				return value, nil
-			}
-
-			buf.Seek(pos)
-
-			errs = append(errs, valErr)
-		}
-
-		var t T
-		return t, MergeErrors(errs...)
-	}
+	return c.Choice(
+		errMessage,
+		parsers...,
+	)
 }

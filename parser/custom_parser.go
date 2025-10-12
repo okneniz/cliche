@@ -10,7 +10,7 @@ import (
 
 type CustomParser struct {
 	config *Config
-	parse  Parser[node.Alternation]
+	parse  c.Combinator[rune, int, node.Alternation]
 }
 
 type Option[T any] func(T)
@@ -48,16 +48,27 @@ func (p *CustomParser) Parse(str string) (node.Alternation, error) {
 
 func (p *CustomParser) makeAlternationParser(
 	except ...rune,
-) Parser[node.Alternation] {
-	parseClass := p.config.class.makeParser()
-	parseNonClass := p.config.nonClass.makeParser(except...)
+) c.Combinator[rune, int, node.Alternation] {
+	parseBar := c.Eq[rune, int]("expected '|' as alternation separator", '|')
+	parseLeftParens := c.Eq[rune, int]("expected left parens as begining of group", '(')
+	parseRightParens := c.Eq[rune, int]("expected right parent as ending of group", ')')
+
+	parseClass := c.Try(p.config.class.makeParser())
+	parseNonClass := c.Try(p.config.nonClass.makeParser(
+		"expected non class item",
+		except...,
+	))
 
 	var (
-		parseGroup Parser[node.Node]
+		parseGroup c.Combinator[rune, int, node.Node]
 	)
 
+	// can't use parsec/common.Choice because parseGroup is var
+	// and not initiated at this moment to pass as function param
 	parseNode := p.makeOptionalQuantifierParser(
-		func(buf c.Buffer[rune, int]) (node.Node, Error) {
+		func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+			start := buf.Position()
+
 			group, groupErr := parseGroup(buf)
 			if groupErr == nil {
 				return group, nil
@@ -73,7 +84,9 @@ func (p *CustomParser) makeAlternationParser(
 				return nonClass, nil
 			}
 
-			return nil, MergeErrors(
+			return nil, c.NewParseError(
+				start,
+				"expected item for alternation",
 				groupErr,
 				classErr,
 				nonClassErr,
@@ -83,48 +96,17 @@ func (p *CustomParser) makeAlternationParser(
 	)
 
 	parseVariant := p.makeChainParser(parseNode)
-	parseSeparator := Eq('|')
 
-	parseVariants := func(
-		buf c.Buffer[rune, int],
-	) ([]node.Node, Error) {
-		pos := buf.Position()
-
-		variant, err := parseVariant(buf)
-		if err != nil {
-			buf.Seek(pos)
-			return nil, err
-		}
-
-		pos = buf.Position()
-
-		list := make([]node.Node, 1)
-		list[0] = variant
-
-		for {
-			_, sepErr := parseSeparator(buf)
-			if sepErr != nil {
-				buf.Seek(pos)
-				break
-			}
-
-			variant, err := parseVariant(buf)
-			if err != nil {
-				buf.Seek(pos)
-				break
-			}
-
-			pos = buf.Position()
-
-			list = append(list, variant)
-		}
-
-		return list, nil
-	}
+	parseVariants := c.SepBy1(
+		1,
+		"expected alternation variant",
+		parseVariant,
+		parseBar,
+	)
 
 	parseAlternation := func(
 		buf c.Buffer[rune, int],
-	) (node.Alternation, Error) {
+	) (node.Alternation, c.Error[int]) {
 		variants, err := parseVariants(buf)
 		if err != nil {
 			return nil, err
@@ -143,82 +125,50 @@ func (p *CustomParser) makeAlternationParser(
 		append(except, ')')...,
 	)
 
-	leftParens := Eq('(')
-	rightParens := Eq(')')
-
-	parseGroup = func(
-		buf c.Buffer[rune, int],
-	) (node.Node, Error) {
-		pos := buf.Position()
-
-		_, leftErr := leftParens(buf)
-		if leftErr != nil {
-			buf.Seek(pos)
-			return nil, leftErr
-		}
-
-		value, gErr := parseGroupValue(buf)
-		if gErr != nil {
-			buf.Seek(pos)
-			return nil, gErr
-		}
-
-		_, rightErr := rightParens(buf)
-		if rightErr != nil {
-			buf.Seek(pos)
-			return nil, rightErr
-		}
-
-		return value, nil
-	}
+	parseGroup = c.Try(
+		c.Between(
+			parseLeftParens,
+			parseGroupValue,
+			parseRightParens,
+		),
+	)
 
 	return parseAlternation
 }
 
 func (p *CustomParser) makeOptionalQuantifierParser(
-	expression Parser[node.Node],
+	parseExpression c.Combinator[rune, int, node.Node],
 	except ...rune,
-) Parser[node.Node] {
-	parseQuantity := p.config.quantity.makeParser(except...)
+) c.Combinator[rune, int, node.Node] {
+	parseQuantity := c.Try(p.config.quantity.makeParser(
+		"expected quantifier",
+		except...,
+	))
 
-	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
-		exp, err := expression(buf)
+	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+		expression, err := parseExpression(buf)
 		if err != nil {
 			return nil, err
 		}
 
 		quantity, qErr := parseQuantity(buf)
 		if qErr != nil {
-			return exp, nil
+			return expression, nil
 		}
 
-		return node.NewQuantifier(quantity, exp), nil
+		return node.NewQuantifier(quantity, expression), nil
 	}
 }
 
-// TODO : move to parsec.Chainl or parser.Chainr ?
-func (p *CustomParser) makeChainParser(parse Parser[node.Node]) Parser[node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, Error) {
-		first, err := parse(buf)
-		if err != nil {
-			return nil, err
-		}
+func (p *CustomParser) makeChainParser(
+	parse c.Combinator[rune, int, node.Node],
+) c.Combinator[rune, int, node.Node] {
+	makeChain := c.Const[rune, int, c.BinaryOp[node.Node]](
+		func(current, next node.Node) node.Node {
+			current.GetNestedNodes()[next.GetKey()] = next
+			return current
+		},
+	)
 
-		last := first
-
-		for !buf.IsEOF() {
-			pos := buf.Position()
-
-			next, err := parse(buf)
-			if err != nil {
-				buf.Seek(pos)
-				break
-			}
-
-			last.GetNestedNodes()[next.GetKey()] = next
-			last = next
-		}
-
-		return first, nil
-	}
+	return c.Chainr1(parse, makeChain)
 }
