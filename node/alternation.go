@@ -16,7 +16,12 @@ func NewAlternation(variants []Node) Alternation {
 
 	for _, variant := range variants {
 		key := ""
-		variant.Traverse(func(x Node) { key += x.GetKey() })
+
+		Traverse(variant, func(x Node) bool {
+			key += x.GetKey()
+			return false
+		})
+
 		// TODO : keep only uniq variants by map
 		uniqVariants = append(uniqVariants, variant)
 		keys = append(keys, key)
@@ -28,10 +33,12 @@ func NewAlternation(variants []Node) Alternation {
 	n.lastNodes = make(map[Node]struct{}, len(uniqVariants))
 
 	for _, variant := range uniqVariants {
-		variant.Traverse(func(x Node) {
+		Traverse(variant, func(x Node) bool {
 			if len(x.GetNestedNodes()) == 0 {
 				n.lastNodes[x] = struct{}{}
 			}
+
+			return false
 		})
 	}
 
@@ -40,14 +47,6 @@ func NewAlternation(variants []Node) Alternation {
 
 func (n *alternation) GetVariants() []Node {
 	return n.variants
-}
-
-func (n *alternation) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.variants {
-		x.Traverse(f)
-	}
 }
 
 // Visit - visit like node

@@ -10,14 +10,6 @@ func NewStartOfLine() Node {
 	}
 }
 
-func (n *startOfLine) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *startOfLine) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := scanner.Position()

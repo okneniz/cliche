@@ -10,14 +10,6 @@ func NewKeep() Node {
 	}
 }
 
-func (n *keep) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *keep) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	pos := scanner.Position()
 

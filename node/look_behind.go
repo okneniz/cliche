@@ -21,14 +21,6 @@ func NewLookBehind(alt Alternation) (Node, error) {
 	}, nil
 }
 
-func (n *lookBehind) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	// TODO : what about anchors?
 	if from < n.subExpressionSize {

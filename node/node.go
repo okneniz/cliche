@@ -14,9 +14,6 @@ type Node interface {
 
 	Visit(Scanner, Input, int, int, Callback)
 
-	// Remove it (GetNestedNodes enough)
-	Traverse(func(Node))
-
 	// TODO : works only for fixed chain with one end node?
 	// don't work for tree?
 
@@ -117,4 +114,14 @@ type Output interface {
 
 	LastPosOf(n Node) (int, bool)
 	String() string
+}
+
+func Traverse(n Node, f func(Node) bool) {
+	if stop := f(n); stop {
+		return
+	}
+
+	for _, nestedNode := range n.GetNestedNodes() {
+		Traverse(nestedNode, f)
+	}
 }

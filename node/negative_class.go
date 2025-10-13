@@ -16,14 +16,6 @@ func NewNegativeClass(table Table) Node {
 	}
 }
 
-func (n *negativeClass) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *negativeClass) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return

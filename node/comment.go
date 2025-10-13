@@ -12,14 +12,6 @@ func NewComment(text string) Node {
 	}
 }
 
-func (n *comment) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *comment) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	pos := scanner.Position()
 

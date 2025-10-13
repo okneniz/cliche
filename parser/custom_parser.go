@@ -37,10 +37,12 @@ func (p *CustomParser) Parse(str string) (node.Alternation, error) {
 		return nil, err
 	}
 
-	alt.Traverse(func(x node.Node) {
+	node.Traverse(alt, func(x node.Node) bool {
 		if len(x.GetNestedNodes()) == 0 {
 			x.AddExpression(str)
 		}
+
+		return false
 	})
 
 	return alt, nil

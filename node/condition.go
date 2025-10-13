@@ -25,10 +25,12 @@ func NewPredicate(key string, f func(scanner Scanner) bool) *Predicate {
 func NewGuard(cond *Predicate, yes Node) Node {
 	lastNodes := make(map[Node]struct{}, 1)
 
-	yes.Traverse(func(x Node) {
+	Traverse(yes, func(x Node) bool {
 		if len(x.GetNestedNodes()) == 0 {
 			lastNodes[x] = struct{}{}
 		}
+
+		return false
 	})
 
 	return &condition{
@@ -48,16 +50,20 @@ func NewGuard(cond *Predicate, yes Node) Node {
 func NewCondition(cond *Predicate, yes Node, no Node) Node {
 	lastNodes := make(map[Node]struct{}, 1)
 
-	yes.Traverse(func(x Node) {
+	Traverse(yes, func(x Node) bool {
 		if len(x.GetNestedNodes()) == 0 {
 			lastNodes[x] = struct{}{}
 		}
+
+		return false
 	})
 
-	no.Traverse(func(x Node) {
+	Traverse(no, func(x Node) bool {
 		if len(x.GetNestedNodes()) == 0 {
 			lastNodes[x] = struct{}{}
 		}
+
+		return false
 	})
 
 	return &condition{
@@ -73,14 +79,6 @@ func NewCondition(cond *Predicate, yes Node, no Node) Node {
 			),
 		),
 		lastNodes: lastNodes,
-	}
-}
-
-func (n *condition) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
 	}
 }
 

@@ -54,14 +54,6 @@ func NewOptionsSwitcher(enable []ScanOption, disable []ScanOption) Node {
 	}
 }
 
-func (n *optionsSwitcher) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *optionsSwitcher) Visit(
 	scanner Scanner,
 	input Input,

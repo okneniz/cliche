@@ -14,14 +14,6 @@ func NewWordBoundary() Node {
 	}
 }
 
-func (n *wordBoundary) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 // https://www.regular-expressions.info/wordboundaries.html
 //
 // Before the first character in the string, if the first character is a word character.

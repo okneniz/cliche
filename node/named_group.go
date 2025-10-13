@@ -24,14 +24,6 @@ func (n *namedGroup) GetValue() Node {
 	return n.value
 }
 
-func (n *namedGroup) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	n.value.VisitAlternation(
 		scanner,

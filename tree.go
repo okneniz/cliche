@@ -78,8 +78,9 @@ func (t *tree) Size() int {
 	size := 0
 
 	for _, x := range t.nodes {
-		x.Traverse(func(_ node.Node) {
+		node.Traverse(x, func(n node.Node) bool {
 			size++
+			return false
 		})
 	}
 

@@ -14,14 +14,6 @@ func NewNonWordBoundary() Node {
 	}
 }
 
-func (n *nonWordBoundary) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *nonWordBoundary) Visit(
 	scanner Scanner,
 	input Input,

@@ -16,14 +16,6 @@ func NewForNameReference(name string) Node {
 	}
 }
 
-func (n *nameReferenceNode) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from >= input.Size() {
 		return

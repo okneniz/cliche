@@ -10,14 +10,6 @@ func NewStartOfString() Node {
 	}
 }
 
-func (n *startOfString) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *startOfString) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from != 0 {
 		return

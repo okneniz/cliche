@@ -93,10 +93,12 @@ func simplifyAlternation(alt *alternation) ([]Node, bool) {
 		variant := alt.variants[0]
 
 		if alt.IsLeaf() {
-			variant.Traverse(func(x Node) {
+			Traverse(variant, func(x Node) bool {
 				if len(x.GetNestedNodes()) == 0 { // add to leaf
 					moveExpressions(alt, x)
 				}
+
+				return false
 			})
 		}
 

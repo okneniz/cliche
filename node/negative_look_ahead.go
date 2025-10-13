@@ -20,14 +20,6 @@ func (n *negativeLookAhead) GetValue() Node {
 	return n.value
 }
 
-func (n *negativeLookAhead) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	matched := false
 	pos := scanner.Position()

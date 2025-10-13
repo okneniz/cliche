@@ -21,14 +21,6 @@ func NewNegativeLookBehind(alt Alternation) (Node, error) {
 	}, nil
 }
 
-func (n *negativeLookBehind) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	// TODO : what about anchors?
 	pos := scanner.Position()

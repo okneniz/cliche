@@ -22,14 +22,6 @@ func NewQuantifier(q *quantity.Quantity, value Node) Node {
 	return n
 }
 
-func (n *quantifier) Traverse(f func(Node)) {
-	f(n)
-
-	for _, x := range n.nested {
-		x.Traverse(f)
-	}
-}
-
 func (n *quantifier) GetValue() Node {
 	return n.value
 }
