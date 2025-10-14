@@ -30,14 +30,14 @@ Cliche unify expression by few methods.
 
 Character classes stored as [range table](https://pkg.go.dev/unicode#RangeTable).
 All expression bellow the same and have them same one node in tree:
-- [a-z1-2]
-- [1-2a-z]
-- [12a-z]
-- [1a-z2]
-- [1-2[a-z]]
-- [[1-2][a-z]]
-- [12[a-z]]
-- [12a[b-z]]
+- `[a-z1-2]`
+- `[1-2a-z]`
+- `[12a-z]`
+- `[1a-z2]`
+- `[1-2[a-z]]`
+- `[[1-2][a-z]]`
+- `[12[a-z]]`
+- `[12a[b-z]]`
 
 Single characted stored as character class too.
 
@@ -61,7 +61,7 @@ go get github.com/okneniz/cliche
 
 ## Quick start
 
-```
+```golang
 package main
 
 import (
