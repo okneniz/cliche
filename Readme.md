@@ -11,9 +11,9 @@ Regular expressions engine for batch processing.
 
 Main features:
 
-- store expressions in trie like data structure and match few expression by one comparison
-- bring several expressions into a unified form
-- custom expression parsing
+- [store expressions in trie like data structure and match few expressions by one comparison](https://github.com/okneniz/cliche/tree/master?tab=readme-ov-file#trie-like-data-structure)
+- [bring several expressions into a unified form](https://github.com/okneniz/cliche/tree/master?tab=readme-ov-file#compaction--unification)
+- [custom expression parsing](https://github.com/okneniz/cliche/tree/master?tab=readme-ov-file#parsin-and-predefined-engines)
 
 ## Trie like data structure
 
@@ -39,9 +39,9 @@ All expression bellow the same and have them same one node in tree:
 - `[12[a-z]]`
 - `[12a[b-z]]`
 
-Single characted stored as character class too.
+Single character stored as character class too.
 
-Quantificators unified tooЖ
+Quantificators unified too:
 
 - `x+` equal `x{1,}`
 - `x*` equal `x{0,}`
@@ -52,6 +52,8 @@ Comments removed in simple cases.
 For example `x` equal `(?#123)x` and stored the same.
 
 This way scanning few explessions sometimes is equal to scan one.
+
+You can see more examples [here](https://github.com/okneniz/cliche/blob/master/compaction_test.go).
 
 ## Installation
 
@@ -131,7 +133,7 @@ match 0
 
 [GoDoc documentation](https://pkg.go.dev/github.com/okneniz/cliche).
 
-## Compabilities
+## Parsing and predefined engines
 
 Cliche have default compabilities common for most regular expressions engine.
 You can configure your own or copy behaviour of exists engine. 
