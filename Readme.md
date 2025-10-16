@@ -11,9 +11,9 @@ Regular expressions engine for batch processing.
 
 Main features:
 
-- [store expressions in trie like data structure and match few expressions by one comparison](https://github.com/okneniz/cliche/tree/master?tab=readme-ov-file#trie-like-data-structure)
-- [bring several expressions into a unified form](https://github.com/okneniz/cliche/tree/master?tab=readme-ov-file#compaction--unification)
-- [custom expression parsing](https://github.com/okneniz/cliche/tree/master?tab=readme-ov-file#parsin-and-predefined-engines)
+- [store expressions in trie like data structure and match few expressions by one comparison](#trie-like-data-structure)
+- [bring several expressions into a unified form](#compaction--unification)
+- [custom expression parsing](#parsing-and-predefined-engines)
 
 ## Trie like data structure
 
@@ -51,7 +51,7 @@ Comments removed in simple cases.
 
 For example `x` equal `(?#123)x` and stored the same.
 
-This way scanning few explessions sometimes is equal to scan one.
+This way scanning few expressions sometimes is equal to scan one.
 
 You can see more examples [here](https://github.com/okneniz/cliche/blob/master/compaction_test.go).
 
@@ -77,7 +77,7 @@ func main() {
 
 	tree.Add(
 		"a[0123-9]+",
-		"a[0123-9]{1,}",
+		"a[01-5[67-9]]{1,}",
 	)
 
 	fmt.Println("tree:")
@@ -111,7 +111,7 @@ tree:
     "type": "*node.quantifier",
     "expressions": [
      "a[0123-9]+",
-     "a[0123-9]{1,}"
+     "a[01-5[67-9]]{1,}"
     ],
     "value": {
      "key": "[R16(48-57)]",
@@ -122,11 +122,12 @@ tree:
  }
 ]
 
-scan text:
-match 0
-	text: Text with a1, b, c32.
-	bounds: [10-11]
-	regexps: [a[0123-9]+ a[0123-9]{1,}]
+scan text: Text with a1, b, c32.
+text: a1
+bounds: [10-11]
+regexps:
+	a[01-5[67-9]]{1,}
+	a[0123-9]+
 ```
 
 ## Documentation
