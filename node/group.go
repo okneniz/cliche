@@ -34,7 +34,8 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 			scanner.Match(n, from, vTo, n.IsLeaf(), empty)
 			onMatch(n, from, vTo, empty)
 
-			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
+			nextFrom := nextFor(vTo, empty)
+			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
 
 			scanner.Rewind(pos)
 			scanner.RewindGroups(groupsPos)

@@ -33,7 +33,10 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		pos := scanner.Position()
 		scanner.Match(n, from, mTo, n.IsLeaf(), empty)
 		onMatch(n, from, mTo, empty)
-		n.base.VisitNested(scanner, input, mTo+1, to, onMatch)
+
+		nextFrom := nextFor(mTo, empty)
+		n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
+
 		scanner.Rewind(pos)
 	})
 

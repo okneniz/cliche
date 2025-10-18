@@ -384,14 +384,18 @@ func parseGroup(
 			return nil, err
 		}
 
+		// TODO : move it to unify function
+		//
+		// (?i:foo) -> (?i)(?:foo)(?-i)
+
+		beforeSwitcher := node.NewOptionsSwitcher(enable, disable)
 		group := node.NewGroup(alt)
+		afterSwitcher := node.NewOptionsSwitcher(disable, enable)
 
-		// TODO : move it to alterer
-		switcher := node.NewOptionsSwitcher(enable, disable)
-		switcher.GetNestedNodes()[group.GetKey()] = group
-		// TODO : add opposite switcher after?
+		beforeSwitcher.GetNestedNodes()[group.GetKey()] = group
+		group.GetNestedNodes()[afterSwitcher.GetKey()] = afterSwitcher
 
-		return switcher, nil
+		return beforeSwitcher, nil
 	})
 
 	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {

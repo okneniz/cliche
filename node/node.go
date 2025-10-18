@@ -125,3 +125,11 @@ func Traverse(n Node, f func(Node) bool) {
 		Traverse(nestedNode, f)
 	}
 }
+
+func nextFor(pos int, empty bool) int {
+	if empty {
+		return pos
+	}
+
+	return pos + 1
+}

@@ -70,9 +70,14 @@ func (n *optionsSwitcher) Visit(
 		scanner.OptionsDisable(opt)
 	}
 
+	pos := scanner.Position()
+
+	scanner.Match(n, from, from, n.IsLeaf(), true)
+	onMatch(n, from, from, true)
 	n.base.VisitNested(scanner, input, from, to, onMatch)
 
 	scanner.RewindOptions(optsPos)
+	scanner.Rewind(pos)
 }
 
 func (n *optionsSwitcher) Size() (int, bool) {

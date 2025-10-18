@@ -51,6 +51,9 @@ Comments removed in simple cases.
 
 For example `x` equal `(?#123)x` and stored the same.
 
+Group optiona unified too:
+- `(?i:foo)` (?i)(?:foo)`
+
 This way scanning few expressions sometimes is equal to scan one.
 
 You can see more examples [here](https://github.com/okneniz/cliche/blob/master/compaction_test.go).

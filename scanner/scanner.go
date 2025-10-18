@@ -132,6 +132,7 @@ func (s *FullScanner) Position() int {
 }
 
 func (s *FullScanner) Rewind(pos int) {
+	//fmt.Println("rewind", pos)
 	s.expression.Truncate(pos)
 }
 
@@ -171,6 +172,8 @@ func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {
 	s.expression.Append(x)
 	// fmt.Println("scanner match", fmt.Sprintf("%T", n), n.GetKey(), from, to, n.GetExpressions().Slice())
 	// fmt.Println("output", s.output.String())
+	// fmt.Println("expressions", s.expression.Slice())
+	// fmt.Println("groups", s.groups)
 	if !leaf {
 		return
 	}

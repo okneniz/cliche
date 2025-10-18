@@ -33,7 +33,9 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onM
 
 			scanner.Match(n, from, vTo, n.IsLeaf(), empty)
 			onMatch(n, from, vTo, empty)
-			n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
+
+			nextFrom := nextFor(vTo, empty)
+			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
 
 			scanner.Rewind(pos)
 			return false

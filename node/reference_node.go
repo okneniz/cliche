@@ -70,6 +70,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 			current++
 		}
 
+		// TODO : why -1 ? looks strange
 		scanner.Match(n, from, current-1, n.IsLeaf(), false)
 		onMatch(n, from, current-1, false)
 

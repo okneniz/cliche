@@ -41,11 +41,8 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, onMatch 
 			// throws away all backtracking positions
 			scanner.RewindGroups(groupsPos)
 
-			if empty {
-				n.base.VisitNested(scanner, input, vTo, to, onMatch)
-			} else {
-				n.base.VisitNested(scanner, input, vTo+1, to, onMatch)
-			}
+			nextFrom := nextFor(vTo, empty)
+			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
 
 			return true // stop on first variant
 		},

@@ -65,11 +65,7 @@ func (n *alternation) Visit(
 			scanner.Match(n, from, vTo, n.IsLeaf(), empty)
 			onMatch(n, from, vTo, empty)
 
-			nextFrom := vTo
-			if !empty {
-				nextFrom++
-			}
-
+			nextFrom := nextFor(vTo, empty)
 			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
 			return false
 		},
