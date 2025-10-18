@@ -40,6 +40,13 @@ All expression bellow the same and have them same one node in tree:
 - `[12a[b-z]]`
 
 Single character stored as character class too.
+All expression bellow the same and have them same one node in tree:
+
+- `a`
+- `[a]`
+- `[aaaa]`
+- `[a-a]`
+- `[a-aa]`
 
 Quantificators unified too:
 
@@ -51,12 +58,14 @@ Comments removed in simple cases.
 
 For example `x` equal `(?#123)x` and stored the same.
 
-Group optiona unified too:
-- `(?i:foo)` (?i)(?:foo)`
+Group options unified too:
 
-This way scanning few expressions sometimes is equal to scan one.
+- `(?i:y)` eqaul `(?i)(?:y)(?-i)`
 
 You can see more examples [here](https://github.com/okneniz/cliche/blob/master/compaction_test.go).
+
+Result of unification - reusing one path or branch by more than one expressions.
+Scanner can match multiple expressions at once.
 
 ## Installation
 

@@ -33,6 +33,7 @@ func TestTreeCompaction(t *testing.T) {
 			"[bca]",
 		},
 		{
+			"a",
 			"[a]",
 			"[aaaa]",
 			"[a-a]",
@@ -66,6 +67,9 @@ func TestTreeCompaction(t *testing.T) {
 		}, {
 			"x",
 			"(?#123)x",
+		}, {
+			"(?i:y)",
+			"(?i)(y)(?-i)",
 		},
 	}
 
@@ -83,12 +87,19 @@ func TestTreeCompaction(t *testing.T) {
 			tr := New(DefaultParser)
 			require.Equal(t, tr.Size(), 0)
 
-			err := tr.Add(example...)
+			require.Greater(t, len(example), 1)
+
+			err := tr.Add(example[0])
 			require.NoError(t, err)
+
+			before := tr.Size()
+			err = tr.Add(example...)
+			require.NoError(t, err)
+			after := tr.Size()
 
 			t.Log(tr.String())
 
-			require.Equal(t, tr.Size(), 1)
+			require.Equal(t, before, after, "tree has the same size")
 		})
 	}
 }
