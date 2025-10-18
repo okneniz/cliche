@@ -88,8 +88,7 @@ func TestTree_New(t *testing.T) {
 }
 
 func TestTree_Match(t *testing.T) {
-	// TODO : enable parallel
-	// t.Parallel()
+	t.Parallel()
 
 	files, err := tableTests.LoadAllTestFiles(t, "./testdata/base/")
 	if err != nil {
@@ -100,13 +99,13 @@ func TestTree_Match(t *testing.T) {
 		testFile := file
 
 		t.Run(testFile.Name, func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 
 			for _, ts := range testFile.Tests {
 				test := ts
 
 				t.Run(test.Name, func(t *testing.T) {
-					// t.Parallel()
+					t.Parallel()
 					t.Logf("input: '%s'", test.Input)
 
 					tr := New(DefaultParser)

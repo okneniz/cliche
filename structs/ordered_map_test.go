@@ -9,6 +9,8 @@ import (
 )
 
 func TestOrderedMap_Get(t *testing.T) {
+	t.Parallel()
+
 	type pair struct {
 		key   string
 		value int
@@ -181,6 +183,8 @@ func TestOrderedMap_Get(t *testing.T) {
 		test := example
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			m := NewOrderedMap[string, int](0)
 
 			t.Logf("test: %v", test)
@@ -201,6 +205,8 @@ func TestOrderedMap_Get(t *testing.T) {
 }
 
 func TestOrderedMap_Put(t *testing.T) {
+	t.Parallel()
+
 	type pair struct {
 		key   string
 		value int
@@ -343,6 +349,7 @@ func TestOrderedMap_Put(t *testing.T) {
 		test := example
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			t.Logf("test: %v", test)
 
 			m := NewOrderedMap[string, int](0)
@@ -362,6 +369,8 @@ func TestOrderedMap_Put(t *testing.T) {
 }
 
 func TestOrderedMap_Size(t *testing.T) {
+	t.Parallel()
+
 	type pair struct {
 		key   string
 		value int
@@ -485,6 +494,8 @@ func TestOrderedMap_Size(t *testing.T) {
 		test := example
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			m := NewOrderedMap[string, int](0)
 
 			for _, pair := range test.input {
@@ -501,6 +512,8 @@ func TestOrderedMap_Size(t *testing.T) {
 }
 
 func TestOrderedMap_Empty(t *testing.T) {
+	t.Parallel()
+
 	type pair struct {
 		key   string
 		value int
@@ -624,6 +637,8 @@ func TestOrderedMap_Empty(t *testing.T) {
 		test := example
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			m := NewOrderedMap[string, int](0)
 
 			for _, pair := range test.input {

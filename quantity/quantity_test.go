@@ -177,6 +177,8 @@ func TestQuantity_Include(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
 			result := test.q.Include(test.input)
 
 			t.Log("input", test.input)

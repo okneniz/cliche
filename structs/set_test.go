@@ -7,6 +7,8 @@ import (
 )
 
 func TestSet_Add(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		init   []string
 		add    []string
@@ -46,6 +48,8 @@ func TestSet_Add(t *testing.T) {
 }
 
 func TestSet_Size(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		init []string
 		add  []string
@@ -84,6 +88,8 @@ func TestSet_Size(t *testing.T) {
 }
 
 func TestSet_AddTo(t *testing.T) {
+	t.Parallel()
+
 	type state struct {
 		first  []string
 		second []string
@@ -172,6 +178,8 @@ func TestSet_AddTo(t *testing.T) {
 }
 
 func TestSet_Clone(t *testing.T) {
+	t.Parallel()
+
 	examples := [][]string{
 		{},
 		{"1"},

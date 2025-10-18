@@ -8,6 +8,8 @@ import (
 )
 
 func Test_Get(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		span Interface
 		skip []Interface
@@ -43,6 +45,8 @@ func Test_Get(t *testing.T) {
 		name := fmt.Sprintf("case %d", i)
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			t.Log("span", test.span)
 			t.Log("skip", test.skip)
 

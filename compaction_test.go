@@ -78,6 +78,8 @@ func TestTreeCompaction(t *testing.T) {
 		)
 
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
 			tr := New(DefaultParser)
 			require.Equal(t, tr.Size(), 0)
 

@@ -8,6 +8,8 @@ import (
 )
 
 func TestTruncatedList_Append(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		init   []int
 		append []int
@@ -41,6 +43,8 @@ func TestTruncatedList_Append(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			t.Parallel()
+
 			list := NewTruncatedList[int](0)
 			list.Append(test.init...)
 
@@ -51,6 +55,8 @@ func TestTruncatedList_Append(t *testing.T) {
 }
 
 func TestTruncatedList_At(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		list   []int
 		index  int
@@ -95,6 +101,8 @@ func TestTruncatedList_At(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			t.Parallel()
+
 			list := NewTruncatedList[int](0)
 			list.Append(test.list...)
 
@@ -106,6 +114,8 @@ func TestTruncatedList_At(t *testing.T) {
 }
 
 func TestTruncatedList_Truncate(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		init     []int
 		truncate int
@@ -184,6 +194,8 @@ func TestTruncatedList_Truncate(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			t.Parallel()
+
 			list := NewTruncatedList[int](0)
 			list.Append(test.init...)
 
@@ -196,6 +208,8 @@ func TestTruncatedList_Truncate(t *testing.T) {
 }
 
 func TestTruncatedList_Size(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		list []int
 		size int
@@ -220,6 +234,8 @@ func TestTruncatedList_Size(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			t.Parallel()
+
 			list := NewTruncatedList[int](0)
 			list.Append(test.list...)
 			require.Equal(t, list.Size(), test.size)
@@ -228,6 +244,8 @@ func TestTruncatedList_Size(t *testing.T) {
 }
 
 func TestTruncatedList_First(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		list   []int
 		exists bool
@@ -256,6 +274,8 @@ func TestTruncatedList_First(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			t.Parallel()
+
 			list := NewTruncatedList[int](0)
 			list.Append(test.list...)
 
@@ -267,6 +287,8 @@ func TestTruncatedList_First(t *testing.T) {
 }
 
 func TestTruncatedList_Last(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		list   []int
 		exists bool
@@ -295,6 +317,8 @@ func TestTruncatedList_Last(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			t.Parallel()
+
 			list := NewTruncatedList[int](0)
 			list.Append(test.list...)
 
@@ -306,6 +330,8 @@ func TestTruncatedList_Last(t *testing.T) {
 }
 
 func TestTruncatedList_Slice(t *testing.T) {
+	t.Parallel()
+
 	type example struct {
 		list []int
 		want []int
@@ -330,6 +356,8 @@ func TestTruncatedList_Slice(t *testing.T) {
 		test := example
 
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			t.Parallel()
+
 			list := NewTruncatedList[int](0)
 			require.Equal(t, list.Slice(), []int{})
 			list.Append(test.list...)
