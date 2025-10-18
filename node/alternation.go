@@ -14,6 +14,8 @@ func NewAlternation(variants []Node) Alternation {
 	keys := make([]string, 0, len(variants))
 	uniqVariants := make([]Node, 0, len(variants))
 
+	c := make(map[string]struct{}, len(variants))
+
 	for _, variant := range variants {
 		key := ""
 
@@ -22,7 +24,11 @@ func NewAlternation(variants []Node) Alternation {
 			return false
 		})
 
-		// TODO : keep only uniq variants by map
+		if _, exists := c[key]; exists {
+			continue
+		}
+
+		c[key] = struct{}{}
 		uniqVariants = append(uniqVariants, variant)
 		keys = append(keys, key)
 	}

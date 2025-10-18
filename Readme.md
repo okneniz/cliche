@@ -62,10 +62,19 @@ Group options unified too:
 
 - `(?i:y)` eqaul `(?i)(?:y)(?-i)`
 
+Non-unique variants within an alternation are removed from it.
+All expression bellow the same and have them same one node in tree:
+
+- `(a|b|c)`
+- `(a|b|c|c)`
+- `(a|b|b|c)`
+- `(a|a|b|c)`
+
 You can see more examples [here](https://github.com/okneniz/cliche/blob/master/compaction_test.go).
 
 Result of unification - reusing one path or branch by more than one expressions.
 Scanner can match multiple expressions at once.
+Of course unification not change behaviour of tree or scanner results.
 
 ## Installation
 
