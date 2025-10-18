@@ -69,6 +69,8 @@ All expression bellow the same and have them same one node in tree:
 - `(a|b|c|c)`
 - `(a|b|b|c)`
 - `(a|a|b|c)`
+- `(a|[a]|b|c)`
+- `(a|[a]|[b]|[c])`
 
 You can see more examples [here](https://github.com/okneniz/cliche/blob/master/compaction_test.go).
 
