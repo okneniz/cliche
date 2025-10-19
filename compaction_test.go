@@ -71,6 +71,9 @@ func TestTreeCompaction(t *testing.T) {
 			"(?i:y)",
 			"(?i)(y)(?-i)",
 		}, {
+			"(?i-m:test)",
+			"(?i-m)(test)(?m-i)",
+		}, {
 			"(a|b|c)",
 			"(a|b|c|c)",
 			"(a|b|b|c)",

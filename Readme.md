@@ -29,7 +29,7 @@ which is beneficial when scanning text.
 Cliche unify expression by few methods.
 
 Character classes stored as [range table](https://pkg.go.dev/unicode#RangeTable).
-All expression bellow the same and have them same one node in tree:
+All expression bellow the same and have the same node in tree:
 - `[a-z1-2]`
 - `[1-2a-z]`
 - `[12a-z]`
@@ -40,7 +40,7 @@ All expression bellow the same and have them same one node in tree:
 - `[12a[b-z]]`
 
 Single character stored as character class too.
-All expression bellow the same and have them same one node in tree:
+All expression bellow the same and have them same node in tree:
 
 - `a`
 - `[a]`
@@ -58,12 +58,14 @@ Comments removed in simple cases.
 
 For example `x` equal `(?#123)x` and stored the same.
 
-Group options unified too:
+Group options unified too.
+All expression bellow the same and have them same topology in tree:
 
 - `(?i:y)` eqaul `(?i)(?:y)(?-i)`
+- `(?i-m:test)` equal `(?i-m)(test)(?m-i)`
 
 Non-unique variants within an alternation are removed from it.
-All expression bellow the same and have them same one node in tree:
+All expression bellow the same and have them same node in tree:
 
 - `(a|b|c)`
 - `(a|b|c|c)`
