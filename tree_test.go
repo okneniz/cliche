@@ -2,6 +2,7 @@ package cliche
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 	"testing"
 
@@ -89,6 +90,87 @@ func TestTree_Match(t *testing.T) {
 					}
 				})
 			}
+		})
+	}
+}
+
+func TestTree_MatchErrors(t *testing.T) {
+	t.Parallel()
+
+	type test struct {
+		expression string
+		error      string
+	}
+
+	tests := []test{
+		{
+			expression: "[]",
+			error:      "empty char-class: /[]/",
+		},
+		{
+			expression: "[b-C]",
+			error:      "empty char-class: /[b-C]/",
+		},
+		{
+			expression: "(?i:[b-C])",
+			error:      "empty char-class: /(?i:[b-C])/",
+		},
+		{
+			expression: "a|[]",
+			error:      "empty char-class: /a|[]/",
+		},
+		{
+			expression: "(a|[])",
+			error:      "empty char-class: /(a|[])/",
+		},
+		{
+			expression: "a|[9-8]",
+			error:      "empty char-class: /a|[9-8]/",
+		},
+		{
+			expression: "(a|[9-8])",
+			error:      "empty char-class: /(a|[9-8])/",
+		},
+		{
+			expression: "[^]",
+			error:      "empty char-class: /[^]/",
+		},
+		{
+			expression: "[^b-C]",
+			error:      "empty char-class: /[^b-C]/",
+		},
+		{
+			expression: "(?i:[^b-C])",
+			error:      "empty char-class: /(?i:[^b-C])/",
+		},
+		{
+			expression: "a|[^]",
+			error:      "empty char-class: /a|[^]/",
+		},
+		{
+			expression: "(a|[^])",
+			error:      "empty char-class: /(a|[^])/",
+		},
+		{
+			expression: "a|[^9-8]",
+			error:      "empty char-class: /a|[^9-8]/",
+		},
+		{
+			expression: "(a|[^9-8])",
+			error:      "empty char-class: /(a|[^9-8])/",
+		},
+	}
+
+	for i, tt := range tests {
+		test := tt
+		name := fmt.Sprintf("%d_%s_%s", i, tt.expression, tt.error)
+
+		t.Run(name, func(t *testing.T) {
+			tr := New(DefaultParser)
+			err := tr.Add(test.expression)
+			t.Logf("tree: %s", tr)
+			require.Error(t, err)
+			require.Equal(t, test.error, err.Error())
 		})
 	}
 }

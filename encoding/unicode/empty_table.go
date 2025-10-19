@@ -26,6 +26,10 @@ func (t emptyTable) Invert() node.Table {
 	return NewTable(runes...)
 }
 
+func (t emptyTable) Empty() bool {
+	return true
+}
+
 func (t emptyTable) String() string {
 	return "[]"
 }

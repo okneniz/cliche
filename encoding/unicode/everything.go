@@ -16,6 +16,10 @@ func (t everythingTable) Invert() node.Table {
 	return empty
 }
 
+func (t everythingTable) Empty() bool {
+	return false
+}
+
 func (t everythingTable) String() string {
 	return "[ALL]"
 }

@@ -60,6 +60,7 @@ type AlternationCallback func(x Node, from int, to int, empty bool) (stop bool)
 type Table interface {
 	Include(rune) bool
 	Invert() Table
+	Empty() bool
 	String() string
 }
 

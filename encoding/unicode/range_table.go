@@ -34,6 +34,10 @@ func (t *rangeTable) Invert() node.Table {
 	return NewTable(runes...)
 }
 
+func (t *rangeTable) Empty() bool {
+	return len(t.tbl.R16) == 0 && len(t.tbl.R32) == 0
+}
+
 func (t *rangeTable) String() string {
 	b := new(strings.Builder)
 

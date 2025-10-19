@@ -27,6 +27,10 @@ func (t runeTable) Invert() node.Table {
 	return NewTable(runes...)
 }
 
+func (t runeTable) Empty() bool {
+	return false
+}
+
 func (t runeTable) String() string {
 	return fmt.Sprintf("[%d]", t.r)
 }

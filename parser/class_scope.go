@@ -118,11 +118,7 @@ func (scope *ClassScope) makeTableParser() c.Combinator[rune, int, node.Table] {
 		)
 	}
 
-	parseSequenceOfTables := c.Try(c.Some(
-		10,
-		"expected at least one character class item",
-		c.Try(parseTable),
-	))
+	parseSequenceOfTables := c.Try(c.Many(0, c.Try(parseTable)))
 
 	parseClass = c.Cast(
 		parseSequenceOfTables,
@@ -235,23 +231,23 @@ func (scope *ClassScope) makeRangeOrCharParser(
 			return unicode.NewTable(from), nil
 		}
 
-		if from > to {
-			if seekErr := buf.Seek(pos); seekErr != nil {
-				return nil, c.NewParseError(
-					buf.Position(),
-					seekErr.Error(),
-				)
-			}
+		// if from > to {
+		// 	if seekErr := buf.Seek(pos); seekErr != nil {
+		// 		return nil, c.NewParseError(
+		// 			buf.Position(),
+		// 			seekErr.Error(),
+		// 		)
+		// 	}
 
-			// TODO : validate tree after?
-			validationErr := c.NewParseError(pos, "invalid bounds of range")
+		// 	// TODO : validate tree after?
+		// 	validationErr := c.NewParseError(pos, "invalid bounds of range")
 
-			return nil, c.NewParseError(
-				pos,
-				errMessage,
-				validationErr,
-			)
-		}
+		// 	return nil, c.NewParseError(
+		// 		pos,
+		// 		errMessage,
+		// 		validationErr,
+		// 	)
+		// }
 
 		return unicode.NewTableByPredicate(func(x rune) bool {
 			return from <= x && x <= to

@@ -53,6 +53,10 @@ func (t *tree) Add(expressions ...string) error {
 			return err
 		}
 
+		if err := node.Validate(expression, raw); err != nil {
+			return err
+		}
+
 		for _, newNode := range node.Unify(raw) {
 			key := newNode.GetKey()
 
