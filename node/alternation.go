@@ -70,8 +70,7 @@ func (n *alternation) Visit(
 func (n *alternation) VisitAlternation(
 	scanner Scanner,
 	input Input,
-	from,
-	to int,
+	from, to int,
 	onMatch AlternationCallback,
 ) {
 	pos := scanner.Position()
