@@ -68,7 +68,7 @@ func (n *alternation) Visit(
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) bool {
-			scanner.Match(n, from, vTo, n.IsLeaf(), empty)
+			scanner.Match(n, from, vTo, empty)
 			onMatch(n, from, vTo, empty)
 
 			nextFrom := nextFor(vTo, empty)

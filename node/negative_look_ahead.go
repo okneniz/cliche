@@ -39,7 +39,7 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 	scanner.Rewind(pos)
 
 	if !matched {
-		scanner.Match(n, from, from, n.IsLeaf(), true)
+		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 	}

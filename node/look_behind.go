@@ -37,7 +37,7 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		func(_ Node, vFrom, vTo int, empty bool) bool {
 			scanner.Rewind(pos)
 
-			scanner.Match(n, from, from, n.IsLeaf(), true)
+			scanner.Match(n, from, from, true)
 			onMatch(n, from, from, true)
 			n.base.VisitNested(scanner, input, from, to, onMatch)
 

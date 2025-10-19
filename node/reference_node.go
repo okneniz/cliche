@@ -34,7 +34,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 	pos := scanner.Position()
 
 	if !exists || matchSpan.Empty() {
-		scanner.Match(n, from, from, n.IsLeaf(), true)
+		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 
@@ -71,7 +71,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 		}
 
 		// TODO : why -1 ? looks strange
-		scanner.Match(n, from, current-1, n.IsLeaf(), false)
+		scanner.Match(n, from, current-1, false)
 		onMatch(n, from, current-1, false)
 
 		n.base.VisitNested(scanner, input, current, to, onMatch)

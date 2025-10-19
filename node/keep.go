@@ -22,7 +22,7 @@ func (n *keep) Visit(scanner Scanner, input Input, from, to int, onMatch Callbac
 	holesPos := scanner.HolesPosition()
 
 	scanner.MarkAsHole(0, from-1)
-	scanner.Match(n, from, from, n.IsLeaf(), true)
+	scanner.Match(n, from, from, true)
 	onMatch(n, from, from, true)
 
 	n.base.VisitNested(scanner, input, from, to, onMatch)

@@ -35,7 +35,7 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			scanner.Rewind(pos)
 			scanner.MarkAsHole(vFrom, vTo)
 
-			scanner.Match(n, vFrom, vTo, n.IsLeaf(), true)
+			scanner.Match(n, vFrom, vTo, true)
 			onMatch(n, vFrom, vTo, true)
 			scanner.RewindHoles(holesPos)
 

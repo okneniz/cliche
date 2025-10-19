@@ -160,7 +160,7 @@ func (s *FullScanner) Scan(from, to int) {
 	}
 }
 
-func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {
+func (s *FullScanner) Match(n node.Node, from, to int, empty bool) {
 	x := nodeMatch{node: n}
 
 	if empty {
@@ -174,7 +174,7 @@ func (s *FullScanner) Match(n node.Node, from, to int, leaf, empty bool) {
 	// fmt.Println("output", s.output.String())
 	// fmt.Println("expressions", s.expression.Slice())
 	// fmt.Println("groups", s.groups)
-	if !leaf {
+	if !n.IsLeaf() {
 		return
 	}
 

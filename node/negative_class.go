@@ -33,7 +33,7 @@ func (n *negativeClass) Visit(scanner Scanner, input Input, from, to int, onMatc
 	if !matched {
 		pos := scanner.Position()
 
-		scanner.Match(n, from, from, n.IsLeaf(), false)
+		scanner.Match(n, from, from, false)
 		onMatch(n, from, from, false)
 		n.base.VisitNested(scanner, input, from+1, to, onMatch)
 

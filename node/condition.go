@@ -93,7 +93,7 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			to,
 			func(x Node, f, t int, empty bool) {
 				if _, exists := n.lastNodes[x]; exists {
-					scanner.Match(n, f, t, n.IsLeaf(), empty)
+					scanner.Match(n, f, t, empty)
 					onMatch(n, f, t, empty)
 				}
 			},
@@ -106,7 +106,7 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			to,
 			func(x Node, f, t int, empty bool) {
 				if _, exists := n.lastNodes[x]; exists {
-					scanner.Match(n, f, t, n.IsLeaf(), empty)
+					scanner.Match(n, f, t, empty)
 					onMatch(n, f, t, empty) // TODO : or onMatch(x, f, t, empty)?
 				}
 			},

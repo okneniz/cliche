@@ -26,7 +26,7 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 	pos := scanner.Position()
 
 	if from < n.subExpressionSize {
-		scanner.Match(n, from, from, n.IsLeaf(), true)
+		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 		scanner.Rewind(pos)
@@ -51,7 +51,7 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 
 	if !matched {
 		scanner.Rewind(pos)
-		scanner.Match(n, from, from, n.IsLeaf(), true)
+		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 	}
