@@ -30,8 +30,8 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 		from,
 		to,
 		func(_ Node, vFrom, vTo int, empty bool) bool {
-			matched = true
 			scanner.Rewind(pos)
+			matched = true
 			return true
 		},
 	)

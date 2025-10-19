@@ -23,7 +23,7 @@ type Tree interface {
 }
 
 type Parser interface {
-	// Parse - parse regular expression znd return node.Alternation as base type for it
+	// Parse - parse regular expression and return node.Alternation as base type for it
 	Parse(string) (node.Alternation, error)
 }
 

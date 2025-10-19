@@ -50,7 +50,6 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 	scanner.Rewind(pos)
 
 	if !matched {
-		scanner.Rewind(pos)
 		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
