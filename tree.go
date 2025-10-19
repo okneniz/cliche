@@ -12,14 +12,18 @@ import (
 )
 
 type Tree interface {
+	// Add - add regular expressions to tree
 	Add(...string) error
+	// Size - return count of nodes in tree
 	Size() int
-	MarshalJSON() ([]byte, error)
+	// String - dump tree to string
 	String() string
+	// Match - scan text and return matches
 	Match(text string, options ...node.ScanOption) []*scanner.Match
 }
 
 type Parser interface {
+	// Parse - parse regular expression znd return node.Alternation as base type for it
 	Parse(string) (node.Alternation, error)
 }
 
@@ -32,6 +36,7 @@ type tree struct {
 	parser Parser
 }
 
+// New - return Tree
 func New(parser Parser) Tree {
 	tr := new(tree)
 	tr.nodes = make(map[string]node.Node)
@@ -40,6 +45,7 @@ func New(parser Parser) Tree {
 	return tr
 }
 
+// Add - add regular expressions to tree
 func (t *tree) Add(expressions ...string) error {
 	for _, expression := range expressions {
 		raw, err := t.parser.Parse(expression)
@@ -74,6 +80,7 @@ func (t *tree) merge(oldNode, newNode node.Node) {
 	newNode.GetExpressions().AddTo(oldNode.GetExpressions())
 }
 
+// Size - return count of nodes in tree
 func (t *tree) Size() int {
 	size := 0
 
@@ -87,6 +94,7 @@ func (t *tree) Size() int {
 	return size
 }
 
+// Match - scan text and return matches
 func (t *tree) Match(text string, options ...node.ScanOption) []*scanner.Match {
 	input := buf.NewRunesBuffer(text)
 	output := scanner.NewOutput()
@@ -97,7 +105,7 @@ func (t *tree) Match(text string, options ...node.ScanOption) []*scanner.Match {
 	return output.Slice()
 }
 
-func (t *tree) MarshalJSON() ([]byte, error) {
+func (t *tree) marshalJSON() ([]byte, error) {
 	data := bytes.NewBuffer(nil)
 
 	encoder := json.NewEncoder(data)
@@ -113,8 +121,9 @@ func (t *tree) MarshalJSON() ([]byte, error) {
 	return data.Bytes(), nil
 }
 
+// String - dump tree to string
 func (t *tree) String() string {
-	data, err := t.MarshalJSON()
+	data, err := t.marshalJSON()
 	if err != nil {
 		return err.Error()
 	}
