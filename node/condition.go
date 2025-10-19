@@ -7,7 +7,6 @@ type condition struct {
 	yes  Node
 	no   Node
 	*base
-	lastNodes map[Node]struct{}
 }
 
 type Predicate struct {
@@ -23,16 +22,6 @@ func NewPredicate(key string, f func(scanner Scanner) bool) *Predicate {
 }
 
 func NewGuard(cond *Predicate, yes Node) Node {
-	lastNodes := make(map[Node]struct{}, 1)
-
-	Traverse(yes, func(x Node) bool {
-		if len(x.GetNestedNodes()) == 0 {
-			lastNodes[x] = struct{}{}
-		}
-
-		return false
-	})
-
 	return &condition{
 		cond: cond,
 		yes:  yes,
@@ -43,29 +32,10 @@ func NewGuard(cond *Predicate, yes Node) Node {
 				yes.GetKey(),
 			),
 		),
-		lastNodes: lastNodes,
 	}
 }
 
 func NewCondition(cond *Predicate, yes Node, no Node) Node {
-	lastNodes := make(map[Node]struct{}, 1)
-
-	Traverse(yes, func(x Node) bool {
-		if len(x.GetNestedNodes()) == 0 {
-			lastNodes[x] = struct{}{}
-		}
-
-		return false
-	})
-
-	Traverse(no, func(x Node) bool {
-		if len(x.GetNestedNodes()) == 0 {
-			lastNodes[x] = struct{}{}
-		}
-
-		return false
-	})
-
 	return &condition{
 		cond: cond,
 		yes:  yes,
@@ -78,7 +48,6 @@ func NewCondition(cond *Predicate, yes Node, no Node) Node {
 				no.GetKey(),
 			),
 		),
-		lastNodes: lastNodes,
 	}
 }
 
@@ -92,7 +61,7 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			from,
 			to,
 			func(x Node, f, t int, empty bool) {
-				if _, exists := n.lastNodes[x]; exists {
+				if len(x.GetNestedNodes()) == 0 {
 					scanner.Match(n, f, t, empty)
 					onMatch(n, f, t, empty)
 				}
@@ -105,9 +74,9 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			from,
 			to,
 			func(x Node, f, t int, empty bool) {
-				if _, exists := n.lastNodes[x]; exists {
+				if len(x.GetNestedNodes()) == 0 {
 					scanner.Match(n, f, t, empty)
-					onMatch(n, f, t, empty) // TODO : or onMatch(x, f, t, empty)?
+					onMatch(n, f, t, empty)
 				}
 			},
 		)

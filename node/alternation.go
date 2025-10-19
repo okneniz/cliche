@@ -5,8 +5,7 @@ import (
 )
 
 type alternation struct {
-	variants  []Node
-	lastNodes map[Node]struct{}
+	variants []Node
 	*base
 }
 
@@ -36,17 +35,6 @@ func NewAlternation(variants []Node) Alternation {
 	n := new(alternation)
 	n.base = newBase("alternation<" + strings.Join(keys, "|") + ">")
 	n.variants = uniqVariants
-	n.lastNodes = make(map[Node]struct{}, len(uniqVariants))
-
-	for _, variant := range uniqVariants {
-		Traverse(variant, func(x Node) bool {
-			if len(x.GetNestedNodes()) == 0 {
-				n.lastNodes[x] = struct{}{}
-			}
-
-			return false
-		})
-	}
 
 	return n
 }
@@ -97,7 +85,7 @@ func (n *alternation) VisitAlternation(
 			from,
 			to,
 			func(x Node, vFrom, vTo int, empty bool) {
-				if _, exists := n.lastNodes[x]; exists {
+				if len(x.GetNestedNodes()) == 0 {
 					vPos := scanner.Position()
 					stop = onMatch(variant, vFrom, vTo, empty)
 					scanner.Rewind(vPos)
