@@ -15,10 +15,8 @@ func NewComment(text string) Node {
 func (n *comment) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	pos := scanner.Position()
 
-	scanner.Match(n, from, from, true)
 	onMatch(n, from, from, true)
 	n.base.VisitNested(scanner, input, from, to, onMatch)
-
 	scanner.Rewind(pos)
 }
 

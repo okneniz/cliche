@@ -62,7 +62,6 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			to,
 			func(x Node, f, t int, empty bool) {
 				if len(x.GetNestedNodes()) == 0 {
-					scanner.Match(n, f, t, empty)
 					onMatch(n, f, t, empty)
 				}
 			},
@@ -75,7 +74,6 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			to,
 			func(x Node, f, t int, empty bool) {
 				if len(x.GetNestedNodes()) == 0 {
-					scanner.Match(n, f, t, empty)
 					onMatch(n, f, t, empty)
 				}
 			},

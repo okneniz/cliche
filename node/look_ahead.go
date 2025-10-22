@@ -31,11 +31,10 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 		input,
 		from,
 		to,
-		func(_ Node, vFrom, vTo int, _ bool) bool {
+		func(variant Node, vFrom, vTo int, _ bool) bool {
 			scanner.Rewind(pos)
-			scanner.MarkAsHole(vFrom, vTo)
 
-			scanner.Match(n, vFrom, vTo, true)
+			scanner.MarkAsHole(vFrom, vTo)
 			onMatch(n, vFrom, vTo, true)
 			scanner.RewindHoles(holesPos)
 

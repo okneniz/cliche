@@ -35,7 +35,6 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, onMatch C
 			groupsPos := scanner.NamedGroupsPosition()
 
 			scanner.MatchNamedGroup(n.name, from, vTo)
-			scanner.Match(n, from, vTo, empty)
 			onMatch(n, from, vTo, empty)
 
 			nextFrom := nextFor(vTo, empty)

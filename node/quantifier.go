@@ -1,6 +1,8 @@
 package node
 
-import "github.com/okneniz/cliche/quantity"
+import (
+	"github.com/okneniz/cliche/quantity"
+)
 
 // https://www.regular-expressions.info/repeat.html
 
@@ -29,14 +31,11 @@ func (n *quantifier) GetValue() Node {
 func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	start := scanner.Position()
 
-	n.recursiveVisit(1, scanner, input, from, to, func(_ Node, _, mTo int, empty bool) {
+	n.recursiveVisit(1, scanner, input, from, to, func(value Node, mFrom, mTo int, empty bool) {
 		pos := scanner.Position()
-		scanner.Match(n, from, mTo, empty)
 		onMatch(n, from, mTo, empty)
-
 		nextFrom := nextFor(mTo, empty)
 		n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
-
 		scanner.Rewind(pos)
 	})
 
@@ -44,7 +43,6 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.quantity.Optional() {
-		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 		scanner.Rewind(start)

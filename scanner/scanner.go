@@ -132,20 +132,23 @@ func (s *FullScanner) Position() int {
 }
 
 func (s *FullScanner) Rewind(pos int) {
-	//fmt.Println("rewind", pos)
+	// fmt.Println("rewind", pos)
 	s.expression.Truncate(pos)
 }
 
 func (s *FullScanner) Scan(from, to int) {
-	skip := func(_ node.Node, _, _ int, _ bool) {}
-
-	// TODO : rewrite to traverse
 	for _, root := range s.roots {
 		nextFrom := from
 
 		for nextFrom <= to {
 			lastFrom := nextFrom
-			root.Visit(s, s.input, nextFrom, to, skip)
+			root.Visit(s, s.input, nextFrom, to, func(n node.Node, from, to int, empty bool) {
+				// fmt.Println("before", s)
+				// fmt.Println("scanner match", fmt.Sprintf("%T", n), n.GetKey(), from, to, empty, n.GetExpressions().Slice())
+				s.Match(n, from, to, empty)
+				// fmt.Println("after", s)
+				// fmt.Println("")
+			})
 
 			if pos, ok := s.output.LastPosOf(root); ok && pos >= nextFrom {
 				nextFrom = pos
@@ -170,10 +173,6 @@ func (s *FullScanner) Match(n node.Node, from, to int, empty bool) {
 	}
 
 	s.expression.Append(x)
-	// fmt.Println("scanner match", fmt.Sprintf("%T", n), n.GetKey(), from, to, n.GetExpressions().Slice())
-	// fmt.Println("output", s.output.String())
-	// fmt.Println("expressions", s.expression.Slice())
-	// fmt.Println("groups", s.groups)
 	if !n.IsLeaf() {
 		return
 	}

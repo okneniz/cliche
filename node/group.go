@@ -26,12 +26,11 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 		input,
 		from,
 		to,
-		func(x Node, vFrom, vTo int, empty bool) bool {
+		func(variant Node, vFrom, vTo int, empty bool) bool {
 			pos := scanner.Position()
 			groupsPos := scanner.GroupsPosition()
 
 			scanner.MatchGroup(from, vTo)
-			scanner.Match(n, from, vTo, empty)
 			onMatch(n, from, vTo, empty)
 
 			nextFrom := nextFor(vTo, empty)

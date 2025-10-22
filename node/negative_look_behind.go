@@ -26,7 +26,6 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 	pos := scanner.Position()
 
 	if from < n.subExpressionSize {
-		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 		scanner.Rewind(pos)
@@ -50,12 +49,10 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, o
 	scanner.Rewind(pos)
 
 	if !matched {
-		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
+		scanner.Rewind(pos)
 	}
-
-	scanner.Rewind(pos)
 }
 
 func (n *negativeLookBehind) Size() (int, bool) {

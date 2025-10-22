@@ -65,7 +65,6 @@ type Table interface {
 }
 
 type Scanner interface {
-	Match(n Node, from, to int, isEmpty bool)
 	Position() int
 	Rewind(pos int)
 

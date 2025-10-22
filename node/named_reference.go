@@ -32,7 +32,6 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, on
 	pos := scanner.Position()
 
 	if !exists || matchSpan.Empty() {
-		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 
@@ -61,7 +60,7 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, on
 		// TODO : what about empty matches?
 		empty := false // current == from
 
-		scanner.Match(n, from, current-1, empty)
+		// TODO : why -1 , looks strange
 		onMatch(n, from, current-1, empty)
 
 		n.base.VisitNested(scanner, input, current, to, onMatch)

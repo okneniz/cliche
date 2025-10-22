@@ -29,8 +29,7 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 		input,
 		from,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) bool {
-			scanner.Rewind(pos)
+		func(_ Node, _, _ int, _ bool) bool {
 			matched = true
 			return true
 		},
@@ -39,12 +38,10 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, on
 	scanner.Rewind(pos)
 
 	if !matched {
-		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
+		scanner.Rewind(pos)
 	}
-
-	scanner.Rewind(pos)
 }
 
 func (n *negativeLookAhead) Size() (int, bool) {

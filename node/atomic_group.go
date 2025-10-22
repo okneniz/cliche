@@ -35,7 +35,6 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, onMatch 
 		from,
 		to,
 		func(variant Node, vFrom, vTo int, empty bool) bool {
-			scanner.Match(n, from, vTo, empty)
 			onMatch(n, from, vTo, empty)
 
 			// throws away all backtracking positions

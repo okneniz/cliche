@@ -72,7 +72,6 @@ func (n *optionsSwitcher) Visit(
 
 	pos := scanner.Position()
 
-	scanner.Match(n, from, from, true)
 	onMatch(n, from, from, true)
 	n.base.VisitNested(scanner, input, from, to, onMatch)
 

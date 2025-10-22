@@ -31,7 +31,6 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, from, to int, onM
 		func(_ Node, vFrom, vTo int, empty bool) bool {
 			pos := scanner.Position()
 
-			scanner.Match(n, from, vTo, empty)
 			onMatch(n, from, vTo, empty)
 
 			nextFrom := nextFor(vTo, empty)

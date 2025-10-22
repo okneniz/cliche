@@ -13,7 +13,6 @@ func NewEndOfString() Node {
 func (n *endOfString) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
 	if from == input.Size() {
 		pos := scanner.Position()
-		scanner.Match(n, from, from, true)
 		onMatch(n, from, from, true)
 		n.base.VisitNested(scanner, input, from, to, onMatch)
 		scanner.Rewind(pos)
