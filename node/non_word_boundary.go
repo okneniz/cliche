@@ -18,15 +18,15 @@ func (n *nonWordBoundary) Visit(
 	scanner Scanner,
 	input Input,
 	from, to int,
-	onMatch Callback,
+	match Callback,
 ) {
 	isWordBoundary := (!n.isWord(input, from-1) && n.isWord(input, from)) ||
 		(n.isWord(input, from-1) && !n.isWord(input, from))
 
 	if !isWordBoundary {
 		pos := scanner.Position()
-		onMatch(n, from, from, true)
-		n.base.VisitNested(scanner, input, from, to, onMatch)
+		match(n, from, from, true)
+		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}
 }

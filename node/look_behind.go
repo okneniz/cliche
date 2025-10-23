@@ -21,7 +21,7 @@ func NewLookBehind(alt Alternation) (Node, error) {
 	}, nil
 }
 
-func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	// TODO : what about anchors?
 	if from < n.subExpressionSize {
 		return
@@ -37,8 +37,8 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, onMatch C
 		func(_ Node, vFrom, vTo int, empty bool) bool {
 			scanner.Rewind(pos)
 
-			onMatch(n, from, from, true)
-			n.base.VisitNested(scanner, input, from, to, onMatch)
+			match(n, from, from, true)
+			n.base.VisitNested(scanner, input, from, to, match)
 
 			scanner.Rewind(pos)
 

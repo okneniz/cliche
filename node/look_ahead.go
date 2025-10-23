@@ -22,7 +22,7 @@ func (n *lookAhead) GetValue() Node {
 	return n.value
 }
 
-func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	pos := scanner.Position()
 	holesPos := scanner.HolesPosition()
 
@@ -35,10 +35,10 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			scanner.Rewind(pos)
 
 			scanner.MarkAsHole(vFrom, vTo)
-			onMatch(n, vFrom, vTo, true)
+			match(n, vFrom, vTo, true)
 			scanner.RewindHoles(holesPos)
 
-			n.base.VisitNested(scanner, input, from, to, onMatch)
+			n.base.VisitNested(scanner, input, from, to, match)
 			scanner.Rewind(pos)
 			return false
 		},

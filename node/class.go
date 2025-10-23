@@ -16,7 +16,7 @@ func NewClass(table Table) Node {
 	}
 }
 
-func (n *class) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *class) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -32,8 +32,8 @@ func (n *class) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 
 	if matched {
 		pos := scanner.Position()
-		onMatch(n, from, from, false)
-		n.base.VisitNested(scanner, input, from+1, to, onMatch)
+		match(n, from, from, false)
+		n.base.VisitNested(scanner, input, from+1, to, match)
 		scanner.Rewind(pos)
 	}
 }

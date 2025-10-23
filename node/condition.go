@@ -51,7 +51,7 @@ func NewCondition(cond *Predicate, yes Node, no Node) Node {
 	}
 }
 
-func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *condition) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	pos := scanner.Position()
 
 	if n.cond.fun(scanner) {
@@ -62,7 +62,7 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			to,
 			func(x Node, f, t int, empty bool) {
 				if len(x.GetNestedNodes()) == 0 {
-					onMatch(n, f, t, empty)
+					match(n, f, t, empty)
 				}
 			},
 		)
@@ -74,7 +74,7 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, onMatch Ca
 			to,
 			func(x Node, f, t int, empty bool) {
 				if len(x.GetNestedNodes()) == 0 {
-					onMatch(n, f, t, empty)
+					match(n, f, t, empty)
 				}
 			},
 		)

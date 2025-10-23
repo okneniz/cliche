@@ -16,7 +16,7 @@ func NewNegativeClass(table Table) Node {
 	}
 }
 
-func (n *negativeClass) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *negativeClass) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -33,8 +33,8 @@ func (n *negativeClass) Visit(scanner Scanner, input Input, from, to int, onMatc
 	if !matched {
 		pos := scanner.Position()
 
-		onMatch(n, from, from, false)
-		n.base.VisitNested(scanner, input, from+1, to, onMatch)
+		match(n, from, from, false)
+		n.base.VisitNested(scanner, input, from+1, to, match)
 
 		scanner.Rewind(pos)
 	}

@@ -25,7 +25,7 @@ func (n *atomicGroup) GetValue() Node {
 	return n.value
 }
 
-func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	pos := scanner.Position()
 	groupsPos := scanner.GroupsPosition()
 
@@ -35,13 +35,13 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, onMatch 
 		from,
 		to,
 		func(variant Node, vFrom, vTo int, empty bool) bool {
-			onMatch(n, from, vTo, empty)
+			match(n, from, vTo, empty)
 
 			// throws away all backtracking positions
 			scanner.RewindGroups(groupsPos)
 
 			nextFrom := nextFor(vTo, empty)
-			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
+			n.base.VisitNested(scanner, input, nextFrom, to, match)
 
 			return true // stop on first variant
 		},

@@ -42,10 +42,10 @@ func (n *base) VisitNested(
 	scanner Scanner,
 	input Input,
 	from, to int,
-	onMatch Callback,
+	match Callback,
 ) {
 	for _, nested := range n.nested {
-		nested.Visit(scanner, input, from, to, onMatch)
+		nested.Visit(scanner, input, from, to, match)
 	}
 }
 

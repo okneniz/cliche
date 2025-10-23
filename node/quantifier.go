@@ -28,14 +28,14 @@ func (n *quantifier) GetValue() Node {
 	return n.value
 }
 
-func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	start := scanner.Position()
 
 	n.recursiveVisit(1, scanner, input, from, to, func(value Node, mFrom, mTo int, empty bool) {
 		pos := scanner.Position()
-		onMatch(n, from, mTo, empty)
+		match(n, from, mTo, empty)
 		nextFrom := nextFor(mTo, empty)
-		n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
+		n.base.VisitNested(scanner, input, nextFrom, to, match)
 		scanner.Rewind(pos)
 	})
 
@@ -43,8 +43,8 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, onMatch C
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.quantity.Optional() {
-		onMatch(n, from, from, true)
-		n.base.VisitNested(scanner, input, from, to, onMatch)
+		match(n, from, from, true)
+		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(start)
 	}
 }
@@ -55,16 +55,16 @@ func (n *quantifier) recursiveVisit(
 	scanner Scanner,
 	input Input,
 	from, to int,
-	onMatch Callback,
+	match Callback,
 ) {
 	// TODO : maybe return n, ignore match?
-	n.value.Visit(scanner, input, from, to, func(match Node, mFrom, mTo int, empty bool) {
+	n.value.Visit(scanner, input, from, to, func(m Node, mFrom, mTo int, empty bool) {
 		if n.quantity.Gt(count) {
 			if n.quantity.Include(count) {
-				onMatch(match, mFrom, mTo, empty)
+				match(m, mFrom, mTo, empty)
 			}
 
-			n.recursiveVisit(count+1, scanner, input, mTo+1, to, onMatch)
+			n.recursiveVisit(count+1, scanner, input, mTo+1, to, match)
 		}
 	})
 }

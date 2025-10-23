@@ -48,7 +48,7 @@ func (n *alternation) Visit(
 	scanner Scanner,
 	input Input,
 	from, to int,
-	onMatch Callback,
+	match Callback,
 ) {
 	n.VisitAlternation(
 		scanner,
@@ -56,9 +56,9 @@ func (n *alternation) Visit(
 		from,
 		to,
 		func(v Node, vFrom, vTo int, empty bool) bool {
-			onMatch(n, from, vTo, empty)
+			match(n, from, vTo, empty)
 			nextFrom := nextFor(vTo, empty)
-			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
+			n.base.VisitNested(scanner, input, nextFrom, to, match)
 			return false
 		},
 	)
@@ -69,7 +69,7 @@ func (n *alternation) VisitAlternation(
 	scanner Scanner,
 	input Input,
 	from, to int,
-	onMatch AlternationCallback,
+	match AlternationCallback,
 ) {
 	pos := scanner.Position()
 
@@ -89,13 +89,11 @@ func (n *alternation) VisitAlternation(
 					emptVariant = false
 				}
 
-				// TODO : move it from function
-
 				if len(x.GetNestedNodes()) == 0 {
 					if emptVariant {
-						stop = stop || onMatch(variant, from, from, true)
+						stop = stop || match(variant, from, from, true)
 					} else {
-						stop = stop || onMatch(variant, from, lastNotEmptyTo, false)
+						stop = stop || match(variant, from, lastNotEmptyTo, false)
 					}
 				}
 			},

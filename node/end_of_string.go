@@ -10,11 +10,11 @@ func NewEndOfString() Node {
 	}
 }
 
-func (n *endOfString) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *endOfString) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	if from == input.Size() {
 		pos := scanner.Position()
-		onMatch(n, from, from, true)
-		n.base.VisitNested(scanner, input, from, to, onMatch)
+		match(n, from, from, true)
+		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}
 }

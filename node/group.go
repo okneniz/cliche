@@ -20,7 +20,7 @@ func (n *group) GetValue() Node {
 	return n.value
 }
 
-func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *group) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	n.value.VisitAlternation(
 		scanner,
 		input,
@@ -31,10 +31,10 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, onMatch Callba
 			groupsPos := scanner.GroupsPosition()
 
 			scanner.MatchGroup(from, vTo)
-			onMatch(n, from, vTo, empty)
+			match(n, from, vTo, empty)
 
 			nextFrom := nextFor(vTo, empty)
-			n.base.VisitNested(scanner, input, nextFrom, to, onMatch)
+			n.base.VisitNested(scanner, input, nextFrom, to, match)
 
 			scanner.Rewind(pos)
 			scanner.RewindGroups(groupsPos)

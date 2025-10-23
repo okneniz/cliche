@@ -18,7 +18,7 @@ func NodeForReference(index int) Node {
 	}
 }
 
-func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	if from >= input.Size() {
 		return
 	}
@@ -34,8 +34,8 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 	pos := scanner.Position()
 
 	if !exists || matchSpan.Empty() {
-		onMatch(n, from, from, true)
-		n.base.VisitNested(scanner, input, from, to, onMatch)
+		match(n, from, from, true)
+		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	} else {
 		// TODO : what about empty matches?
@@ -69,8 +69,8 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, onMatc
 		}
 
 		// TODO : why -1 ? looks strange
-		onMatch(n, from, current-1, false)
-		n.base.VisitNested(scanner, input, current, to, onMatch)
+		match(n, from, current-1, false)
+		n.base.VisitNested(scanner, input, current, to, match)
 		scanner.Rewind(pos)
 	}
 }

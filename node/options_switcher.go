@@ -58,7 +58,7 @@ func (n *optionsSwitcher) Visit(
 	scanner Scanner,
 	input Input,
 	from, to int,
-	onMatch Callback,
+	match Callback,
 ) {
 	optsPos := scanner.OptionsPosition()
 
@@ -72,8 +72,8 @@ func (n *optionsSwitcher) Visit(
 
 	pos := scanner.Position()
 
-	onMatch(n, from, from, true)
-	n.base.VisitNested(scanner, input, from, to, onMatch)
+	match(n, from, from, true)
+	n.base.VisitNested(scanner, input, from, to, match)
 
 	scanner.RewindOptions(optsPos)
 	scanner.Rewind(pos)

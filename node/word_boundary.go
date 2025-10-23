@@ -20,15 +20,15 @@ func NewWordBoundary() Node {
 // After the last character in the string, if the last character is a word character.
 // Between two characters in the string, where one is a word character and the other is not a word character.
 
-func (n *wordBoundary) Visit(scanner Scanner, input Input, from, to int, onMatch Callback) {
+func (n *wordBoundary) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	isWordBoundary := (!n.isWord(input, from-1) && n.isWord(input, from)) ||
 		(n.isWord(input, from-1) && !n.isWord(input, from))
 
 	if isWordBoundary {
 		pos := scanner.Position()
 
-		onMatch(n, from, to, true)
-		n.base.VisitNested(scanner, input, from, to, onMatch)
+		match(n, from, to, true)
+		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}
 }

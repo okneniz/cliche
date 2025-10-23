@@ -43,7 +43,7 @@ type Alternation interface {
 		scanner Scanner,
 		input Input,
 		from, to int,
-		onMatch AlternationCallback,
+		match AlternationCallback,
 	)
 
 	CopyAlternation() Alternation
