@@ -691,33 +691,13 @@ func parseCondition(
 		)
 	}
 
-	parseLeftParens := c.Eq[rune, int](
-		"expected '(' as begining of condition",
-		'(',
-	)
-
 	parseRightParens := c.Eq[rune, int](
 		"expected ')' as ending of condition",
 		')',
 	)
 
-	parsePrefix := c.Eq[rune, int](
-		"expected '?' as begining of condition",
-		'?',
-	)
-
 	return c.Try(func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
 		pos := buf.Position()
-
-		_, err := parsePrefix(buf)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = parseLeftParens(buf)
-		if err != nil {
-			return nil, err
-		}
 
 		cond, err := parseReference(buf)
 		if err != nil {

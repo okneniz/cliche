@@ -194,8 +194,8 @@ var (
 			WithPrefix(`\k`, parseNamedReference)
 
 		cfg.Groups().
-			Parse(parseCondition). // TODO : parse with prefix ?(
 			Parse(parseGroup).
+			ParsePrefix("?(", parseCondition).
 			ParsePrefix("?:", parseNotCapturedGroup).
 			ParsePrefix("?<", parseNamedGroup).
 			ParsePrefix("?>", parseAtomicGroup).
