@@ -1,0 +1,109 @@
+{
+  "Name": "escaped spec symbols",
+  "Tests": [
+    {
+      "Name": "escaped spec symbols",
+      "Expressions": [
+        "\\.",
+        "\\?",
+        "\\+",
+        "\\*",
+        "\\^",
+        "\\$",
+        "\\[",
+        "\\|"
+      ],
+      "Input": ". ? + * ^ $ [ ] { } |",
+      "Want": [
+        {
+          "SubString": ".",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\."
+          ]
+        },
+        {
+          "SubString": "?",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\?"
+          ]
+        },
+        {
+          "SubString": "+",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\+"
+          ]
+        },
+        {
+          "SubString": "*",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\*"
+          ]
+        },
+        {
+          "SubString": "^",
+          "Span": {
+            "From": 8,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\^"
+          ]
+        },
+        {
+          "SubString": "$",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\$"
+          ]
+        },
+        {
+          "SubString": "[",
+          "Span": {
+            "From": 12,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\["
+          ]
+        },
+        {
+          "SubString": "|",
+          "Span": {
+            "From": 20,
+            "To": 20,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\|"
+          ]
+        }
+      ]
+    }
+  ]
+}

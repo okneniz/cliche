@@ -8,85 +8,113 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/okneniz/cliche/onigmo"
+	"github.com/okneniz/cliche/re2"
 	tableTests "github.com/okneniz/cliche/testing"
 )
 
 func TestTree_Match(t *testing.T) {
 	t.Parallel()
 
-	files, err := tableTests.LoadAllTestFiles(t, "./testdata/base/")
-	if err != nil {
-		t.Fatal(err)
+	type test struct {
+		name   string
+		path   string
+		parser Parser
 	}
 
-	for _, file := range files {
-		testFile := file
+	tests := []test{
+		{
+			name:   "onigmo",
+			path:   "./testdata/onigmo/",
+			parser: onigmo.Parser,
+		},
+		{
+			name:   "re2",
+			path:   "./testdata/re2/",
+			parser: re2.Parser,
+		},
+	}
 
-		t.Run(testFile.Name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
-			for _, ts := range testFile.Tests {
-				test := ts
+			files, err := tableTests.LoadAllTestFiles(t, test.path)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-				t.Run(test.Name, func(t *testing.T) {
+			for _, file := range files {
+				testFile := file
+
+				t.Run(testFile.Name, func(t *testing.T) {
 					t.Parallel()
-					t.Logf("input: '%s'", test.Input)
 
-					tr := New(DefaultParser)
-					err := tr.Add(test.Expressions...)
-					require.NoError(t, err)
+					for i, x := range testFile.Tests {
+						example := x
+						name := fmt.Sprintf("%d_%s", i, example.Name)
 
-					t.Logf("tree: %s", tr)
+						t.Run(name, func(t *testing.T) {
+							t.Parallel()
+							t.Logf("input: '%s'", example.Input)
 
-					options, err := tableTests.ToScanOptions(test.Options...)
-					require.NoError(t, err)
+							tr := New(test.parser)
+							err := tr.Add(example.Expressions...)
+							require.NoError(t, err)
 
-					t.Logf("options: %v", test.Options)
+							t.Logf("tree: %s", tr)
 
-					matches := tr.Match(test.Input, options...)
-					require.NoError(t, err)
+							options, err := tableTests.ToScanOptions(example.Options...)
+							require.NoError(t, err)
 
-					actual := tableTests.TestMatchesToExpectations(matches...)
-					for _, w := range actual {
-						w.Normalize()
-					}
+							t.Logf("options: %v", example.Options)
 
-					sort.Slice(actual, func(i, j int) bool {
-						return actual[i].String() < actual[j].String()
-					})
+							matches := tr.Match(example.Input, options...)
+							require.NoError(t, err)
 
-					actualStr, err := json.MarshalIndent(actual, "", "  ")
-					require.NoError(t, err)
-
-					expectedStr, err := json.MarshalIndent(test.Want, "", "  ")
-					require.NoError(t, err)
-
-					require.Equal(t, string(expectedStr), string(actualStr))
-
-					for _, expectation := range actual {
-						for _, group := range expectation.Groups {
-							if group.OutOfString {
-								outOf := (group.From > expectation.Span.From && group.To > expectation.Span.From) ||
-									(group.From < expectation.Span.From && group.To < expectation.Span.From)
-
-								require.True(t, outOf)
-							} else {
-								require.LessOrEqual(t, expectation.Span.From, group.From)
-								require.GreaterOrEqual(t, expectation.Span.To, group.To)
+							actual := tableTests.TestMatchesToExpectations(matches...)
+							for _, w := range actual {
+								w.Normalize()
 							}
-						}
 
-						for _, group := range expectation.NamedGroups {
-							if group.OutOfString {
-								outOf := (group.Span.From > expectation.Span.From && group.Span.To > expectation.Span.From) ||
-									(group.Span.From < expectation.Span.From && group.Span.To < expectation.Span.From)
+							sort.Slice(actual, func(i, j int) bool {
+								return actual[i].String() < actual[j].String()
+							})
 
-								require.True(t, outOf)
-							} else {
-								require.LessOrEqual(t, expectation.Span.From, group.Span.From)
-								require.GreaterOrEqual(t, expectation.Span.To, group.Span.To)
+							actualStr, err := json.MarshalIndent(actual, "", "  ")
+							require.NoError(t, err)
+
+							expectedStr, err := json.MarshalIndent(example.Want, "", "  ")
+							require.NoError(t, err)
+
+							require.Equal(t, string(expectedStr), string(actualStr))
+
+							for _, expectation := range actual {
+								for _, group := range expectation.Groups {
+									if group.OutOfString {
+										outOf := (group.From > expectation.Span.From && group.To > expectation.Span.From) ||
+											(group.From < expectation.Span.From && group.To < expectation.Span.From)
+
+										require.True(t, outOf)
+									} else {
+										require.LessOrEqual(t, expectation.Span.From, group.From)
+										require.GreaterOrEqual(t, expectation.Span.To, group.To)
+									}
+								}
+
+								for _, group := range expectation.NamedGroups {
+									if group.OutOfString {
+										outOf := (group.Span.From > expectation.Span.From && group.Span.To > expectation.Span.From) ||
+											(group.Span.From < expectation.Span.From && group.Span.To < expectation.Span.From)
+
+										require.True(t, outOf)
+									} else {
+										require.LessOrEqual(t, expectation.Span.From, group.Span.From)
+										require.GreaterOrEqual(t, expectation.Span.To, group.Span.To)
+									}
+								}
 							}
-						}
+						})
 					}
 				})
 			}
@@ -94,6 +122,7 @@ func TestTree_Match(t *testing.T) {
 	}
 }
 
+// TODO : у каждого движка свои
 func TestTree_MatchErrors(t *testing.T) {
 	t.Parallel()
 

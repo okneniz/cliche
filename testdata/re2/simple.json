@@ -1,0 +1,210 @@
+{
+  "Name": "simple",
+  "Tests": [
+    {
+      "Name": "chars as is",
+      "Expressions": [
+        "te",
+        "toast",
+        "toaster",
+        "word",
+        "strong",
+        "wizard",
+        "test",
+        "string",
+        "s",
+        "ing"
+      ],
+      "Input": "testing string test ssss word words",
+      "Want": [
+        {
+          "SubString": "te",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "te"
+          ]
+        },
+        {
+          "SubString": "test",
+          "Span": {
+            "From": 0,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "test"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "ing",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "ing"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 8,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "string",
+          "Span": {
+            "From": 8,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "string"
+          ]
+        },
+        {
+          "SubString": "ing",
+          "Span": {
+            "From": 11,
+            "To": 13,
+            "Empty": false
+          },
+          "Expressions": [
+            "ing"
+          ]
+        },
+        {
+          "SubString": "te",
+          "Span": {
+            "From": 15,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "te"
+          ]
+        },
+        {
+          "SubString": "test",
+          "Span": {
+            "From": 15,
+            "To": 18,
+            "Empty": false
+          },
+          "Expressions": [
+            "test"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 17,
+            "To": 17,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 20,
+            "To": 20,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 21,
+            "To": 21,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 22,
+            "To": 22,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 23,
+            "To": 23,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        },
+        {
+          "SubString": "word",
+          "Span": {
+            "From": 25,
+            "To": 28,
+            "Empty": false
+          },
+          "Expressions": [
+            "word"
+          ]
+        },
+        {
+          "SubString": "word",
+          "Span": {
+            "From": 30,
+            "To": 33,
+            "Empty": false
+          },
+          "Expressions": [
+            "word"
+          ]
+        },
+        {
+          "SubString": "s",
+          "Span": {
+            "From": 34,
+            "To": 34,
+            "Empty": false
+          },
+          "Expressions": [
+            "s"
+          ]
+        }
+      ]
+    }
+  ]
+}

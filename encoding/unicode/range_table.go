@@ -22,10 +22,10 @@ func (t *rangeTable) Include(x rune) bool {
 	return unicode.In(x, t.tbl)
 }
 
-func (t *rangeTable) Invert() node.Table {
+func (t *rangeTable) Invert(max rune) node.Table {
 	runes := make([]rune, 0)
 
-	for x := rune(1); x <= unicode.MaxRune; x++ {
+	for x := rune(1); x <= max; x++ {
 		if !unicode.In(x, t.tbl) {
 			runes = append(runes, x)
 		}

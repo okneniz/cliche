@@ -1,0 +1,139 @@
+{
+  "Name": "end of",
+  "Tests": [
+    {
+      "Name": "line",
+      "Expressions": [
+        "...$",
+        ".$",
+        "$.",
+        "$"
+      ],
+      "Input": "foo bar\nbaz",
+      "Want": [
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "...$"
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "...$"
+          ]
+        },
+        {
+          "SubString": "r",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            ".$"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 7,
+            "To": 7,
+            "Empty": true
+          },
+          "Expressions": [
+            "$"
+          ]
+        },
+        {
+          "SubString": "z",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            ".$"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 11,
+            "To": 11,
+            "Empty": true
+          },
+          "Expressions": [
+            "$"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "string",
+      "Expressions": [
+        "...\\z",
+        ".\\z",
+        ".\\Z"
+      ],
+      "Input": "foo bar\nbaz",
+      "Want": [
+        {
+          "SubString": "z",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            ".\\z",            
+            ".\\Z"
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "...\\z"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "string and new line",
+      "Expressions": [
+        "...\\z",
+        ".\\z",
+        ".\\Z"
+      ],
+      "Input": "foo bar\nbaz\n",
+      "Want": [
+        {
+          "SubString": "z",
+          "Span": {
+            "From": 10,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            ".\\Z"
+          ]
+        }
+      ]
+    }
+  ]
+}

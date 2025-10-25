@@ -41,7 +41,6 @@ func New(parser Parser) Tree {
 	tr := new(tree)
 	tr.nodes = make(map[string]node.Node)
 	tr.parser = parser
-	// pp.RequireDebug = tr
 	return tr
 }
 

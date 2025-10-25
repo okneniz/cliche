@@ -8,11 +8,11 @@ var (
 
 type everythingTable struct{}
 
-func (t everythingTable) Include(x rune) bool {
+func (t everythingTable) Include(_ rune) bool {
 	return true
 }
 
-func (t everythingTable) Invert() node.Table {
+func (t everythingTable) Invert(_ rune) node.Table {
 	return empty
 }
 

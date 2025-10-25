@@ -40,10 +40,10 @@ func MergeTables(tbls ...node.Table) node.Table {
 	return NewTable(runes...)
 }
 
-func NewTableByPredicate(p func(rune) bool) node.Table {
+func NewTableByPredicate(max rune, p func(rune) bool) node.Table {
 	runes := make([]rune, 0)
 
-	for x := rune(0); x <= unicode.MaxRune; x++ {
+	for x := rune(0); x <= max; x++ {
 		if p(x) {
 			runes = append(runes, x)
 		}

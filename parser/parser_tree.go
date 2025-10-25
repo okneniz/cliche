@@ -123,8 +123,6 @@ func makeGroupsParserTree(
 		current := root
 
 		for _, r := range cs {
-			// TODO : handle conflicts
-
 			child, exists := current.children[r]
 			if !exists {
 				child = &branch{

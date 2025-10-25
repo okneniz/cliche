@@ -1,0 +1,59 @@
+{
+  "Name": "UTF-8 properties",
+  "Tests": [
+    {
+      "Name": "Nd",
+      "Expressions": [
+        "\\p{Nd}+"
+      ],
+      "Input": "foo bar\nbaz 123 ",
+      "Want": [
+        {
+          "SubString": "123",
+          "Span": {
+            "From": 12,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\p{Nd}+"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not Nd",
+      "Expressions": [
+        "\\P{Nd}+",
+        "\\p{^Nd}+"
+      ],
+      "Input": "foo bar\nbaz 123 ",
+      "Want": [
+        {
+          "SubString": "foo bar\nbaz ",
+          "Span": {
+            "From": 0,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\P{Nd}+",
+            "\\p{^Nd}+"
+          ]
+        },
+        {
+          "SubString": " ",
+          "Span": {
+            "From": 15,
+            "To": 15,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\P{Nd}+",
+            "\\p{^Nd}+"
+          ]
+        }
+      ]
+    }
+  ]
+}

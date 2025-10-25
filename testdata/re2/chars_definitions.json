@@ -1,0 +1,115 @@
+{
+  "Name": "different chars definitions",
+  "Tests": [
+    {
+      "Name": "match '\\o{nnn}'",
+      "Expressions": [
+        "\\o{053}",
+        "\\o{146}"
+      ],
+      "Input": "foo + bar = baz",
+      "Want": [
+        {
+          "SubString": "+",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\o{053}"
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\o{146}"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '\\xHH'",
+      "Expressions": [
+        "\\x2B",
+        "\\x66"
+      ],
+      "Input": "foo + bar = baz",
+      "Want": [
+        {
+          "SubString": "+",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\x2B"
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\x66"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "match '\\uHHHH'",
+      "Expressions": [
+        "\\u2B",
+        "\\u02B",
+        "\\u002B",
+        "\\u2b",
+        "\\u02b",
+        "\\u002b",
+        "\\u66",
+        "\\u066",
+        "\\u0066"
+      ],
+      "Input": "foo + bar = baz",
+      "Want": [
+        {
+          "SubString": "+",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\u2B",
+            "\\u02B",
+            "\\u002B",
+            "\\u2b",
+            "\\u02b",
+            "\\u002b"
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\u66",
+            "\\u066",
+            "\\u0066"
+          ]
+        }
+      ]
+    }
+  ]
+}

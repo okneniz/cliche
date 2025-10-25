@@ -1,4 +1,4 @@
-package onigmo_test
+package re2_test
 
 import (
 	"math/rand/v2"
@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/okneniz/cliche"
-	"github.com/okneniz/cliche/onigmo"
+	"github.com/okneniz/cliche/re2"
 	tests "github.com/okneniz/cliche/testing"
 	ohsnap "github.com/okneniz/oh-snap"
 )
 
-func TestOnigmoProperties(t *testing.T) {
+func TestRE2Properties(t *testing.T) {
 	t.Parallel()
 
 	seed := time.Now().UnixNano()
@@ -26,7 +26,7 @@ func TestOnigmoProperties(t *testing.T) {
 		arb := tests.ArbitraryRegexp(rnd, 3, 7)
 
 		ohsnap.Check(t, iterations, arb, func(reg tests.TestRegexp) bool {
-			tr := cliche.New(onigmo.Parser)
+			tr := cliche.New(re2.Parser)
 
 			err := tr.Add(reg.Expression)
 			if err != nil {
@@ -62,7 +62,7 @@ func TestOnigmoProperties(t *testing.T) {
 		arb := ohsnap.ArbitrarySlice(rnd, arbExp, 10, 50)
 
 		ohsnap.Check(t, iterations, arb, func(regs []tests.TestRegexp) bool {
-			tr := cliche.New(onigmo.Parser)
+			tr := cliche.New(re2.Parser)
 
 			for _, reg := range regs {
 				err := tr.Add(reg.Expression)

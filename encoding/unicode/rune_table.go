@@ -2,7 +2,6 @@ package unicode
 
 import (
 	"fmt"
-	"unicode"
 
 	"github.com/okneniz/cliche/node"
 )
@@ -15,10 +14,10 @@ func (t runeTable) Include(x rune) bool {
 	return t.r == x
 }
 
-func (t runeTable) Invert() node.Table {
+func (t runeTable) Invert(max rune) node.Table {
 	runes := make([]rune, 0)
 
-	for x := rune(1); x <= unicode.MaxRune; x++ {
+	for x := rune(1); x <= max; x++ {
 		if t.r != x {
 			runes = append(runes, x)
 		}

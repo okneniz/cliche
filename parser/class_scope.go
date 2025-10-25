@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"unicode"
+
 	c "github.com/okneniz/parsec/common"
 
-	"github.com/okneniz/cliche/encoding/unicode"
+	unicodePkg "github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
 )
 
@@ -123,7 +125,7 @@ func (scope *ClassScope) makeTableParser() c.Combinator[rune, int, node.Table] {
 	parseClass = c.Cast(
 		parseSequenceOfTables,
 		func(tables []node.Table) (node.Table, error) {
-			return unicode.MergeTables(tables...), nil
+			return unicodePkg.MergeTables(tables...), nil
 		},
 	)
 
@@ -160,9 +162,10 @@ func (scope *ClassScope) makeTableParser() c.Combinator[rune, int, node.Table] {
 			return nil, err
 		}
 
-		table := unicode.MergeTables(tables...)
+		table := unicodePkg.MergeTables(tables...)
 		if isNegative {
-			return table.Invert(), nil
+			// TODO : надо как-то опционально выставлять max для разных движков
+			return table.Invert(unicode.MaxRune), nil
 		}
 
 		return table, nil
@@ -216,7 +219,7 @@ func (scope *ClassScope) makeRangeOrCharParser(
 				)
 			}
 
-			return unicode.NewTable(from), nil
+			return unicodePkg.NewTable(from), nil
 		}
 
 		to, err := parseRune(buf)
@@ -228,7 +231,7 @@ func (scope *ClassScope) makeRangeOrCharParser(
 				)
 			}
 
-			return unicode.NewTable(from), nil
+			return unicodePkg.NewTable(from), nil
 		}
 
 		// if from > to {
@@ -249,7 +252,7 @@ func (scope *ClassScope) makeRangeOrCharParser(
 		// 	)
 		// }
 
-		return unicode.NewTableByPredicate(func(x rune) bool {
+		return unicodePkg.NewTableByPredicate(unicode.MaxRune, func(x rune) bool {
 			return from <= x && x <= to
 		}), nil
 	}

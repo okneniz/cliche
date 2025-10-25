@@ -1,0 +1,342 @@
+{
+  "Name": "quantifiers",
+  "Tests": [
+    {
+      "Name": "optional",
+      "Expressions": [
+        "c?",
+        "pics?",
+        "pi.?c",
+        "....?",
+        "...?."
+      ],
+      "Input": "pic",
+      "Want": [
+        {
+          "SubString": "",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": true
+          },
+          "Expressions": [
+            "c?"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": true
+          },
+          "Expressions": [
+            "c?"
+          ]
+        },
+        {
+          "SubString": "c",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "c?"
+          ]
+        },
+        {
+          "SubString": "pic",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "pics?",
+            "pi.?c",
+            "....?",
+            "...?."
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": true
+          },
+          "Expressions": [
+            "c?"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "zero or more, or '*'",
+      "Expressions": [
+        "x*",
+        "x*x",
+        "x.*",
+        "x{0,}",
+        "x{0,}x",
+        "x.{0,}"
+      ],
+      "Input": "xx x\n x",
+      "Want": [
+        {
+          "SubString": "xx",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "x*",
+            "x*x",
+            "x{0,}",
+            "x{0,}x"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 2,
+            "To": 2,
+            "Empty": true
+          },
+          "Expressions": [
+            "x*",
+            "x{0,}"
+          ]
+        },
+        {
+          "SubString": "x",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "x*",
+            "x*x",
+            "x{0,}",
+            "x{0,}x"
+          ]
+        },
+        {
+          "SubString": "xx x",
+          "Span": {
+            "From": 0,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "x.*",
+            "x.{0,}"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 4,
+            "To": 4,
+            "Empty": true
+          },
+          "Expressions": [
+            "x*",
+            "x{0,}"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 5,
+            "To": 5,
+            "Empty": true
+          },
+          "Expressions": [
+            "x*",
+            "x{0,}"
+          ]
+        },
+        {
+          "SubString": "x",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "x.*",
+            "x{0,}",
+            "x{0,}x",
+            "x.{0,}",
+            "x*",
+            "x*x"
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 7,
+            "To": 7,
+            "Empty": true
+          },
+          "Expressions": [
+            "x{0,}",
+            "x*"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "one or more, or '+'",
+      "Expressions": [
+        "x+",
+        "x+x",
+        "x.+",
+        "x{1,}",
+        "x{1,}x",
+        "x.{1,}"
+      ],
+      "Input": "xx x\n x",
+      "Want": [
+        {
+          "SubString": "xx",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "x+",
+            "x{1,}",
+            "x+x",
+            "x{1,}x"
+          ]
+        },
+        {
+          "SubString": "x",
+          "Span": {
+            "From": 3,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "x+",
+            "x{1,}"
+          ]
+        },
+        {
+          "SubString": "x",
+          "Span": {
+            "From": 6,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "x+",
+            "x{1,}"
+          ]
+        },
+        {
+          "SubString": "xx x",
+          "Span": {
+            "From": 0,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "x.+",
+            "x.{1,}"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "endless quantifier",
+      "Expressions": [
+        "x{2,}"
+      ],
+      "Input": "xx xxx x",
+      "Want": [
+        {
+          "SubString": "xx",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "x{2,}"
+          ]
+        },
+        {
+          "SubString": "xxx",
+          "Span": {
+            "From": 3,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "x{2,}"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "limited quantifier",
+      "Expressions": [
+        "x{2,4}"
+      ],
+      "Input": "xx xxx x xxxxxx",
+      "Want": [
+        {
+          "SubString": "xx",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "x{2,4}"
+          ]
+        },
+        {
+          "SubString": "xxx",
+          "Span": {
+            "From": 3,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "x{2,4}"
+          ]
+        },
+        {
+          "SubString": "xxxx",
+          "Span": {
+            "From": 9,
+            "To": 12,
+            "Empty": false
+          },
+          "Expressions": [
+            "x{2,4}"
+          ]
+        },
+        {
+          "SubString": "xx",
+          "Span": {
+            "From": 13,
+            "To": 14,
+            "Empty": false
+          },
+          "Expressions": [
+            "x{2,4}"
+          ]
+        }
+      ]
+    }
+  ]
+}

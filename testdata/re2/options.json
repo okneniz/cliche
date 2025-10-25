@@ -1,0 +1,186 @@
+{
+  "Name": "options",
+  "Tests": [
+    {
+      "Name": "case insensetive",
+      "Expressions": [
+        "abc",
+        "ABC",
+        "Abc",
+        "aBC",
+        "aBc"
+      ],
+      "Input": "123 abc x AbC $\naaBc",
+      "Options": [
+      	"case insensetive"
+  	  ],
+      "Want": [
+        {
+          "SubString": "abc",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+  	        "abc",
+  	        "ABC",
+  	        "Abc",
+  	        "aBC",
+  	        "aBc"
+          ]
+        },      
+    	  {
+    	   "SubString": "AbC",
+    	   "Span": {
+    	     "From": 10,
+    	     "To": 12,
+    	     "Empty": false
+    	   },
+    	   "Expressions": [
+    	     "ABC",
+    	     "Abc",
+    	     "aBC",
+    	     "aBc",
+    	     "abc"
+    	   ]
+    	 },
+    	 {
+    	   "SubString": "aBc",
+    	   "Span": {
+    	     "From": 17,
+    	     "To": 19,
+    	     "Empty": false
+    	   },
+    	   "Expressions": [
+    	     "ABC",
+    	     "Abc",
+    	     "aBC",
+    	     "aBc",
+    	     "abc"
+    	   ]
+    	  }    
+      ]
+    },
+    {
+      "Name": "case sensetive",
+      "Expressions": [
+        "abc",
+        "ABC",
+        "Abc",
+        "aBC",
+        "aBc"
+      ],
+      "Input": "123 abc x AbC $\naaBc",
+      "Options": [],
+      "Want": [
+        {
+          "SubString": "abc",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+  	        "abc"
+          ]
+        },
+    	  {
+      	   "SubString": "aBc",
+      	   "Span": {
+      	     "From": 17,
+      	     "To": 19,
+      	     "Empty": false
+      	   },
+      	   "Expressions": [
+      	     "aBc"
+      	   ]
+    	  }    
+      ]
+    },
+    {
+      "Name": "multiline",
+      "Expressions": [
+        "foo.bar",
+        "foo.*bar"
+      ],
+      "Input": " foo\nbar ",
+      "Options": [
+        "multiline"
+      ],
+      "Want": [
+        {
+          "SubString": "foo\nbar",
+          "Span": {
+            "From": 1, 
+            "To": 7,
+            "Empty": false
+          },
+          "Expressions": [
+            "foo.bar",
+            "foo.*bar"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "not multiline",
+      "Expressions": [
+        "foo.bar",
+        "foo.*bar"
+      ],
+      "Input": " foo\nbar ",
+      "Want": []
+    },
+    {
+      "Name": "options as expressions",
+      "Expressions": [
+        "a(?i-s)b",
+        "a(?s)b",
+        "a(?i)b",        
+        "a(?s-i).B",
+        "(?i)a(?s-i)B"
+      ],
+      "Input": "ab aB a\nB",
+      "Want": [
+        {
+          "SubString": "ab",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(?i-s)b",
+            "a(?s)b",
+            "a(?i)b"
+          ]
+        },
+        {
+          "SubString": "aB",
+          "Span": {
+            "From": 3,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(?i-s)b",
+            "(?i)a(?s-i)B",
+            "a(?i)b"
+          ]
+        },
+        {
+          "SubString": "a\nB",
+          "Span": {
+            "From": 6,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "a(?s-i).B"
+          ]
+        }
+      ]
+    }
+  ]
+}

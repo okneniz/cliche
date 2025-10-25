@@ -1,0 +1,133 @@
+{
+  "Name": "dot",
+  "Tests": [
+    {
+      "Name": "once",
+      "Expressions": [
+        "t."
+      ],
+      "Input": "testing string test ssss word words",
+      "Want": [
+        {
+          "SubString": "te",
+          "Span": {
+            "From": 0,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        },
+        {
+          "SubString": "ti",
+          "Span": {
+            "From": 3,
+            "To": 4,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        },
+        {
+          "SubString": "tr",
+          "Span": {
+            "From": 9,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        },
+        {
+          "SubString": "te",
+          "Span": {
+            "From": 15,
+            "To": 16,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        },
+        {
+          "SubString": "t ",
+          "Span": {
+            "From": 18,
+            "To": 19,
+            "Empty": false
+          },
+          "Expressions": [
+            "t."
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "multiple",
+      "Expressions": [
+        "t.."
+      ],
+      "Input": "testing string test ssss word words",
+      "Want": [
+        {
+          "SubString": "tes",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        },
+        {
+          "SubString": "tin",
+          "Span": {
+            "From": 3,
+            "To": 5,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        },
+        {
+          "SubString": "tri",
+          "Span": {
+            "From": 9,
+            "To": 11,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        },
+        {
+          "SubString": "tes",
+          "Span": {
+            "From": 15,
+            "To": 17,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        },
+        {
+          "SubString": "t s",
+          "Span": {
+            "From": 18,
+            "To": 20,
+            "Empty": false
+          },
+          "Expressions": [
+            "t.."
+          ]
+        }
+      ]
+    }
+  ]
+}

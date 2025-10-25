@@ -1,0 +1,105 @@
+{
+  "Name": "start of",
+  "Tests": [
+    {
+      "Name": "line",
+      "Expressions": [
+        "^...",
+        "^.",
+        ".^"
+      ],
+      "Input": "foo bar\nbaz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "^..."
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "^..."
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "^."
+          ]
+        },
+        {
+          "SubString": "b",
+          "Span": {
+            "From": 8,
+            "To": 8,
+            "Empty": false
+          },
+          "Expressions": [
+            "^."
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "string",
+      "Expressions": [
+        "\\A...",
+        "\\A.",
+        "\\A",
+        ".\\A"
+      ],
+      "Input": "foo bar\nbaz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\A..."
+          ]
+        },
+        {
+          "SubString": "f",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": false
+          },
+          "Expressions": [
+            "\\A."
+          ]
+        },
+        {
+          "SubString": "",
+          "Span": {
+            "From": 0,
+            "To": 0,
+            "Empty": true
+          },
+          "Expressions": [
+            "\\A"
+          ]
+        }
+      ]
+    }
+  ]
+}

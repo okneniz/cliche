@@ -854,7 +854,7 @@ func n(t *testing.T, expression, str string) {
 	t.Run("must not match "+expression+" and "+str, func(t *testing.T) {
 		t.Parallel()
 
-		tr := cliche.New(onigmo.OnigmoParser)
+		tr := cliche.New(onigmo.Parser)
 
 		err := tr.Add(expression)
 		if err != nil {
@@ -881,7 +881,7 @@ func x(t *testing.T, expression, str string, start, size int) {
 	t.Run("must match "+expression+" and "+str, func(t *testing.T) {
 		t.Parallel()
 
-		tr := cliche.New(onigmo.OnigmoParser)
+		tr := cliche.New(onigmo.Parser)
 
 		err := tr.Add(expression)
 		if err != nil {

@@ -1,4 +1,4 @@
-package onigmo
+package re2
 
 import (
 	"fmt"
@@ -10,45 +10,63 @@ import (
 	"github.com/okneniz/cliche/quantity"
 )
 
+// DOC - https://pkg.go.dev/regexp/syntax
+//
+// Why without backreferences:
+// - https://swtch.com/~rsc/regexp/regexp3.html
+// - https://en.wikipedia.org/wiki/ReDoS
+
 var (
-	alnum  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) })
-	alpha  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) })
-	ascii  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return x <= unicode.MaxASCII })
-	blank  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return x == ' ' || x == '\t' })
-	digit  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsDigit)
-	lower  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsLower)
-	upper  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsUpper)
-	space  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsSpace)
-	cntrl  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsControl)
-	print  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsPrint)
-	graph  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return unicode.IsGraphic(x) && !unicode.IsSpace(x) })
-	punct  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsPunct)
-	xdigit = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, isHex)
-	word   = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, isWord)
+	asciiAlnum  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) })
+	asciiAlpha  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) })
+	ascii       = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, isAscii)
+	asciiBlank  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, func(x rune) bool { return x == ' ' || x == '\t' })
+	asciiDigit  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsDigit)
+	asciiLower  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsLower)
+	asciiUpper  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsUpper)
+	asciiSpace  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsSpace)
+	asciiCntrl  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsControl)
+	asciiPrint  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsPrint)
+	asciiGraph  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, func(x rune) bool { return unicode.IsGraphic(x) && !unicode.IsSpace(x) })
+	asciiPunct  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsPunct)
+	asciiXdigit = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, isHex)
+	asciiWord   = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, isWord)
 
-	notAlnum  = alnum.Invert(unicode.MaxRune)
-	notAlpha  = alpha.Invert(unicode.MaxRune)
-	notAscii  = ascii.Invert(unicode.MaxRune)
-	notBlank  = blank.Invert(unicode.MaxRune)
-	notDigit  = digit.Invert(unicode.MaxRune)
-	notLower  = lower.Invert(unicode.MaxRune)
-	notUpper  = upper.Invert(unicode.MaxRune)
-	notSpace  = space.Invert(unicode.MaxRune)
-	notCntrl  = cntrl.Invert(unicode.MaxRune)
-	notPrint  = print.Invert(unicode.MaxRune)
-	notGraph  = graph.Invert(unicode.MaxRune)
-	notPunct  = punct.Invert(unicode.MaxRune)
-	notXdigit = xdigit.Invert(unicode.MaxRune)
-	notWord   = word.Invert(unicode.MaxRune)
+	// TODO : rename to AsciiNonAlnum
+	//
+	// [[:cntrl:]] - ascii cntrl symbols
+	// but
+	// [^[:cntrl:]] - non ascii cntrl symbols, includes unicode symbols
+	//
+	// re := regexp.MustCompile(`[[:^cntrl:]]+`)
+	// result := re.FindAllStringSubmatch("foo é Bar\n1\t2", -1)
+	// fmt.Println("RESULT", result)
+	//
+	// => RESULT [[foo é Bar] [1] [2]]
 
-	parseDigit     = parser.TableAsClass(parser.Const(digit))
-	parseNotDigit  = parser.TableAsClass(parser.Const(notDigit))
-	parseWord      = parser.TableAsClass(parser.Const(word))
-	parseNotWord   = parser.TableAsClass(parser.Const(notWord))
-	parseSpace     = parser.TableAsClass(parser.Const(space))
-	parseNotSpace  = parser.TableAsClass(parser.Const(notSpace))
-	parseXdigit    = parser.TableAsClass(parser.Const(xdigit))
-	parseNotXdigit = parser.TableAsClass(parser.Const(notXdigit))
+	notAsciiAlnum  = asciiAlnum.Invert(unicode.MaxRune)
+	notAsciiAlpha  = asciiAlpha.Invert(unicode.MaxRune)
+	notAscii       = ascii.Invert(unicode.MaxRune)
+	notAsciiBlank  = asciiBlank.Invert(unicode.MaxRune)
+	notAsciiDigit  = asciiDigit.Invert(unicode.MaxRune)
+	notAsciiLower  = asciiLower.Invert(unicode.MaxRune)
+	notAsciiUpper  = asciiUpper.Invert(unicode.MaxRune)
+	notAsciiSpace  = asciiSpace.Invert(unicode.MaxRune)
+	notAsciiCntrl  = asciiCntrl.Invert(unicode.MaxRune)
+	notAsciiPrint  = asciiPrint.Invert(unicode.MaxRune)
+	notAsciiGraph  = asciiGraph.Invert(unicode.MaxRune)
+	notAsciiPunct  = asciiPunct.Invert(unicode.MaxRune)
+	notAsciiXdigit = asciiXdigit.Invert(unicode.MaxRune)
+	notAsciiWord   = asciiWord.Invert(unicode.MaxRune)
+
+	parseAsciiDigit     = parser.TableAsClass(parser.Const(asciiDigit))
+	parseAsciiNotDigit  = parser.TableAsClass(parser.Const(notAsciiDigit))
+	parseAsciiWord      = parser.TableAsClass(parser.Const(asciiWord))
+	parseAsciiNotWord   = parser.TableAsClass(parser.Const(notAsciiWord))
+	parseAsciiSpace     = parser.TableAsClass(parser.Const(asciiSpace))
+	parseAsciiNotSpace  = parser.TableAsClass(parser.Const(notAsciiSpace))
+	parseAsciiXdigit    = parser.TableAsClass(parser.Const(asciiXdigit))
+	parseAsciiNotXdigit = parser.TableAsClass(parser.Const(notAsciiXdigit))
 
 	dot          = unicodeEncoding.NewTable('.')
 	question     = unicodeEncoding.NewTable('?')
@@ -85,42 +103,42 @@ var (
 	Parser = parser.New(func(cfg *parser.Config) {
 		cfg.Class().
 			Items().
-			StringAsValue("[:alnum:]", alnum).
-			StringAsValue("[:alpha:]", alpha).
+			StringAsValue("[:alnum:]", asciiAlnum).
+			StringAsValue("[:alpha:]", asciiAlpha).
 			StringAsValue("[:ascii:]", ascii).
-			StringAsValue("[:blank:]", blank).
-			StringAsValue("[:digit:]", digit).
-			StringAsValue("[:lower:]", lower).
-			StringAsValue("[:upper:]", upper).
-			StringAsValue("[:space:]", space).
-			StringAsValue("[:cntrl:]", cntrl).
-			StringAsValue("[:print:]", print).
-			StringAsValue("[:graph:]", graph).
-			StringAsValue("[:punct:]", punct).
-			StringAsValue("[:xdigit:]", xdigit).
-			StringAsValue("[:word:]", word).
-			StringAsValue("[:^alnum:]", notAlnum).
-			StringAsValue("[:^alpha:]", notAlpha).
+			StringAsValue("[:blank:]", asciiBlank).
+			StringAsValue("[:cntrl:]", asciiCntrl).
+			StringAsValue("[:digit:]", asciiDigit).
+			StringAsValue("[:graph:]", asciiGraph).
+			StringAsValue("[:lower:]", asciiLower).
+			StringAsValue("[:print:]", asciiPrint).
+			StringAsValue("[:punct:]", asciiPunct).
+			StringAsValue("[:space:]", asciiSpace).
+			StringAsValue("[:upper:]", asciiUpper).
+			StringAsValue("[:word:]", asciiWord).
+			StringAsValue("[:xdigit:]", asciiXdigit).
+			StringAsValue("[:^alnum:]", notAsciiAlnum).
+			StringAsValue("[:^alpha:]", notAsciiAlpha).
 			StringAsValue("[:^ascii:]", notAscii).
-			StringAsValue("[:^blank:]", notBlank).
-			StringAsValue("[:^digit:]", notDigit).
-			StringAsValue("[:^lower:]", notLower).
-			StringAsValue("[:^upper:]", notUpper).
-			StringAsValue("[:^space:]", notSpace).
-			StringAsValue("[:^cntrl:]", notCntrl).
-			StringAsValue("[:^print:]", notPrint).
-			StringAsValue("[:^graph:]", notGraph).
-			StringAsValue("[:^punct:]", notPunct).
-			StringAsValue("[:^xdigit:]", notXdigit).
-			StringAsValue("[:^word:]", notWord).
-			StringAsValue(`\d`, digit).
-			StringAsValue(`\D`, notDigit).
-			StringAsValue(`\w`, word).
-			StringAsValue(`\W`, notWord).
-			StringAsValue(`\s`, space).
-			StringAsValue(`\S`, notSpace).
-			StringAsValue(`\h`, xdigit).
-			StringAsValue(`\H`, notXdigit)
+			StringAsValue("[:^blank:]", notAsciiBlank).
+			StringAsValue("[:^cntrl:]", notAsciiCntrl).
+			StringAsValue("[:^digit:]", notAsciiDigit).
+			StringAsValue("[:^graph:]", notAsciiGraph).
+			StringAsValue("[:^lower:]", notAsciiLower).
+			StringAsValue("[:^print:]", notAsciiPrint).
+			StringAsValue("[:^punct:]", notAsciiPunct).
+			StringAsValue("[:^space:]", notAsciiSpace).
+			StringAsValue("[:^upper:]", notAsciiUpper).
+			StringAsValue("[:^word:]", notAsciiWord).
+			StringAsValue("[:^xdigit:]", notAsciiXdigit).
+			StringAsValue(`\d`, asciiDigit).
+			StringAsValue(`\D`, notAsciiDigit).
+			StringAsValue(`\w`, asciiWord).
+			StringAsValue(`\W`, notAsciiWord).
+			StringAsValue(`\s`, asciiSpace).
+			StringAsValue(`\S`, notAsciiSpace).
+			StringAsValue(`\h`, asciiDigit).
+			StringAsValue(`\H`, notAsciiXdigit)
 
 		cfg.NonClass().
 			Items().
@@ -133,18 +151,17 @@ var (
 			StringAsFunc(`$`, node.NewEndOfLine).
 			StringAsFunc(`\b`, node.NewWordBoundary).
 			StringAsFunc(`\B`, node.NewNonWordBoundary).
-			WithPrefix(`\d`, parseDigit).
-			WithPrefix(`\D`, parseNotDigit).
-			WithPrefix(`\w`, parseWord).
-			WithPrefix(`\W`, parseNotWord).
-			WithPrefix(`\s`, parseSpace).
-			WithPrefix(`\S`, parseNotSpace).
-			WithPrefix(`\h`, parseXdigit).
-			WithPrefix(`\H`, parseNotXdigit)
+			WithPrefix(`\d`, parseAsciiDigit).
+			WithPrefix(`\D`, parseAsciiNotDigit).
+			WithPrefix(`\w`, parseAsciiWord).
+			WithPrefix(`\W`, parseAsciiNotWord).
+			WithPrefix(`\s`, parseAsciiSpace).
+			WithPrefix(`\S`, parseAsciiNotSpace).
+			WithPrefix(`\h`, parseAsciiXdigit).
+			WithPrefix(`\H`, parseAsciiNotXdigit)
 
 		cfg.NonClass().
 			Items().
-			Parse(parseBackReference).
 			WithPrefix(`\.`, parseDot).
 			WithPrefix(`\?`, parseQuestion).
 			WithPrefix(`\+`, parsePlus).
@@ -190,22 +207,17 @@ var (
 			Items().
 			WithPrefix(`\x`, parseHexCharNode).
 			WithPrefix(`\o`, parseOctalCharNode).
-			WithPrefix(`\u`, parseUnicodeNode).
-			WithPrefix(`\k`, parseNamedReference)
+			WithPrefix(`\u`, parseUnicodeNode)
 
 		cfg.Groups().
 			Parse(parseGroup).
-			ParsePrefix("?(", parseCondition).
 			ParsePrefix("?:", parseNotCapturedGroup).
 			ParsePrefix("?<", parseNamedGroup).
+			ParsePrefix("?P<", parseNamedGroup).
 			ParsePrefix("?>", parseAtomicGroup).
-			ParsePrefix("?=", parseLookAhead).
-			ParsePrefix("?!", parseNegativeLookAhead).
-			ParsePrefix("?<=", parseLookBehind).
-			ParsePrefix("?<!", parseNegativeLookBehind).
 			ParsePrefix("?#", parseComment)
 
-		// TODO : parseInvalidQuantifier
+		// TODO : check properties in re2 doc
 		configureProperty(cfg, unicode.Properties)
 		configureProperty(cfg, unicode.Scripts)
 		configureProperty(cfg, unicode.Categories)
@@ -240,8 +252,17 @@ func configureProperty(cfg *parser.Config, props map[string]*unicode.RangeTable)
 	}
 }
 
+// TODO : move to encoding package?
+
+func isAscii(x rune) bool {
+	return x <= unicode.MaxASCII
+}
+
 func isWord(x rune) bool {
-	return x == '_' || unicode.IsLetter(x) || unicode.IsDigit(x)
+	return x >= '0' && x <= '9' ||
+		x >= 'a' && x <= 'z' ||
+		x >= 'A' && x <= 'Z' ||
+		x == '_'
 }
 
 func isHex(x rune) bool {

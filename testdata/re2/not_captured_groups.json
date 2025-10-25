@@ -1,0 +1,101 @@
+{
+  "Name": "not captured groups",
+  "Tests": [
+    {
+      "Name": "strings matching and capturing",
+      "Expressions": [
+        "fo(?:o|b)",
+        "f(?:o|b)o",
+        "(?:f|b)(?:o|a)(?:o|r|z)",
+        "(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+        "(?:f)(?:o)(?:o)"
+      ],
+      "Input": "foo bar baz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+            "(?:f)(?:o)(?:o)",
+            "fo(?:o|b)",
+            "f(?:o|b)o",
+            "(?:f|b)(?:o|a)(?:o|r|z)"
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?:f|b)(?:o|a)(?:o|\\w|\\D)",
+            "(?:f|b)(?:o|a)(?:o|r|z)"
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?:f|b)(?:o|a)(?:o|r|z)",
+            "(?:f|b)(?:o|a)(?:o|\\w|\\D)"
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "chars matching and capturing with nested groups",
+      "Expressions": [
+        "f(?:o(?:o))",
+        "(?:b(?:a(?:r)))",
+        "(?:(?:b)az)"
+      ],
+      "Input": "foo bar baz",
+      "Want": [
+        {
+          "SubString": "foo",
+          "Span": {
+            "From": 0,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "f(?:o(?:o))"
+          ]
+        },
+        {
+          "SubString": "bar",
+          "Span": {
+            "From": 4,
+            "To": 6,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?:b(?:a(?:r)))"
+          ]
+        },
+        {
+          "SubString": "baz",
+          "Span": {
+            "From": 8,
+            "To": 10,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?:(?:b)az)"
+          ]
+        }
+      ]
+    }
+  ]
+}

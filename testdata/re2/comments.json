@@ -1,0 +1,56 @@
+{
+  "Name": "comments",
+  "Tests": [
+    {
+      "Name": "case 1",
+      "Expressions": [
+        "some(?#comment 1)(\\S+)",
+        "some(\\S+)(?#comment 2)",
+        "so(?#comment 3)me(body|thing)(?#comment 4)"
+      ],
+      "Input": "somebody do something",
+      "Want": [
+        {
+          "SubString": "somebody",
+          "Span": {
+            "From": 0,
+            "To": 7,
+            "Empty": false
+          },
+          "Expressions": [
+            "some(?#comment 1)(\\S+)",
+            "some(\\S+)(?#comment 2)",
+            "so(?#comment 3)me(body|thing)(?#comment 4)"
+          ],
+          "Groups": [
+            {
+              "From": 4,
+              "To": 7,
+              "Empty": false
+            }
+          ]
+        },
+        {
+          "SubString": "something",
+          "Span": {
+            "From": 12,
+            "To": 20,
+            "Empty": false
+          },
+          "Expressions": [
+            "some(?#comment 1)(\\S+)",
+            "some(\\S+)(?#comment 2)",
+            "so(?#comment 3)me(body|thing)(?#comment 4)"
+          ],
+          "Groups": [
+            {
+              "From": 16,
+              "To": 20,
+              "Empty": false
+            }
+          ]
+        }
+      ]
+    }      
+  ]
+}
