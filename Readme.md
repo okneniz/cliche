@@ -175,7 +175,7 @@ You can configure your own or copy behaviour of exists engine.
 ### Predefined engines
 
 - [Onigmo](https://github.com/okneniz/cliche/tree/master/onigmo)
-- RE2
+- [RE2](https://github.com/okneniz/cliche/tree/master/re2)
 
 ## Roadmap
 
