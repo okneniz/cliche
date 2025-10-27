@@ -8,6 +8,8 @@ import (
 	"github.com/okneniz/cliche/onigmo"
 )
 
+// Origin version - https://github.com/k-takata/Onigmo/blob/master/test.rb
+
 func TestOnigmo(t *testing.T) {
 	t.Parallel()
 
