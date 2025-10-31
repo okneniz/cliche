@@ -75,7 +75,12 @@ var (
 	circumFlexus = unicodeEncoding.NewTable('^')
 	dollar       = unicodeEncoding.NewTable('$')
 	leftBracket  = unicodeEncoding.NewTable('[')
-	bar          = unicodeEncoding.NewTable('|')
+	rightBracket = unicodeEncoding.NewTable(']')
+	leftParens   = unicodeEncoding.NewTable('(')
+	rightParens  = unicodeEncoding.NewTable(')')
+	rightBraces  = unicodeEncoding.NewTable('}')
+
+	bar = unicodeEncoding.NewTable('|')
 
 	parseDot          = parser.TableAsClass(parser.Const(dot))
 	parseQuestion     = parser.TableAsClass(parser.Const(question))
@@ -83,9 +88,13 @@ var (
 	parseAsterisk     = parser.TableAsClass(parser.Const(asterisk))
 	parseCircumFlexus = parser.TableAsClass(parser.Const(circumFlexus))
 
-	parseDollar      = parser.TableAsClass(parser.Const(dollar))
-	parseLeftBracket = parser.TableAsClass(parser.Const(leftBracket))
-	parseBar         = parser.TableAsClass(parser.Const(bar))
+	parseDollar       = parser.TableAsClass(parser.Const(dollar))
+	parseLeftBracket  = parser.TableAsClass(parser.Const(leftBracket))
+	parseRightBracket = parser.TableAsClass(parser.Const(rightBracket))
+	parseLeftParens   = parser.TableAsClass(parser.Const(leftParens))
+	parseRightParens  = parser.TableAsClass(parser.Const(rightParens))
+	parseRightBraces  = parser.TableAsClass(parser.Const(rightBraces))
+	parseBar          = parser.TableAsClass(parser.Const(bar))
 
 	// TODO : check size in different docs
 	parseHexChar      = parser.NumberAsRune(parseHexNumber(2, 2))
@@ -169,6 +178,10 @@ var (
 			WithPrefix(`\^`, parseCircumFlexus).
 			WithPrefix(`\$`, parseDollar).
 			WithPrefix(`\[`, parseLeftBracket).
+			WithPrefix(`\]`, parseRightBracket).
+			WithPrefix(`\(`, parseLeftParens).
+			WithPrefix(`\)`, parseRightParens).
+			WithPrefix(`\}`, parseRightBraces).
 			WithPrefix(`\|`, parseBar).
 			WithPrefix(`\n`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\n')))).
 			WithPrefix(`\t`, parser.TableAsClass(parser.Const(unicodeEncoding.NewTable('\t')))).
