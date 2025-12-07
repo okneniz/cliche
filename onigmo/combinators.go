@@ -80,7 +80,7 @@ func parseIndexedReferences(
 
 	// is it possible to have back reference more than nine?
 	// for example \13 or \99 ?
-	parseSeqOfDigits, err := parser.Quantifier(
+	parseSeqOfDigits, err := c.Quantifier(
 		"expected indexed backreference",
 		1, 2,
 		c.OneOf[rune, int](
@@ -180,7 +180,7 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 	return func(_ ...rune) c.Combinator[rune, int, int] {
 		// TODO : don't ignore except, check it
 
-		parse, err := parser.Quantifier(
+		parseDigits, err := c.Quantifier(
 			"expected hex number, for example 12f or 1B",
 			from, to,
 			c.OneOf[rune, int](
@@ -192,29 +192,18 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 			panic(err.Error()) // TODO : remove panic
 		}
 
-		return func(buf c.Buffer[rune, int]) (int, c.Error[int]) {
-			pos := buf.Position()
+		return c.ParseInt[rune, int, int](
+			"expected hex number, for example 12f or 1B",
+			16, 64,
+			func(buf c.Buffer[rune, int]) (string, c.Error[int]) {
+				digits, err := parseDigits(buf)
+				if err != nil {
+					return "", err
+				}
 
-			runes, err := parse(buf)
-			if err != nil {
-				return -1, err
-			}
-
-			str := strings.ToLower(string(runes))
-
-			num, castErr := strconv.ParseInt(str, 16, 64)
-			if castErr != nil {
-				return -1, c.NewParseError(
-					pos,
-					fmt.Sprintf(
-						"invalid hex number: %s",
-						castErr.Error(),
-					),
-				)
-			}
-
-			return int(num), nil
-		}
+				return strings.ToLower(string(digits)), nil
+			},
+		)
 	}
 }
 
@@ -233,7 +222,7 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 		// TODO : don't ignore except
 
 		allowed := []rune("01234567")
-		parse := c.Count(
+		parseDigits := c.Count(
 			size,
 			"expected at least one digit between 0 and 7 as octal number",
 			c.OneOf[rune, int](
@@ -242,15 +231,26 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 			),
 		)
 
-		return func(buf c.Buffer[rune, int]) (int, c.Error[int]) {
-			pos := buf.Position()
+		parse := c.ParseInt[rune, int, int](
+			"expected at least one digit between 0 and 7 as octal number",
+			8, 64,
+			func(buf c.Buffer[rune, int]) (string, c.Error[int]) {
+				digits, err := parseDigits(buf)
+				if err != nil {
+					return "", err
+				}
 
+				return strings.ToLower(string(digits)), nil
+			},
+		)
+
+		return func(buf c.Buffer[rune, int]) (int, c.Error[int]) {
 			_, leftErr := parseLeftBraces(buf)
 			if leftErr != nil {
 				return -1, leftErr
 			}
 
-			runes, runesErr := parse(buf)
+			num, runesErr := parse(buf)
 			if runesErr != nil {
 				return -1, runesErr
 			}
@@ -258,19 +258,6 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 			_, rightErr := parseRightBraces(buf)
 			if rightErr != nil {
 				return -1, rightErr
-			}
-
-			str := strings.ToLower(string(runes))
-
-			num, castErr := strconv.ParseInt(str, 8, 64)
-			if castErr != nil {
-				return -1, c.NewParseError(
-					pos,
-					fmt.Sprintf(
-						"invalid octal number: %s",
-						castErr.Error(),
-					),
-				)
 			}
 
 			return int(num), nil

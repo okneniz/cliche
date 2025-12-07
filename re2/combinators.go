@@ -8,6 +8,7 @@ import (
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/parser"
 	"github.com/okneniz/cliche/quantity"
+	"github.com/okneniz/parsec/common"
 	c "github.com/okneniz/parsec/common"
 )
 
@@ -15,7 +16,7 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 	return func(_ ...rune) c.Combinator[rune, int, int] {
 		// TODO : don't ignore except, check it
 
-		parse, err := parser.Quantifier(
+		parse, err := common.Quantifier(
 			"expected hex number, for example 12f or 1B",
 			from, to,
 			c.OneOf[rune, int](
