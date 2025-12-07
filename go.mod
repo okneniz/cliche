@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/okneniz/oh-snap v0.0.0-20251004105833-5686b9f99abc
-	github.com/okneniz/parsec v0.0.0-20251012173552-d669082f2db5
+	github.com/okneniz/parsec v0.0.0-20251207130933-37eeefac6ce5
 	github.com/stretchr/testify v1.11.0
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1
 	golang.org/x/text v0.14.0

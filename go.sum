@@ -2,8 +2,10 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/okneniz/oh-snap v0.0.0-20251004105833-5686b9f99abc h1:h26craQhILQ8Kx40++EOq1R0iHOa2PqWYkVlmfQftLM=
 github.com/okneniz/oh-snap v0.0.0-20251004105833-5686b9f99abc/go.mod h1:uTSdxe5FwA4VEBH0cblEJ9QI1gULWCY5VhNRU7TQPig=
-github.com/okneniz/parsec v0.0.0-20251012173552-d669082f2db5 h1:2sBm38GgVfvZtDelAM/EcnAtYpplwOxBfrWlJGEcA4M=
-github.com/okneniz/parsec v0.0.0-20251012173552-d669082f2db5/go.mod h1:bPEiRFifVpw8tblCi8sJ6Yo1OVWF8q28Es2zlo43wPs=
+github.com/okneniz/parsec v0.0.0-20251207125427-676f00eaceec h1:M49JJ12a1tdHBEH8LDSoJeh2lbowi7rkFiS8UmXf9MU=
+github.com/okneniz/parsec v0.0.0-20251207125427-676f00eaceec/go.mod h1:bPEiRFifVpw8tblCi8sJ6Yo1OVWF8q28Es2zlo43wPs=
+github.com/okneniz/parsec v0.0.0-20251207130933-37eeefac6ce5 h1:Cf0mTtxpz7dXSVDB8Wr6VUsIDu3j0qNx03MNdQE/h+I=
+github.com/okneniz/parsec v0.0.0-20251207130933-37eeefac6ce5/go.mod h1:bPEiRFifVpw8tblCi8sJ6Yo1OVWF8q28Es2zlo43wPs=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/testify v1.11.0 h1:ib4sjIrwZKxE5u/Japgo/7SJV3PvgjGiRNAvTVGqQl8=
