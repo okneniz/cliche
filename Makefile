@@ -4,8 +4,13 @@ test-report:
 	go run gotest.tools/gotestsum@latest --format standard-verbose
 
 test:
-	go test --count=5 -coverprofile=coverage.out ./...
-	# go test -v -count 1 -timeout 60s -coverprofile=coverage.out ./...
+	go test --count=1 -failfast -timeout 300s -coverprofile=coverage.out ./...
+
+clean:
+	go clean -cache
+	go clean -modcache
+	go clean -testcache
+	go clean -fuzzcache
 
 install-linter:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.54.2

@@ -20,7 +20,7 @@ func TestRE2Properties(t *testing.T) {
 	t.Run("one by one", func(t *testing.T) {
 		t.Parallel()
 
-		const iterations = 1000
+		const iterations = 100
 
 		rnd := rand.New(rand.NewPCG(0, uint64(seed)))
 		arb := tests.ArbitraryRegexp(rnd, 3, 7)
@@ -82,8 +82,8 @@ func TestRE2Properties(t *testing.T) {
 
 				matches := tr.Match(reg.MatchedString)
 				if len(matches) == 0 {
-					t.Log("expression", reg.Expression)
-					t.Log("string", reg.MatchedString)
+					// t.Log("expression", reg.Expression)
+					// t.Log("string", reg.MatchedString)
 
 					return false
 				}

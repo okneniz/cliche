@@ -30,15 +30,27 @@ func (n *quantifier) GetValue() Node {
 
 func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	start := scanner.Position()
+	startGroup := scanner.GroupsPosition()
 
 	n.recursiveVisit(1, scanner, input, from, to, func(value Node, mFrom, mTo int, empty bool) {
 		pos := scanner.Position()
+
+		if startGroup != scanner.GroupsPosition() {
+			if lastGroupSpan, ok := scanner.GetGroup(scanner.GroupsPosition()); ok {
+				scanner.RewindGroups(startGroup)
+				scanner.MatchGroup(lastGroupSpan.From(), lastGroupSpan.To())
+			}
+		}
+
 		match(n, from, mTo, empty)
 		nextFrom := nextFor(mTo, empty)
 		n.base.VisitNested(scanner, input, nextFrom, to, match)
+
+		scanner.RewindGroups(startGroup)
 		scanner.Rewind(pos)
 	})
 
+	scanner.RewindGroups(startGroup)
 	scanner.Rewind(start)
 
 	// for zero matches like .? or .* or .{0,X}
@@ -57,7 +69,10 @@ func (n *quantifier) recursiveVisit(
 	from, to int,
 	match Callback,
 ) {
-	// TODO : maybe return n, ignore match?
+	if input.Size() <= from {
+		return
+	}
+
 	n.value.Visit(scanner, input, from, to, func(m Node, mFrom, mTo int, empty bool) {
 		if n.quantity.Gt(count) {
 			if n.quantity.Include(count) {

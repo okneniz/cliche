@@ -183,7 +183,7 @@ func parseMatches(matchStrs []string) ([]Match, error) {
 }
 
 func TestATTPosixRegex(t *testing.T) {
-	// t.Parallel()
+	t.Parallel()
 
 	filename := "../testdata/at&t_posix/basic.dat"
 	tests, err := ParseTestFile(t, filename)
@@ -194,11 +194,6 @@ func TestATTPosixRegex(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 
-		// TODO : remove it
-		if tt.LineNum > 126 {
-			break
-		}
-
 		if (test.Type != "B") && (test.Type != "BE") && (test.Type != "E") {
 			continue
 		}
@@ -208,7 +203,7 @@ func TestATTPosixRegex(t *testing.T) {
 		}
 
 		t.Run(fmt.Sprintf("%d-line", tt.LineNum), func(t *testing.T) {
-			// t.Parallel()
+			t.Parallel()
 
 			t.Log("type", test.Type)
 			t.Log("pattern", test.Pattern)

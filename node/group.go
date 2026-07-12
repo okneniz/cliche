@@ -31,6 +31,7 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, match Callback
 			groupsPos := scanner.GroupsPosition()
 
 			scanner.MatchGroup(from, vTo)
+
 			match(n, from, vTo, empty)
 
 			nextFrom := nextFor(vTo, empty)
