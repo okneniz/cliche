@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/okneniz/cliche/span"
 )
 
 type optionsSwitcher struct {
@@ -72,7 +74,7 @@ func (n *optionsSwitcher) Visit(
 
 	pos := scanner.Position()
 
-	match(n, from, from, true)
+	match(n, span.Empty(from))
 	n.base.VisitNested(scanner, input, from, to, match)
 
 	scanner.RewindOptions(optsPos)

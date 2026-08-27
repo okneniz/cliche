@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 type lookBehind struct {
 	value             Alternation
@@ -34,10 +38,10 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, match Cal
 		input,
 		from-n.subExpressionSize,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) bool {
+		func(_ Node, sp span.Interface) bool {
 			scanner.Rewind(pos)
 
-			match(n, from, from, true)
+			match(n, span.Empty(from))
 			n.base.VisitNested(scanner, input, from, to, match)
 
 			scanner.Rewind(pos)

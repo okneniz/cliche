@@ -142,10 +142,10 @@ func (s *FullScanner) Scan(from, to int) {
 
 		for nextFrom <= to {
 			lastFrom := nextFrom
-			root.Visit(s, s.input, nextFrom, to, func(n node.Node, from, to int, empty bool) {
+			root.Visit(s, s.input, nextFrom, to, func(x node.Node, sp span.Interface) {
 				// fmt.Println("before", s)
 				// fmt.Println("scanner match", fmt.Sprintf("%T", n), n.GetKey(), from, to, empty, n.GetExpressions().Slice())
-				s.Match(n, from, to, empty)
+				s.Match(x, sp)
 				// fmt.Println("after", s)
 				// fmt.Println("")
 			})
@@ -163,10 +163,10 @@ func (s *FullScanner) Scan(from, to int) {
 	}
 }
 
-func (s *FullScanner) Match(n node.Node, from, to int, empty bool) {
+func (s *FullScanner) Match(n node.Node, sp span.Interface) {
 	x := nodeMatch{
 		node:   n,
-		bounds: span.New(from, to, empty),
+		bounds: sp,
 	}
 
 	s.expression.Append(x)

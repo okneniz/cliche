@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 // atomicGroup - An atomic group is a group that,
 // when the regex engine exits from it,
@@ -34,13 +38,13 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, match Ca
 		input,
 		from,
 		to,
-		func(variant Node, vFrom, vTo int, empty bool) bool {
-			match(n, from, vTo, empty)
+		func(x Node, sp span.Interface) bool {
+			match(n, sp)
 
 			// throws away all backtracking positions
 			scanner.RewindGroups(groupsPos)
 
-			nextFrom := nextFor(vTo, empty)
+			nextFrom := nextFor(sp.To(), sp.Empty())
 			n.base.VisitNested(scanner, input, nextFrom, to, match)
 
 			return true // stop on first variant

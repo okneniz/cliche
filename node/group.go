@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 type group struct {
 	value Alternation
@@ -26,15 +30,15 @@ func (n *group) Visit(scanner Scanner, input Input, from, to int, match Callback
 		input,
 		from,
 		to,
-		func(variant Node, vFrom, vTo int, empty bool) bool {
+		func(x Node, sp span.Interface) bool {
 			pos := scanner.Position()
 			groupsPos := scanner.GroupsPosition()
 
-			scanner.MatchGroup(from, vTo)
+			scanner.MatchGroup(sp.From(), sp.To())
 
-			match(n, from, vTo, empty)
+			match(n, sp)
 
-			nextFrom := nextFor(vTo, empty)
+			nextFrom := nextFor(sp.To(), sp.Empty())
 			n.base.VisitNested(scanner, input, nextFrom, to, match)
 
 			scanner.Rewind(pos)

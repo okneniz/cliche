@@ -2,6 +2,8 @@ package node
 
 import (
 	"unicode"
+
+	"github.com/okneniz/cliche/span"
 )
 
 type negativeClass struct {
@@ -33,7 +35,7 @@ func (n *negativeClass) Visit(scanner Scanner, input Input, from, to int, match 
 	if !matched {
 		pos := scanner.Position()
 
-		match(n, from, from, false)
+		match(n, span.Pair(from, from))
 		n.base.VisitNested(scanner, input, from+1, to, match)
 
 		scanner.Rewind(pos)

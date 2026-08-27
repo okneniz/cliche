@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 // https://www.regular-expressions.info/keep.html
 
@@ -31,11 +35,11 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, from, to int, match Call
 		input,
 		from,
 		to,
-		func(variant Node, vFrom, vTo int, _ bool) bool {
+		func(x Node, sp span.Interface) bool {
 			scanner.Rewind(pos)
 
-			scanner.MarkAsHole(vFrom, vTo)
-			match(n, vFrom, vTo, true)
+			scanner.MarkAsHole(sp.From(), sp.To())
+			match(n, span.Empty(sp.From()))
 			scanner.RewindHoles(holesPos)
 
 			n.base.VisitNested(scanner, input, from, to, match)

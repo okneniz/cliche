@@ -1,5 +1,7 @@
 package node
 
+import "github.com/okneniz/cliche/span"
+
 type endOfLine struct {
 	*base
 }
@@ -14,7 +16,7 @@ func (n *endOfLine) Visit(scanner Scanner, input Input, from, to int, match Call
 	if n.isEndOfLine(input, from) {
 		pos := scanner.Position()
 
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}

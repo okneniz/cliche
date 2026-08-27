@@ -2,6 +2,8 @@ package node
 
 import (
 	"strings"
+
+	"github.com/okneniz/cliche/span"
 )
 
 type alternation struct {
@@ -55,9 +57,9 @@ func (n *alternation) Visit(
 		input,
 		from,
 		to,
-		func(v Node, vFrom, vTo int, empty bool) bool {
-			match(n, from, vTo, empty)
-			nextFrom := nextFor(vTo, empty)
+		func(x Node, sp span.Interface) bool {
+			match(n, sp)
+			nextFrom := nextFor(sp.To(), sp.Empty())
 			n.base.VisitNested(scanner, input, nextFrom, to, match)
 			return false
 		},
@@ -83,17 +85,17 @@ func (n *alternation) VisitAlternation(
 			input,
 			from,
 			to,
-			func(x Node, vFrom, vTo int, empty bool) {
-				if !empty {
-					lastNotEmptyTo = vTo
+			func(x Node, sp span.Interface) {
+				if !sp.Empty() {
+					lastNotEmptyTo = sp.To()
 					emptVariant = false
 				}
 
 				if len(x.GetNestedNodes()) == 0 {
 					if emptVariant {
-						stop = stop || match(variant, from, from, true)
+						stop = stop || match(variant, span.Empty(from))
 					} else {
-						stop = stop || match(variant, from, lastNotEmptyTo, false)
+						stop = stop || match(variant, span.Pair(from, lastNotEmptyTo))
 					}
 				}
 			},

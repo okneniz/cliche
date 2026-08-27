@@ -1,5 +1,7 @@
 package node
 
+import "github.com/okneniz/cliche/span"
+
 type comment struct {
 	*base
 	text string
@@ -15,7 +17,7 @@ func NewComment(text string) Node {
 func (n *comment) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	pos := scanner.Position()
 
-	match(n, from, from, true)
+	match(n, span.Empty(from))
 	n.base.VisitNested(scanner, input, from, to, match)
 	scanner.Rewind(pos)
 }

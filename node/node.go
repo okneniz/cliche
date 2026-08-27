@@ -32,7 +32,7 @@ type Node interface {
 	Copy() Node
 }
 
-type Callback func(x Node, from int, to int, empty bool)
+type Callback func(x Node, sp span.Interface)
 
 type Alternation interface {
 	Node
@@ -55,7 +55,7 @@ type Container interface {
 	GetValue() Node
 }
 
-type AlternationCallback func(x Node, from int, to int, empty bool) (stop bool)
+type AlternationCallback func(x Node, sp span.Interface) bool
 
 type Table interface {
 	Include(rune) bool

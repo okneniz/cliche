@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 type namedGroup struct {
 	name  string
@@ -30,14 +34,14 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, match Cal
 		input,
 		from,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) bool {
+		func(x Node, sp span.Interface) bool {
 			pos := scanner.Position()
 			groupsPos := scanner.NamedGroupsPosition()
 
-			scanner.MatchNamedGroup(n.name, from, vTo)
-			match(n, from, vTo, empty)
+			scanner.MatchNamedGroup(n.name, sp.From(), sp.To())
+			match(n, sp)
 
-			nextFrom := nextFor(vTo, empty)
+			nextFrom := nextFor(sp.To(), sp.Empty())
 			n.base.VisitNested(scanner, input, nextFrom, to, match)
 
 			scanner.Rewind(pos)

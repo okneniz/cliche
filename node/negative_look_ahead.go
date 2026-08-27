@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 type negativeLookAhead struct {
 	value Alternation
@@ -29,7 +33,7 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, ma
 		input,
 		from,
 		to,
-		func(_ Node, _, _ int, _ bool) bool {
+		func(_ Node, _ span.Interface) bool {
 			matched = true
 			return true
 		},
@@ -38,7 +42,7 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, ma
 	scanner.Rewind(pos)
 
 	if !matched {
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}

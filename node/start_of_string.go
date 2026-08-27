@@ -1,5 +1,7 @@
 package node
 
+import "github.com/okneniz/cliche/span"
+
 type startOfString struct {
 	*base
 }
@@ -16,7 +18,7 @@ func (n *startOfString) Visit(scanner Scanner, input Input, from, to int, match 
 	}
 
 	pos := scanner.Position()
-	match(n, from, from, true)
+	match(n, span.Empty(from))
 	n.base.VisitNested(scanner, input, from, to, match)
 	scanner.Rewind(pos)
 }

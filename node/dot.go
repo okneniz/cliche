@@ -1,5 +1,7 @@
 package node
 
+import "github.com/okneniz/cliche/span"
+
 type dot struct {
 	*base
 }
@@ -27,7 +29,7 @@ func (n *dot) Visit(scanner Scanner, input Input, from, to int, match Callback) 
 	if matched {
 		pos := scanner.Position()
 
-		match(n, from, from, false)
+		match(n, span.Pair(from, from))
 		n.base.VisitNested(scanner, input, from+1, to, match)
 		scanner.Rewind(pos)
 	}

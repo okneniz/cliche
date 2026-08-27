@@ -1,5 +1,7 @@
 package node
 
+import "github.com/okneniz/cliche/span"
+
 type keep struct {
 	*base
 }
@@ -22,7 +24,7 @@ func (n *keep) Visit(scanner Scanner, input Input, from, to int, match Callback)
 	holesPos := scanner.HolesPosition()
 
 	scanner.MarkAsHole(0, from-1)
-	match(n, from, from, true)
+	match(n, span.Empty(from))
 
 	n.base.VisitNested(scanner, input, from, to, match)
 

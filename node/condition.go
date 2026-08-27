@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 type condition struct {
 	cond *Predicate
@@ -60,9 +64,9 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, match Call
 			input,
 			from,
 			to,
-			func(x Node, f, t int, empty bool) {
+			func(x Node, sp span.Interface) {
 				if len(x.GetNestedNodes()) == 0 {
-					match(n, f, t, empty)
+					match(n, sp)
 				}
 			},
 		)
@@ -72,9 +76,9 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, match Call
 			input,
 			from,
 			to,
-			func(x Node, f, t int, empty bool) {
+			func(x Node, sp span.Interface) {
 				if len(x.GetNestedNodes()) == 0 {
-					match(n, f, t, empty)
+					match(n, sp)
 				}
 			},
 		)

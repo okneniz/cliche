@@ -3,6 +3,8 @@ package node
 import (
 	"fmt"
 	"unicode"
+
+	"github.com/okneniz/cliche/span"
 )
 
 // back reference \1, \2 or \9
@@ -34,7 +36,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, match 
 	pos := scanner.Position()
 
 	if !exists || matchSpan.Empty() {
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	} else {
@@ -69,7 +71,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, from, to int, match 
 		}
 
 		// TODO : why -1 ? looks strange
-		match(n, from, current-1, false)
+		match(n, span.Pair(from, current-1))
 		n.base.VisitNested(scanner, input, current, to, match)
 		scanner.Rewind(pos)
 	}

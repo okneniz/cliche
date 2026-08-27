@@ -1,5 +1,7 @@
 package node
 
+import "github.com/okneniz/cliche/span"
+
 type startOfLine struct {
 	*base
 }
@@ -13,7 +15,7 @@ func NewStartOfLine() Node {
 func (n *startOfLine) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	if from == 0 || n.isEndOfLine(input, from-1) { // TODO : check \n\r too
 		pos := scanner.Position()
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}

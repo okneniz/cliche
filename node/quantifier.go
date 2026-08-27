@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/okneniz/cliche/quantity"
+	"github.com/okneniz/cliche/span"
 )
 
 // https://www.regular-expressions.info/repeat.html
@@ -32,7 +33,7 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, match Cal
 	start := scanner.Position()
 	startGroup := scanner.GroupsPosition()
 
-	n.recursiveVisit(1, scanner, input, from, to, func(value Node, mFrom, mTo int, empty bool) {
+	n.recursiveVisit(1, scanner, input, from, to, func(value Node, sp span.Interface) {
 		pos := scanner.Position()
 
 		if startGroup != scanner.GroupsPosition() {
@@ -42,8 +43,8 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, match Cal
 			}
 		}
 
-		match(n, from, mTo, empty)
-		nextFrom := nextFor(mTo, empty)
+		match(n, span.New(from, sp.To(), sp.Empty()))
+		nextFrom := nextFor(sp.To(), sp.Empty())
 		n.base.VisitNested(scanner, input, nextFrom, to, match)
 
 		scanner.RewindGroups(startGroup)
@@ -55,7 +56,7 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, match Cal
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.quantity.Optional() {
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(start)
 	}
@@ -73,13 +74,13 @@ func (n *quantifier) recursiveVisit(
 		return
 	}
 
-	n.value.Visit(scanner, input, from, to, func(m Node, mFrom, mTo int, empty bool) {
+	n.value.Visit(scanner, input, from, to, func(m Node, sp span.Interface) {
 		if n.quantity.Gt(count) {
 			if n.quantity.Include(count) {
-				match(m, mFrom, mTo, empty)
+				match(m, sp)
 			}
 
-			n.recursiveVisit(count+1, scanner, input, mTo+1, to, match)
+			n.recursiveVisit(count+1, scanner, input, sp.To()+1, to, match)
 		}
 	})
 }

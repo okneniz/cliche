@@ -2,6 +2,8 @@ package node
 
 import (
 	"unicode"
+
+	"github.com/okneniz/cliche/span"
 )
 
 type wordBoundary struct {
@@ -27,7 +29,7 @@ func (n *wordBoundary) Visit(scanner Scanner, input Input, from, to int, match C
 	if isWordBoundary {
 		pos := scanner.Position()
 
-		match(n, from, to, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}

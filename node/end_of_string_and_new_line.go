@@ -1,5 +1,7 @@
 package node
 
+import "github.com/okneniz/cliche/span"
+
 type endOfStringAndNewLine struct {
 	*base
 }
@@ -13,7 +15,7 @@ func NewEndOfStringAndNewLine() Node {
 func (n *endOfStringAndNewLine) Visit(scanner Scanner, input Input, from, to int, match Callback) {
 	if n.isEnd(input, from) || n.isEndAndNewLine(input, from) {
 		pos := scanner.Position()
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}

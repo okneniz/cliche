@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 // named back reference \k<name>
 
@@ -32,7 +36,7 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, ma
 	pos := scanner.Position()
 
 	if !exists || matchSpan.Empty() {
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 
 		scanner.Rewind(pos)
@@ -61,7 +65,7 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, from, to int, ma
 		empty := false // current == from
 
 		// TODO : why -1 , looks strange
-		match(n, from, current-1, empty)
+		match(n, span.New(from, current-1, empty))
 
 		n.base.VisitNested(scanner, input, current, to, match)
 		scanner.Rewind(pos)

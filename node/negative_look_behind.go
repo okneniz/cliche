@@ -1,6 +1,10 @@
 package node
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/okneniz/cliche/span"
+)
 
 type negativeLookBehind struct {
 	subExpressionSize int
@@ -26,7 +30,7 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, m
 	pos := scanner.Position()
 
 	if from < n.subExpressionSize {
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 		return
@@ -39,7 +43,7 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, m
 		input,
 		from-n.subExpressionSize,
 		to,
-		func(_ Node, vFrom, vTo int, empty bool) bool {
+		func(_ Node, _ span.Interface) bool {
 			scanner.Rewind(pos)
 			matched = true
 			return true
@@ -49,7 +53,7 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, m
 	scanner.Rewind(pos)
 
 	if !matched {
-		match(n, from, from, true)
+		match(n, span.Empty(from))
 		n.base.VisitNested(scanner, input, from, to, match)
 		scanner.Rewind(pos)
 	}
