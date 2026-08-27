@@ -24,15 +24,14 @@ func (n *negativeLookAhead) GetValue() Node {
 	return n.value
 }
 
-func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *negativeLookAhead) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
 	matched := false
 	pos := scanner.Position()
 
 	n.value.VisitAlternation(
 		scanner,
 		input,
-		from,
-		to,
+		bounds,
 		func(_ Node, _ span.Interface) bool {
 			matched = true
 			return true
@@ -42,8 +41,8 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, from, to int, ma
 	scanner.Rewind(pos)
 
 	if !matched {
-		match(n, span.Empty(from))
-		n.base.VisitNested(scanner, input, from, to, match)
+		match(n, span.Empty(bounds.From()))
+		n.base.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(pos)
 	}
 }

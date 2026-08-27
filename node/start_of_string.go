@@ -12,14 +12,14 @@ func NewStartOfString() Node {
 	}
 }
 
-func (n *startOfString) Visit(scanner Scanner, input Input, from, to int, match Callback) {
-	if from != 0 {
+func (n *startOfString) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
+	if sp.From() != 0 {
 		return
 	}
 
 	pos := scanner.Position()
-	match(n, span.Empty(from))
-	n.base.VisitNested(scanner, input, from, to, match)
+	match(n, span.Empty(sp.From()))
+	n.base.VisitNested(scanner, input, sp, match)
 	scanner.Rewind(pos)
 }
 

@@ -55,15 +55,14 @@ func NewCondition(cond *Predicate, yes Node, no Node) Node {
 	}
 }
 
-func (n *condition) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *condition) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
 	pos := scanner.Position()
 
 	if n.cond.fun(scanner) {
 		n.yes.Visit(
 			scanner,
 			input,
-			from,
-			to,
+			sp,
 			func(x Node, sp span.Interface) {
 				if len(x.GetNestedNodes()) == 0 {
 					match(n, sp)
@@ -74,8 +73,7 @@ func (n *condition) Visit(scanner Scanner, input Input, from, to int, match Call
 		n.no.Visit(
 			scanner,
 			input,
-			from,
-			to,
+			sp,
 			func(x Node, sp span.Interface) {
 				if len(x.GetNestedNodes()) == 0 {
 					match(n, sp)

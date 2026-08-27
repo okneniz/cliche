@@ -14,11 +14,11 @@ func NewComment(text string) Node {
 	}
 }
 
-func (n *comment) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *comment) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
 	pos := scanner.Position()
 
-	match(n, span.Empty(from))
-	n.base.VisitNested(scanner, input, from, to, match)
+	match(n, span.Empty(sp.From()))
+	n.base.VisitNested(scanner, input, sp, match)
 	scanner.Rewind(pos)
 }
 

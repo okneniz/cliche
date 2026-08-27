@@ -12,11 +12,11 @@ func NewEndOfStringAndNewLine() Node {
 	}
 }
 
-func (n *endOfStringAndNewLine) Visit(scanner Scanner, input Input, from, to int, match Callback) {
-	if n.isEnd(input, from) || n.isEndAndNewLine(input, from) {
+func (n *endOfStringAndNewLine) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
+	if n.isEnd(input, sp.From()) || n.isEndAndNewLine(input, sp.From()) {
 		pos := scanner.Position()
-		match(n, span.Empty(from))
-		n.base.VisitNested(scanner, input, from, to, match)
+		match(n, span.Empty(sp.From()))
+		n.base.VisitNested(scanner, input, sp, match)
 		scanner.Rewind(pos)
 	}
 }

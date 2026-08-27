@@ -25,24 +25,24 @@ func NewLookBehind(alt Alternation) (Node, error) {
 	}, nil
 }
 
-func (n *lookBehind) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *lookBehind) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
 	// TODO : what about anchors?
-	if from < n.subExpressionSize {
+	if sp.From() < n.subExpressionSize {
 		return
 	}
 
 	pos := scanner.Position()
+	altSp := span.New(sp.From()-n.subExpressionSize, sp.To(), false)
 
 	n.value.VisitAlternation(
 		scanner,
 		input,
-		from-n.subExpressionSize,
-		to,
-		func(_ Node, sp span.Interface) bool {
+		altSp,
+		func(_ Node, _ span.Interface) bool {
 			scanner.Rewind(pos)
 
-			match(n, span.Empty(from))
-			n.base.VisitNested(scanner, input, from, to, match)
+			match(n, span.Empty(sp.From()))
+			n.base.VisitNested(scanner, input, sp, match)
 
 			scanner.Rewind(pos)
 

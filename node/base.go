@@ -1,6 +1,7 @@
 package node
 
 import (
+	"github.com/okneniz/cliche/span"
 	"github.com/okneniz/cliche/structs"
 )
 
@@ -41,11 +42,11 @@ func (n *base) IsLeaf() bool {
 func (n *base) VisitNested(
 	scanner Scanner,
 	input Input,
-	from, to int,
+	sp span.Interface,
 	match Callback,
 ) {
 	for _, nested := range n.nested {
-		nested.Visit(scanner, input, from, to, match)
+		nested.Visit(scanner, input, sp, match)
 	}
 }
 

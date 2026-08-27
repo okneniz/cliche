@@ -59,7 +59,7 @@ func NewOptionsSwitcher(enable []ScanOption, disable []ScanOption) Node {
 func (n *optionsSwitcher) Visit(
 	scanner Scanner,
 	input Input,
-	from, to int,
+	sp span.Interface,
 	match Callback,
 ) {
 	optsPos := scanner.OptionsPosition()
@@ -74,8 +74,8 @@ func (n *optionsSwitcher) Visit(
 
 	pos := scanner.Position()
 
-	match(n, span.Empty(from))
-	n.base.VisitNested(scanner, input, from, to, match)
+	match(n, span.Empty(sp.From()))
+	n.base.VisitNested(scanner, input, sp, match)
 
 	scanner.RewindOptions(optsPos)
 	scanner.Rewind(pos)

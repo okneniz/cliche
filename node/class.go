@@ -18,12 +18,12 @@ func NewClass(table Table) Node {
 	}
 }
 
-func (n *class) Visit(scanner Scanner, input Input, from, to int, match Callback) {
-	if from >= input.Size() {
+func (n *class) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
+	if sp.From() >= input.Size() {
 		return
 	}
 
-	x := input.ReadAt(from)
+	x := input.ReadAt(sp.From())
 	matched := false
 
 	if scanner.OptionsInclude(ScanOptionCaseInsensetive) {
@@ -34,8 +34,16 @@ func (n *class) Visit(scanner Scanner, input Input, from, to int, match Callback
 
 	if matched {
 		pos := scanner.Position()
-		match(n, span.Pair(from, from))
-		n.base.VisitNested(scanner, input, from+1, to, match)
+		match(n, span.Pair(sp.From(), sp.From()))
+
+		nextFrom := sp.From() + 1
+		nextTo := nextFrom
+		if sp.To() > nextTo {
+			nextTo = sp.To()
+		}
+
+		next := span.Pair(nextFrom, nextTo)
+		n.base.VisitNested(scanner, input, next, match)
 		scanner.Rewind(pos)
 	}
 }

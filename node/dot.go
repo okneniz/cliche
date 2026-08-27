@@ -12,12 +12,12 @@ func NewDot() Node {
 	}
 }
 
-func (n *dot) Visit(scanner Scanner, input Input, from, to int, match Callback) {
-	if from >= input.Size() {
+func (n *dot) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
+	if sp.From() >= input.Size() {
 		return
 	}
 
-	x := input.ReadAt(from)
+	x := input.ReadAt(sp.From())
 	matched := false
 
 	if scanner.OptionsInclude(ScanOptionMultiline) {
@@ -29,8 +29,9 @@ func (n *dot) Visit(scanner Scanner, input Input, from, to int, match Callback) 
 	if matched {
 		pos := scanner.Position()
 
-		match(n, span.Pair(from, from))
-		n.base.VisitNested(scanner, input, from+1, to, match)
+		match(n, span.Pair(sp.From(), sp.From()))
+		next := span.Pair(sp.From()+1, sp.To())
+		n.base.VisitNested(scanner, input, next, match)
 		scanner.Rewind(pos)
 	}
 }

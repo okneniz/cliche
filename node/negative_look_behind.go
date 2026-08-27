@@ -25,24 +25,24 @@ func NewNegativeLookBehind(alt Alternation) (Node, error) {
 	}, nil
 }
 
-func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *negativeLookBehind) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
 	// TODO : what about anchors?
 	pos := scanner.Position()
 
-	if from < n.subExpressionSize {
-		match(n, span.Empty(from))
-		n.base.VisitNested(scanner, input, from, to, match)
+	if bounds.From() < n.subExpressionSize {
+		match(n, span.Empty(bounds.From()))
+		n.base.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(pos)
 		return
 	}
 
 	matched := false
+	altSp := span.Pair(bounds.From()-n.subExpressionSize, bounds.To())
 
 	n.value.VisitAlternation(
 		scanner,
 		input,
-		from-n.subExpressionSize,
-		to,
+		altSp,
 		func(_ Node, _ span.Interface) bool {
 			scanner.Rewind(pos)
 			matched = true
@@ -53,8 +53,8 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, from, to int, m
 	scanner.Rewind(pos)
 
 	if !matched {
-		match(n, span.Empty(from))
-		n.base.VisitNested(scanner, input, from, to, match)
+		match(n, span.Empty(bounds.From()))
+		n.base.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(pos)
 	}
 }

@@ -28,12 +28,11 @@ func (n *namedGroup) GetValue() Node {
 	return n.value
 }
 
-func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *namedGroup) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
 	n.value.VisitAlternation(
 		scanner,
 		input,
-		from,
-		to,
+		bounds,
 		func(x Node, sp span.Interface) bool {
 			pos := scanner.Position()
 			groupsPos := scanner.NamedGroupsPosition()
@@ -42,7 +41,8 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, from, to int, match Cal
 			match(n, sp)
 
 			nextFrom := nextFor(sp.To(), sp.Empty())
-			n.base.VisitNested(scanner, input, nextFrom, to, match)
+			next := span.Pair(nextFrom, bounds.To())
+			n.base.VisitNested(scanner, input, next, match)
 
 			scanner.Rewind(pos)
 			scanner.RewindNamedGroups(groupsPos)

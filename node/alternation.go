@@ -49,18 +49,18 @@ func (n *alternation) GetVariants() []Node {
 func (n *alternation) Visit(
 	scanner Scanner,
 	input Input,
-	from, to int,
+	bounds span.Interface,
 	match Callback,
 ) {
 	n.VisitAlternation(
 		scanner,
 		input,
-		from,
-		to,
+		bounds,
 		func(x Node, sp span.Interface) bool {
 			match(n, sp)
 			nextFrom := nextFor(sp.To(), sp.Empty())
-			n.base.VisitNested(scanner, input, nextFrom, to, match)
+			next := span.Pair(nextFrom, bounds.To())
+			n.base.VisitNested(scanner, input, next, match)
 			return false
 		},
 	)
@@ -70,7 +70,7 @@ func (n *alternation) Visit(
 func (n *alternation) VisitAlternation(
 	scanner Scanner,
 	input Input,
-	from, to int,
+	bounds span.Interface,
 	match AlternationCallback,
 ) {
 	pos := scanner.Position()
@@ -78,13 +78,12 @@ func (n *alternation) VisitAlternation(
 	for _, variant := range n.variants {
 		stop := false
 		emptVariant := true
-		lastNotEmptyTo := from
+		lastNotEmptyTo := bounds.From()
 
 		variant.Visit(
 			scanner,
 			input,
-			from,
-			to,
+			bounds,
 			func(x Node, sp span.Interface) {
 				if !sp.Empty() {
 					lastNotEmptyTo = sp.To()
@@ -93,9 +92,9 @@ func (n *alternation) VisitAlternation(
 
 				if len(x.GetNestedNodes()) == 0 {
 					if emptVariant {
-						stop = stop || match(variant, span.Empty(from))
+						stop = stop || match(variant, span.Empty(bounds.From()))
 					} else {
-						stop = stop || match(variant, span.Pair(from, lastNotEmptyTo))
+						stop = stop || match(variant, span.Pair(bounds.From(), lastNotEmptyTo))
 					}
 				}
 			},

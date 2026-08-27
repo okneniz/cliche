@@ -12,7 +12,7 @@ type Node interface {
 	GetNestedNodes() map[string]Node
 	IsLeaf() bool
 
-	Visit(Scanner, Input, int, int, Callback)
+	Visit(Scanner, Input, span.Interface, Callback)
 
 	// TODO : works only for fixed chain with one end node?
 	// don't work for tree?
@@ -39,10 +39,11 @@ type Alternation interface {
 
 	GetVariants() []Node
 
+	// TODO : переделать на iter.Seq2? (без Visit)
 	VisitAlternation(
 		scanner Scanner,
 		input Input,
-		from, to int,
+		sp span.Interface,
 		match AlternationCallback,
 	)
 

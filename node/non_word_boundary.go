@@ -19,16 +19,16 @@ func NewNonWordBoundary() Node {
 func (n *nonWordBoundary) Visit(
 	scanner Scanner,
 	input Input,
-	from, to int,
+	sp span.Interface,
 	match Callback,
 ) {
-	isWordBoundary := (!n.isWord(input, from-1) && n.isWord(input, from)) ||
-		(n.isWord(input, from-1) && !n.isWord(input, from))
+	isWordBoundary := (!n.isWord(input, sp.From()-1) && n.isWord(input, sp.From())) ||
+		(n.isWord(input, sp.From()-1) && !n.isWord(input, sp.From()))
 
 	if !isWordBoundary {
 		pos := scanner.Position()
-		match(n, span.Empty(from))
-		n.base.VisitNested(scanner, input, from, to, match)
+		match(n, span.Empty(sp.From()))
+		n.base.VisitNested(scanner, input, sp, match)
 		scanner.Rewind(pos)
 	}
 }

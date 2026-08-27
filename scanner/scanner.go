@@ -142,7 +142,9 @@ func (s *FullScanner) Scan(from, to int) {
 
 		for nextFrom <= to {
 			lastFrom := nextFrom
-			root.Visit(s, s.input, nextFrom, to, func(x node.Node, sp span.Interface) {
+			next := span.Pair(nextFrom, to)
+
+			root.Visit(s, s.input, next, func(x node.Node, sp span.Interface) {
 				// fmt.Println("before", s)
 				// fmt.Println("scanner match", fmt.Sprintf("%T", n), n.GetKey(), from, to, empty, n.GetExpressions().Slice())
 				s.Match(x, sp)

@@ -18,12 +18,12 @@ func NewNegativeClass(table Table) Node {
 	}
 }
 
-func (n *negativeClass) Visit(scanner Scanner, input Input, from, to int, match Callback) {
-	if from >= input.Size() {
+func (n *negativeClass) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
+	if bounds.From() >= input.Size() {
 		return
 	}
 
-	x := input.ReadAt(from)
+	x := input.ReadAt(bounds.From())
 	matched := false
 
 	if scanner.OptionsInclude(ScanOptionCaseInsensetive) {
@@ -35,8 +35,9 @@ func (n *negativeClass) Visit(scanner Scanner, input Input, from, to int, match 
 	if !matched {
 		pos := scanner.Position()
 
-		match(n, span.Pair(from, from))
-		n.base.VisitNested(scanner, input, from+1, to, match)
+		match(n, span.Pair(bounds.From(), bounds.From()))
+		next := span.Pair(bounds.From()+1, bounds.To())
+		n.base.VisitNested(scanner, input, next, match)
 
 		scanner.Rewind(pos)
 	}

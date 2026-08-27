@@ -12,21 +12,21 @@ func NewKeep() Node {
 	}
 }
 
-func (n *keep) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *keep) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
 	pos := scanner.Position()
 
-	if from == 0 {
-		n.base.VisitNested(scanner, input, from, to, match)
+	if sp.From() == 0 {
+		n.base.VisitNested(scanner, input, sp, match)
 		scanner.Rewind(pos)
 		return
 	}
 
 	holesPos := scanner.HolesPosition()
 
-	scanner.MarkAsHole(0, from-1)
-	match(n, span.Empty(from))
+	scanner.MarkAsHole(0, sp.From()-1)
+	match(n, span.Empty(sp.From()))
 
-	n.base.VisitNested(scanner, input, from, to, match)
+	n.base.VisitNested(scanner, input, sp, match)
 
 	scanner.RewindHoles(holesPos)
 	scanner.Rewind(pos)

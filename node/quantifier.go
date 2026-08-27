@@ -29,11 +29,11 @@ func (n *quantifier) GetValue() Node {
 	return n.value
 }
 
-func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *quantifier) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
 	start := scanner.Position()
 	startGroup := scanner.GroupsPosition()
 
-	n.recursiveVisit(1, scanner, input, from, to, func(value Node, sp span.Interface) {
+	n.recursiveVisit(1, scanner, input, bounds, func(value Node, sp span.Interface) {
 		pos := scanner.Position()
 
 		if startGroup != scanner.GroupsPosition() {
@@ -43,9 +43,10 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, match Cal
 			}
 		}
 
-		match(n, span.New(from, sp.To(), sp.Empty()))
+		match(n, span.New(bounds.From(), sp.To(), sp.Empty()))
 		nextFrom := nextFor(sp.To(), sp.Empty())
-		n.base.VisitNested(scanner, input, nextFrom, to, match)
+		next := span.Pair(nextFrom, bounds.To())
+		n.base.VisitNested(scanner, input, next, match)
 
 		scanner.RewindGroups(startGroup)
 		scanner.Rewind(pos)
@@ -56,8 +57,8 @@ func (n *quantifier) Visit(scanner Scanner, input Input, from, to int, match Cal
 
 	// for zero matches like .? or .* or .{0,X}
 	if n.quantity.Optional() {
-		match(n, span.Empty(from))
-		n.base.VisitNested(scanner, input, from, to, match)
+		match(n, span.Empty(bounds.From()))
+		n.base.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(start)
 	}
 }
@@ -67,20 +68,21 @@ func (n *quantifier) recursiveVisit(
 	count int,
 	scanner Scanner,
 	input Input,
-	from, to int,
+	bounds span.Interface,
 	match Callback,
 ) {
-	if input.Size() <= from {
+	if input.Size() <= bounds.From() {
 		return
 	}
 
-	n.value.Visit(scanner, input, from, to, func(m Node, sp span.Interface) {
+	n.value.Visit(scanner, input, bounds, func(m Node, sp span.Interface) {
 		if n.quantity.Gt(count) {
 			if n.quantity.Include(count) {
 				match(m, sp)
 			}
 
-			n.recursiveVisit(count+1, scanner, input, sp.To()+1, to, match)
+			next := span.Pair(sp.To()+1, bounds.To())
+			n.recursiveVisit(count+1, scanner, input, next, match)
 		}
 	})
 }

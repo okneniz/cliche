@@ -29,15 +29,14 @@ func (n *atomicGroup) GetValue() Node {
 	return n.value
 }
 
-func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, match Callback) {
+func (n *atomicGroup) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
 	pos := scanner.Position()
 	groupsPos := scanner.GroupsPosition()
 
 	n.value.VisitAlternation(
 		scanner,
 		input,
-		from,
-		to,
+		bounds,
 		func(x Node, sp span.Interface) bool {
 			match(n, sp)
 
@@ -45,7 +44,8 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, from, to int, match Ca
 			scanner.RewindGroups(groupsPos)
 
 			nextFrom := nextFor(sp.To(), sp.Empty())
-			n.base.VisitNested(scanner, input, nextFrom, to, match)
+			next := span.Pair(nextFrom, bounds.To())
+			n.base.VisitNested(scanner, input, next, match)
 
 			return true // stop on first variant
 		},
