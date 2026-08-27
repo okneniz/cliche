@@ -5,7 +5,7 @@ import (
 
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
-	"github.com/okneniz/cliche/quantity"
+	"github.com/okneniz/cliche/span"
 	"github.com/okneniz/cliche/structs"
 )
 
@@ -16,28 +16,28 @@ type (
 		expression  *structs.TruncatedList[nodeMatch]
 		groups      Captures
 		namedGroups NamedCaptures
-		holes       *structs.TruncatedList[quantity.Interface]
+		holes       *structs.TruncatedList[span.Interface]
 		roots       map[string]node.Node
 		options     ScanOptionsHistory
 	}
 
 	Captures interface {
-		Append(...quantity.Interface)
+		Append(...span.Interface)
 		Truncate(int)
 		Size() int
-		At(int) (quantity.Interface, bool)
-		First() (quantity.Interface, bool)
-		Last() (quantity.Interface, bool)
-		Slice() []quantity.Interface
+		At(int) (span.Interface, bool)
+		First() (span.Interface, bool)
+		Last() (span.Interface, bool)
+		Slice() []span.Interface
 	}
 
 	NamedCaptures interface {
-		Get(string) (quantity.Interface, bool)
-		Put(string, quantity.Interface)
+		Get(string) (span.Interface, bool)
+		Put(string, span.Interface)
 		Truncate(int)
 		Empty() bool
 		Size() int
-		Map() map[string]quantity.Interface
+		Map() map[string]span.Interface
 		String() string // TODO : remove and use map when it needed
 	}
 
@@ -56,8 +56,8 @@ var (
 	_ node.Scanner       = new(FullScanner)
 	_ node.Input         = buf.NewRunesBuffer("")
 	_ node.Output        = NewOutput()
-	_ Captures           = structs.NewTruncatedList[quantity.Interface](0)
-	_ NamedCaptures      = structs.NewOrderedMap[string, quantity.Interface](0)
+	_ Captures           = structs.NewTruncatedList[span.Interface](0)
+	_ NamedCaptures      = structs.NewOrderedMap[string, span.Interface](0)
 	_ ScanOptionsHistory = structs.NewOrderedMap[node.ScanOption, bool](0)
 )
 
@@ -73,14 +73,14 @@ func NewFullScanner(
 	s.roots = roots
 
 	// TODO : capacity = max count of captured groups in expression
-	s.groups = structs.NewTruncatedList[quantity.Interface](10)
-	s.namedGroups = structs.NewOrderedMap[string, quantity.Interface](10)
+	s.groups = structs.NewTruncatedList[span.Interface](10)
+	s.namedGroups = structs.NewOrderedMap[string, span.Interface](10)
 
 	// TODO : capacity = height of tree (but what about quantifier)
 	s.expression = structs.NewTruncatedList[nodeMatch](50)
 
 	// TODO : capacity = max count of assertions / lookaheads / lookbehins in expression
-	s.holes = structs.NewTruncatedList[quantity.Interface](3)
+	s.holes = structs.NewTruncatedList[span.Interface](3)
 
 	// TODO : what about default options?
 
@@ -167,9 +167,9 @@ func (s *FullScanner) Match(n node.Node, from, to int, empty bool) {
 	x := nodeMatch{node: n}
 
 	if empty {
-		x.bounds = quantity.Empty(from)
+		x.bounds = span.Empty(from)
 	} else {
-		x.bounds = quantity.Pair(from, to)
+		x.bounds = span.Pair(from, to)
 	}
 
 	s.expression.Append(x)
@@ -183,7 +183,7 @@ func (s *FullScanner) Match(n node.Node, from, to int, empty bool) {
 		return
 	}
 
-	sp = quantity.Get(sp, s.holes)
+	sp = span.Get(sp, s.holes)
 	subString := s.getSubString(sp)
 
 	s.output.Yield(
@@ -195,7 +195,7 @@ func (s *FullScanner) Match(n node.Node, from, to int, empty bool) {
 	)
 }
 
-func (s *FullScanner) getSubString(sp quantity.Interface) string {
+func (s *FullScanner) getSubString(sp span.Interface) string {
 	if sp.Empty() {
 		return ""
 	}
@@ -216,14 +216,14 @@ func (s *FullScanner) getSubString(sp quantity.Interface) string {
 	return string(subString)
 }
 
-func (s *FullScanner) capturedStringSpan() (quantity.Interface, bool) {
+func (s *FullScanner) capturedStringSpan() (span.Interface, bool) {
 	begin, exists := s.firstSpan()
 	if !exists {
 		return nil, false
 	}
 
 	if begin.From() > s.input.Size() {
-		return quantity.Empty(s.input.Size()), true
+		return span.Empty(s.input.Size()), true
 	}
 
 	end, exists := s.lastNotEmptySpan()
@@ -231,13 +231,13 @@ func (s *FullScanner) capturedStringSpan() (quantity.Interface, bool) {
 		return begin, true
 	}
 
-	return quantity.Pair(
+	return span.Pair(
 		begin.From(),
 		end.To(),
 	), true
 }
 
-func (s *FullScanner) firstSpan() (quantity.Interface, bool) {
+func (s *FullScanner) firstSpan() (span.Interface, bool) {
 	if x, ok := s.expression.First(); ok {
 		// TODO : skip empty too?
 		return x.bounds, true
@@ -246,7 +246,7 @@ func (s *FullScanner) firstSpan() (quantity.Interface, bool) {
 	return nil, false
 }
 
-func (s *FullScanner) lastNotEmptySpan() (quantity.Interface, bool) {
+func (s *FullScanner) lastNotEmptySpan() (span.Interface, bool) {
 	for i := s.expression.Size() - 1; i >= 0; i-- {
 		m, ok := s.expression.At(i)
 		if !ok {
@@ -262,7 +262,7 @@ func (s *FullScanner) lastNotEmptySpan() (quantity.Interface, bool) {
 }
 
 func (s *FullScanner) MatchGroup(from int, to int) {
-	g := quantity.Get(quantity.Pair(from, to), s.holes)
+	g := span.Get(span.Pair(from, to), s.holes)
 	s.groups.Append(g)
 }
 
@@ -270,7 +270,7 @@ func (s *FullScanner) GroupsPosition() int {
 	return s.groups.Size()
 }
 
-func (s *FullScanner) GetGroup(idx int) (quantity.Interface, bool) {
+func (s *FullScanner) GetGroup(idx int) (span.Interface, bool) {
 	return s.groups.At(idx - 1)
 }
 
@@ -279,7 +279,7 @@ func (s *FullScanner) RewindGroups(pos int) {
 }
 
 func (s *FullScanner) MatchNamedGroup(name string, from int, to int) {
-	g := quantity.Get(quantity.Pair(from, to), s.holes)
+	g := span.Get(span.Pair(from, to), s.holes)
 	s.namedGroups.Put(name, g)
 }
 
@@ -287,7 +287,7 @@ func (s *FullScanner) NamedGroupsPosition() int {
 	return s.namedGroups.Size()
 }
 
-func (s *FullScanner) GetNamedGroup(name string) (quantity.Interface, bool) {
+func (s *FullScanner) GetNamedGroup(name string) (span.Interface, bool) {
 	return s.namedGroups.Get(name)
 }
 
@@ -296,7 +296,7 @@ func (s *FullScanner) RewindNamedGroups(pos int) {
 }
 
 func (s *FullScanner) MarkAsHole(from int, to int) {
-	s.holes.Append(quantity.Pair(from, to))
+	s.holes.Append(span.Pair(from, to))
 }
 
 func (s *FullScanner) HolesPosition() int {

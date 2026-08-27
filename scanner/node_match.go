@@ -4,12 +4,12 @@ import (
 	"fmt"
 
 	"github.com/okneniz/cliche/node"
-	"github.com/okneniz/cliche/quantity"
+	"github.com/okneniz/cliche/span"
 )
 
 type nodeMatch struct {
 	node   node.Node
-	bounds quantity.Interface
+	bounds span.Interface
 }
 
 func (m nodeMatch) String() string {

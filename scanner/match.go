@@ -5,23 +5,23 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/okneniz/cliche/quantity"
+	"github.com/okneniz/cliche/span"
 	"github.com/okneniz/cliche/structs"
 )
 
 type Match struct {
 	subString   string
-	span        quantity.Interface // todo : rename to bounds
+	span        span.Interface // todo : rename to bounds
 	expressions structs.Set[string]
-	groups      []quantity.Interface
-	namedGroups map[string]quantity.Interface
+	groups      []span.Interface
+	namedGroups map[string]span.Interface
 }
 
 func (m *Match) SubString() string {
 	return m.subString
 }
 
-func (m *Match) Span() quantity.Interface {
+func (m *Match) Span() span.Interface {
 	return m.span
 }
 
@@ -38,11 +38,11 @@ func (m *Match) Expressions() []string {
 	return m.expressions.Slice()
 }
 
-func (m *Match) NamedGroups() map[string]quantity.Interface {
+func (m *Match) NamedGroups() map[string]span.Interface {
 	return m.namedGroups
 }
 
-func (m *Match) Groups() []quantity.Interface {
+func (m *Match) Groups() []span.Interface {
 	return m.groups
 }
 

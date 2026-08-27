@@ -1,7 +1,7 @@
 package node
 
 import (
-	"github.com/okneniz/cliche/quantity"
+	"github.com/okneniz/cliche/span"
 	"github.com/okneniz/cliche/structs"
 )
 
@@ -70,12 +70,12 @@ type Scanner interface {
 
 	MatchGroup(from int, to int)
 	GroupsPosition() int
-	GetGroup(idx int) (quantity.Interface, bool)
+	GetGroup(idx int) (span.Interface, bool)
 	RewindGroups(pos int)
 
 	MatchNamedGroup(name string, from int, to int)
 	NamedGroupsPosition() int
-	GetNamedGroup(name string) (quantity.Interface, bool)
+	GetNamedGroup(name string) (span.Interface, bool)
 	RewindNamedGroups(pos int)
 
 	MarkAsHole(from int, to int)
@@ -107,9 +107,9 @@ type Output interface {
 	Yield(
 		n Node,
 		subString string,
-		sp quantity.Interface,
-		groups []quantity.Interface,
-		namedGroups map[string]quantity.Interface,
+		sp span.Interface,
+		groups []span.Interface,
+		namedGroups map[string]span.Interface,
 	)
 
 	LastPosOf(n Node) (int, bool)

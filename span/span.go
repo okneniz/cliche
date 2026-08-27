@@ -1,4 +1,4 @@
-package quantity
+package span
 
 type Interface interface {
 	From() int
