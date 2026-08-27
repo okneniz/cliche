@@ -8,3 +8,11 @@ type Interface interface {
 	Include(int) bool
 	String() string
 }
+
+func New(from, to int, empty bool) Interface {
+	if empty {
+		return Empty(from)
+	}
+
+	return Pair(from, to)
+}

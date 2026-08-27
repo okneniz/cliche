@@ -164,12 +164,9 @@ func (s *FullScanner) Scan(from, to int) {
 }
 
 func (s *FullScanner) Match(n node.Node, from, to int, empty bool) {
-	x := nodeMatch{node: n}
-
-	if empty {
-		x.bounds = span.Empty(from)
-	} else {
-		x.bounds = span.Pair(from, to)
+	x := nodeMatch{
+		node:   n,
+		bounds: span.New(from, to, empty),
 	}
 
 	s.expression.Append(x)
