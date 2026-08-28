@@ -27,23 +27,17 @@ func (n *notCapturedGroup) GetValue() Node {
 }
 
 func (n *notCapturedGroup) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
-	n.value.VisitAlternation(
-		scanner,
-		input,
-		bounds,
-		func(x Node, sp span.Interface) bool {
-			pos := scanner.Position()
+	for _, sp := range n.value.VisitAlternation(scanner, input, bounds) {
+		pos := scanner.Position()
 
-			match(n, sp)
+		match(n, sp)
 
-			nextFrom := nextFor(sp.To(), sp.Empty())
-			next := span.Pair(nextFrom, bounds.To())
-			n.base.VisitNested(scanner, input, next, match)
+		nextFrom := nextFor(sp.To(), sp.Empty())
+		next := span.Pair(nextFrom, bounds.To())
+		n.base.VisitNested(scanner, input, next, match)
 
-			scanner.Rewind(pos)
-			return false
-		},
-	)
+		scanner.Rewind(pos)
+	}
 }
 
 func (n *notCapturedGroup) Size() (int, bool) {

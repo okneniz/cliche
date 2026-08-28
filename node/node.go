@@ -1,6 +1,8 @@
 package node
 
 import (
+	"iter"
+
 	"github.com/okneniz/cliche/span"
 	"github.com/okneniz/cliche/structs"
 )
@@ -40,12 +42,12 @@ type Alternation interface {
 	GetVariants() []Node
 
 	// TODO : переделать на iter.Seq2? (без Visit)
+	// Rename to variants?
 	VisitAlternation(
 		scanner Scanner,
 		input Input,
 		sp span.Interface,
-		match AlternationCallback,
-	)
+	) iter.Seq2[Node, span.Interface]
 
 	CopyAlternation() Alternation
 }

@@ -30,22 +30,16 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, bounds span.Interface, m
 	pos := scanner.Position()
 	holesPos := scanner.HolesPosition()
 
-	n.value.VisitAlternation(
-		scanner,
-		input,
-		bounds,
-		func(x Node, sp span.Interface) bool {
-			scanner.Rewind(pos)
+	for _, sp := range n.value.VisitAlternation(scanner, input, bounds) {
+		scanner.Rewind(pos)
+		scanner.MarkAsHole(sp.From(), sp.To())
 
-			scanner.MarkAsHole(sp.From(), sp.To())
-			match(n, span.Empty(sp.From()))
-			scanner.RewindHoles(holesPos)
+		match(n, span.Empty(sp.From()))
+		scanner.RewindHoles(holesPos)
 
-			n.base.VisitNested(scanner, input, bounds, match)
-			scanner.Rewind(pos)
-			return false
-		},
-	)
+		n.base.VisitNested(scanner, input, bounds, match)
+		scanner.Rewind(pos)
+	}
 }
 
 func (n *lookAhead) Size() (int, bool) {

@@ -33,23 +33,18 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, bounds span.Interface,
 	pos := scanner.Position()
 	groupsPos := scanner.GroupsPosition()
 
-	n.value.VisitAlternation(
-		scanner,
-		input,
-		bounds,
-		func(x Node, sp span.Interface) bool {
-			match(n, sp)
+	for _, sp := range n.value.VisitAlternation(scanner, input, bounds) {
+		match(n, sp)
 
-			// throws away all backtracking positions
-			scanner.RewindGroups(groupsPos)
+		// throws away all backtracking positions
+		scanner.RewindGroups(groupsPos)
 
-			nextFrom := nextFor(sp.To(), sp.Empty())
-			next := span.Pair(nextFrom, bounds.To())
-			n.base.VisitNested(scanner, input, next, match)
+		nextFrom := nextFor(sp.To(), sp.Empty())
+		next := span.Pair(nextFrom, bounds.To())
+		n.base.VisitNested(scanner, input, next, match)
 
-			return true // stop on first variant
-		},
-	)
+		break // stop on first variant
+	}
 
 	scanner.Rewind(pos)
 }

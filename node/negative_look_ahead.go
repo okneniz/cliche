@@ -28,18 +28,14 @@ func (n *negativeLookAhead) Visit(scanner Scanner, input Input, bounds span.Inte
 	matched := false
 	pos := scanner.Position()
 
-	n.value.VisitAlternation(
-		scanner,
-		input,
-		bounds,
-		func(_ Node, _ span.Interface) bool {
-			matched = true
-			return true
-		},
-	)
+	for range n.value.VisitAlternation(scanner, input, bounds) {
+		matched = true
+		break
+	}
 
 	scanner.Rewind(pos)
 
+	// TODO : move to loop
 	if !matched {
 		match(n, span.Empty(bounds.From()))
 		n.base.VisitNested(scanner, input, bounds, match)

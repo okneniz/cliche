@@ -1,6 +1,7 @@
 package node
 
 import (
+	"iter"
 	"strings"
 
 	"github.com/okneniz/cliche/span"
@@ -52,18 +53,12 @@ func (n *alternation) Visit(
 	bounds span.Interface,
 	match Callback,
 ) {
-	n.VisitAlternation(
-		scanner,
-		input,
-		bounds,
-		func(x Node, sp span.Interface) bool {
-			match(n, sp)
-			nextFrom := nextFor(sp.To(), sp.Empty())
-			next := span.Pair(nextFrom, bounds.To())
-			n.base.VisitNested(scanner, input, next, match)
-			return false
-		},
-	)
+	for _, sp := range n.VisitAlternation(scanner, input, bounds) {
+		match(n, sp)
+		nextFrom := nextFor(sp.To(), sp.Empty())
+		next := span.Pair(nextFrom, bounds.To())
+		n.base.VisitNested(scanner, input, next, match)
+	}
 }
 
 // VisitAlternation - visit like container value (without nested nodes)
@@ -71,40 +66,45 @@ func (n *alternation) VisitAlternation(
 	scanner Scanner,
 	input Input,
 	bounds span.Interface,
-	match AlternationCallback,
-) {
-	pos := scanner.Position()
-
-	for _, variant := range n.variants {
+) iter.Seq2[Node, span.Interface] {
+	return func(yield func(Node, span.Interface) bool) {
+		pos := scanner.Position()
 		stop := false
-		emptVariant := true
-		lastNotEmptyTo := bounds.From()
 
-		variant.Visit(
-			scanner,
-			input,
-			bounds,
-			func(x Node, sp span.Interface) {
+		for _, variant := range n.variants {
+			emptVariant := true
+			lastNotEmptyTo := bounds.From()
+
+			variant.Visit(scanner, input, bounds, func(x Node, sp span.Interface) {
 				if !sp.Empty() {
 					lastNotEmptyTo = sp.To()
 					emptVariant = false
 				}
 
-				if len(x.GetNestedNodes()) == 0 {
-					if emptVariant {
-						stop = stop || match(variant, span.Empty(bounds.From()))
-					} else {
-						stop = stop || match(variant, span.Pair(bounds.From(), lastNotEmptyTo))
-					}
+				if len(x.GetNestedNodes()) > 0 {
+					return // find leaf
 				}
-			},
-		)
+
+				vsp := span.Empty(bounds.From())
+
+				// последний node может быть пустым, например $
+				// поэтому запоминаем последний span до него
+				// чтобы границы подстроки были правильные
+				if !emptVariant {
+					vsp = span.Pair(bounds.From(), lastNotEmptyTo)
+				}
+
+				stop = stop || !yield(n, vsp)
+			})
+
+			scanner.Rewind(pos)
+
+			if stop {
+				break
+			}
+		}
 
 		scanner.Rewind(pos)
-
-		if stop {
-			break
-		}
 	}
 }
 

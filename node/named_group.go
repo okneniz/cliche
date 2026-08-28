@@ -29,27 +29,20 @@ func (n *namedGroup) GetValue() Node {
 }
 
 func (n *namedGroup) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
-	n.value.VisitAlternation(
-		scanner,
-		input,
-		bounds,
-		func(x Node, sp span.Interface) bool {
-			pos := scanner.Position()
-			groupsPos := scanner.NamedGroupsPosition()
+	for _, sp := range n.value.VisitAlternation(scanner, input, bounds) {
+		pos := scanner.Position()
+		groupsPos := scanner.NamedGroupsPosition()
 
-			scanner.MatchNamedGroup(n.name, sp.From(), sp.To())
-			match(n, sp)
+		scanner.MatchNamedGroup(n.name, sp.From(), sp.To())
+		match(n, sp)
 
-			nextFrom := nextFor(sp.To(), sp.Empty())
-			next := span.Pair(nextFrom, bounds.To())
-			n.base.VisitNested(scanner, input, next, match)
+		nextFrom := nextFor(sp.To(), sp.Empty())
+		next := span.Pair(nextFrom, bounds.To())
+		n.base.VisitNested(scanner, input, next, match)
 
-			scanner.Rewind(pos)
-			scanner.RewindNamedGroups(groupsPos)
-
-			return false
-		},
-	)
+		scanner.Rewind(pos)
+		scanner.RewindNamedGroups(groupsPos)
+	}
 }
 
 func (n *namedGroup) Size() (int, bool) {

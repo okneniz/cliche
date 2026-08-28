@@ -24,30 +24,22 @@ func (n *group) GetValue() Node {
 	return n.value
 }
 
-func (n *group) Visit(scanner Scanner, input Input, b span.Interface, match Callback) {
-	n.value.VisitAlternation(
-		scanner,
-		input,
-		b,
-		func(x Node, sp span.Interface) bool {
-			pos := scanner.Position()
-			groupsPos := scanner.GroupsPosition()
+func (n *group) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
+	for _, sp := range n.value.VisitAlternation(scanner, input, bounds) {
+		pos := scanner.Position()
+		groupsPos := scanner.GroupsPosition()
 
-			scanner.MatchGroup(sp.From(), sp.To())
+		scanner.MatchGroup(sp.From(), sp.To())
+		match(n, sp)
 
-			match(n, sp)
+		nextFrom := nextFor(sp.To(), sp.Empty())
+		next := span.Pair(nextFrom, bounds.To())
 
-			nextFrom := nextFor(sp.To(), sp.Empty())
-			next := span.Pair(nextFrom, b.To())
+		n.base.VisitNested(scanner, input, next, match)
 
-			n.base.VisitNested(scanner, input, next, match)
-
-			scanner.Rewind(pos)
-			scanner.RewindGroups(groupsPos)
-
-			return false
-		},
-	)
+		scanner.Rewind(pos)
+		scanner.RewindGroups(groupsPos)
+	}
 }
 
 func (n *group) Size() (int, bool) {

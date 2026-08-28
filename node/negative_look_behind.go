@@ -39,19 +39,15 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, bounds span.Int
 	matched := false
 	altSp := span.Pair(bounds.From()-n.subExpressionSize, bounds.To())
 
-	n.value.VisitAlternation(
-		scanner,
-		input,
-		altSp,
-		func(_ Node, _ span.Interface) bool {
-			scanner.Rewind(pos)
-			matched = true
-			return true
-		},
-	)
+	for range n.value.VisitAlternation(scanner, input, altSp) {
+		scanner.Rewind(pos) // TODO ???
+		matched = true
+		break
+	}
 
 	scanner.Rewind(pos)
 
+	// TODO : move to loop
 	if !matched {
 		match(n, span.Empty(bounds.From()))
 		n.base.VisitNested(scanner, input, bounds, match)

@@ -34,21 +34,14 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, sp span.Interface, matc
 	pos := scanner.Position()
 	altSp := span.New(sp.From()-n.subExpressionSize, sp.To(), false)
 
-	n.value.VisitAlternation(
-		scanner,
-		input,
-		altSp,
-		func(_ Node, _ span.Interface) bool {
-			scanner.Rewind(pos)
+	for range n.value.VisitAlternation(scanner, input, altSp) {
+		scanner.Rewind(pos)
 
-			match(n, span.Empty(sp.From()))
-			n.base.VisitNested(scanner, input, sp, match)
+		match(n, span.Empty(sp.From())) // TODO : why not span.Empty(sp.To())
+		n.base.VisitNested(scanner, input, sp, match)
 
-			scanner.Rewind(pos)
-
-			return false
-		},
-	)
+		scanner.Rewind(pos)
+	}
 }
 
 func (n *lookBehind) Size() (int, bool) {
