@@ -33,7 +33,7 @@ func (n *namedGroup) Visit(scanner Scanner, input Input, bounds span.Interface, 
 		pos := scanner.Position()
 		groupsPos := scanner.NamedGroupsPosition()
 
-		scanner.MatchNamedGroup(n.name, sp.From(), sp.To())
+		scanner.MatchNamedGroup(n.name, sp)
 		match(n, sp)
 
 		nextFrom := nextFor(sp.To(), sp.Empty())

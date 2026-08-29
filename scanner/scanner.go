@@ -277,8 +277,8 @@ func (s *FullScanner) RewindGroups(pos int) {
 	s.groups.Truncate(pos)
 }
 
-func (s *FullScanner) MatchNamedGroup(name string, from int, to int) {
-	g := span.Get(span.Pair(from, to), s.holes)
+func (s *FullScanner) MatchNamedGroup(name string, sp span.Interface) {
+	g := span.Get(sp, s.holes)
 	s.namedGroups.Put(name, g)
 }
 

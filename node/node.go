@@ -75,7 +75,7 @@ type Scanner interface {
 	GetGroup(idx int) (span.Interface, bool)
 	RewindGroups(pos int)
 
-	MatchNamedGroup(name string, from int, to int)
+	MatchNamedGroup(name string, sp span.Interface)
 	NamedGroupsPosition() int
 	GetNamedGroup(name string) (span.Interface, bool)
 	RewindNamedGroups(pos int)
