@@ -294,8 +294,8 @@ func (s *FullScanner) RewindNamedGroups(pos int) {
 	s.namedGroups.Truncate(pos)
 }
 
-func (s *FullScanner) MarkAsHole(from int, to int) {
-	s.holes.Append(span.Pair(from, to))
+func (s *FullScanner) MarkAsHole(sp span.Interface) {
+	s.holes.Append(sp)
 }
 
 func (s *FullScanner) HolesPosition() int {

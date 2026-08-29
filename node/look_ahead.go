@@ -32,7 +32,7 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, bounds span.Interface, m
 
 	for _, sp := range n.value.VisitAlternation(scanner, input, bounds) {
 		scanner.Rewind(pos)
-		scanner.MarkAsHole(sp.From(), sp.To())
+		scanner.MarkAsHole(sp)
 
 		match(n, span.Empty(sp.From()))
 		scanner.RewindHoles(holesPos)

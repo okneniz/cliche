@@ -23,7 +23,7 @@ func (n *keep) Visit(scanner Scanner, input Input, sp span.Interface, match Call
 
 	holesPos := scanner.HolesPosition()
 
-	scanner.MarkAsHole(0, sp.From()-1)
+	scanner.MarkAsHole(span.Pair(0, sp.From()-1))
 	match(n, span.Empty(sp.From()))
 
 	n.base.VisitNested(scanner, input, sp, match)

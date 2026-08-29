@@ -80,7 +80,7 @@ type Scanner interface {
 	GetNamedGroup(name string) (span.Interface, bool)
 	RewindNamedGroups(pos int)
 
-	MarkAsHole(from int, to int)
+	MarkAsHole(sp span.Interface)
 	HolesPosition() int
 	RewindHoles(pos int)
 
