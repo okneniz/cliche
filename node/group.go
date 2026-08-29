@@ -29,7 +29,7 @@ func (n *group) Visit(scanner Scanner, input Input, bounds span.Interface, match
 		pos := scanner.Position()
 		groupsPos := scanner.GroupsPosition()
 
-		scanner.MatchGroup(sp.From(), sp.To())
+		scanner.MatchGroup(sp)
 		match(n, sp)
 
 		nextFrom := nextFor(sp.To(), sp.Empty())

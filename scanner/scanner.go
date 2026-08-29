@@ -260,8 +260,8 @@ func (s *FullScanner) lastNotEmptySpan() (span.Interface, bool) {
 	return nil, false
 }
 
-func (s *FullScanner) MatchGroup(from int, to int) {
-	g := span.Get(span.Pair(from, to), s.holes)
+func (s *FullScanner) MatchGroup(sp span.Interface) {
+	g := span.Get(sp, s.holes)
 	s.groups.Append(g)
 }
 

@@ -41,8 +41,7 @@ type Alternation interface {
 
 	GetVariants() []Node
 
-	// TODO : переделать на iter.Seq2? (без Visit)
-	// Rename to variants?
+	// TODO : Rename to variants?
 	VisitAlternation(
 		scanner Scanner,
 		input Input,
@@ -71,7 +70,7 @@ type Scanner interface {
 	Position() int
 	Rewind(pos int)
 
-	MatchGroup(from int, to int)
+	MatchGroup(sp span.Interface)
 	GroupsPosition() int
 	GetGroup(idx int) (span.Interface, bool)
 	RewindGroups(pos int)

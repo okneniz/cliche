@@ -39,7 +39,7 @@ func (n *quantifier) Visit(scanner Scanner, input Input, bounds span.Interface, 
 		if startGroup != scanner.GroupsPosition() {
 			if lastGroupSpan, ok := scanner.GetGroup(scanner.GroupsPosition()); ok {
 				scanner.RewindGroups(startGroup)
-				scanner.MatchGroup(lastGroupSpan.From(), lastGroupSpan.To())
+				scanner.MatchGroup(lastGroupSpan)
 			}
 		}
 
