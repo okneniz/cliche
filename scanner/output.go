@@ -34,7 +34,7 @@ func (out *Output) String() string {
 	)
 }
 
-// TODO : remove subString from params
+// TODO : remove subString from params.
 func (out *Output) Yield(
 	n node.Node,
 	subString string,

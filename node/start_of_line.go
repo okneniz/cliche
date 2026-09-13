@@ -16,7 +16,7 @@ func (n *startOfLine) Visit(scanner Scanner, input Input, sp span.Interface, mat
 	if sp.From() == 0 || n.isEndOfLine(input, sp.From()-1) { // TODO : check \n\r too
 		pos := scanner.Position()
 		match(n, span.Empty(sp.From()))
-		n.base.VisitNested(scanner, input, sp, match)
+		n.VisitNested(scanner, input, sp, match)
 		scanner.Rewind(pos)
 	}
 }
@@ -43,7 +43,7 @@ func (n *startOfLine) isEndOfLine(input Input, idx int) bool {
 }
 
 func (n *startOfLine) Size() (int, bool) {
-	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 		return nestedSize, true
 	}
 

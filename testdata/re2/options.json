@@ -2,7 +2,7 @@
   "Name": "options",
   "Tests": [
     {
-      "Name": "case insensetive",
+      "Name": "case insensitive",
       "Expressions": [
         "abc",
         "ABC",
@@ -12,7 +12,7 @@
       ],
       "Input": "123 abc x AbC $\naaBc",
       "Options": [
-      	"case insensetive"
+      	"case insensitive"
   	  ],
       "Want": [
         {

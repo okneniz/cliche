@@ -11,17 +11,32 @@ import (
 )
 
 var (
-	alnum  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) })
-	alpha  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) })
-	ascii  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return x <= unicode.MaxASCII })
-	blank  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return x == ' ' || x == '\t' })
-	digit  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsDigit)
-	lower  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsLower)
-	upper  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsUpper)
-	space  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsSpace)
-	cntrl  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsControl)
-	print  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsPrint)
-	graph  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, func(x rune) bool { return unicode.IsGraphic(x) && !unicode.IsSpace(x) })
+	alnum = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxRune,
+		func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) },
+	)
+	alpha = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxRune,
+		func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) },
+	)
+	ascii = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxRune,
+		func(x rune) bool { return x <= unicode.MaxASCII },
+	)
+	blank = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxRune,
+		func(x rune) bool { return x == ' ' || x == '\t' },
+	)
+	digit = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsDigit)
+	lower = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsLower)
+	upper = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsUpper)
+	space = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsSpace)
+	cntrl = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsControl)
+	print = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsPrint)
+	graph = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxRune,
+		func(x rune) bool { return unicode.IsGraphic(x) && !unicode.IsSpace(x) },
+	)
 	punct  = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, unicode.IsPunct)
 	xdigit = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, isHex)
 	word   = unicodeEncoding.NewTableByPredicate(unicode.MaxRune, isWord)
@@ -69,7 +84,7 @@ var (
 	parseLeftBracket = parser.TableAsClass(parser.Const(leftBracket))
 	parseBar         = parser.TableAsClass(parser.Const(bar))
 
-	// TODO : check size in different docs
+	// TODO : check size in different docs.
 	parseHexChar      = parser.NumberAsRune(parseHexNumber(2, 2))
 	parseHexCharTable = parser.RuneAsTable(parseHexChar)
 	parseHexCharNode  = parser.TableAsClass(parseHexCharTable)

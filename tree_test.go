@@ -6,11 +6,10 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/okneniz/cliche/onigmo"
 	"github.com/okneniz/cliche/re2"
 	tableTests "github.com/okneniz/cliche/testing"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTree_Match(t *testing.T) {
@@ -109,8 +108,16 @@ func TestTree_Match(t *testing.T) {
 
 										require.True(t, outOf)
 									} else {
-										require.LessOrEqual(t, expectation.Span.From, group.Span.From)
-										require.GreaterOrEqual(t, expectation.Span.To, group.Span.To)
+										require.LessOrEqual(
+											t,
+											expectation.Span.From,
+											group.Span.From,
+										)
+										require.GreaterOrEqual(
+											t,
+											expectation.Span.To,
+											group.Span.To,
+										)
 									}
 								}
 							}
@@ -122,7 +129,7 @@ func TestTree_Match(t *testing.T) {
 	}
 }
 
-// TODO : у каждого движка свои
+// TODO : у каждого движка свои.
 func TestTree_MatchErrors(t *testing.T) {
 	t.Parallel()
 

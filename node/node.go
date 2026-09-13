@@ -26,7 +26,7 @@ type Node interface {
 	// iterate over all sizes in asserts (lookaheads / lookbehinds)
 
 	// TODO : trie have few size / heights (leafs)
-	// TODO : node with different sizes must have chain value instead trie to simpliy this moment
+	// TODO : node with different sizes must have chain value instead trie to simplify this moment
 	Size() (int, bool)
 
 	// TODO : what about anchors, is it endless or zero sized?
@@ -94,7 +94,7 @@ type Scanner interface {
 type ScanOption uint
 
 const (
-	ScanOptionCaseInsensetive    ScanOption = 1
+	ScanOptionCaseInsensitive    ScanOption = 1
 	ScanOptionMultiline          ScanOption = 2
 	ScanOptionDisableNamedGroups ScanOption = 3
 )
@@ -126,12 +126,4 @@ func Traverse(n Node, f func(Node) bool) {
 	for _, nestedNode := range n.GetNestedNodes() {
 		Traverse(nestedNode, f)
 	}
-}
-
-func nextFor(pos int, empty bool) int {
-	if empty {
-		return pos
-	}
-
-	return pos + 1
 }

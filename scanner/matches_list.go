@@ -77,7 +77,7 @@ func (b *matchesList) Size() int {
 	return len(b.list)
 }
 
-func (b matchesList) String() string {
+func (b *matchesList) String() string {
 	return fmt.Sprintln(b.list)
 }
 

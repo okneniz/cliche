@@ -44,9 +44,9 @@ func (n *quantifier) Visit(scanner Scanner, input Input, bounds span.Interface, 
 		}
 
 		match(n, span.New(bounds.From(), sp.To(), sp.Empty()))
-		nextFrom := nextFor(sp.To(), sp.Empty())
+		nextFrom := span.NextFrom(sp.To(), sp.Empty())
 		next := span.Pair(nextFrom, bounds.To())
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 
 		scanner.RewindGroups(startGroup)
 		scanner.Rewind(pos)
@@ -58,12 +58,12 @@ func (n *quantifier) Visit(scanner Scanner, input Input, bounds span.Interface, 
 	// for zero matches like .? or .* or .{0,X}
 	if n.quantity.Optional() {
 		match(n, span.Empty(bounds.From()))
-		n.base.VisitNested(scanner, input, bounds, match)
+		n.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(start)
 	}
 }
 
-// TODO :rewrite without recursion, if it possible
+// TODO :rewrite without recursion, if it possible.
 func (n *quantifier) recursiveVisit(
 	count int,
 	scanner Scanner,
@@ -88,12 +88,12 @@ func (n *quantifier) recursiveVisit(
 }
 
 // TODO : return list of sizes?
-// TODO : add tests to fail on parsing not fixed size quantificators in look behind assertions
+// TODO : add tests to fail on parsing not fixed size quantificators in look behind assertions.
 func (n *quantifier) Size() (int, bool) {
 	// TODO : fix it
 	// TODO : size * quantity
 	if size, fixedSize := n.value.Size(); fixedSize {
-		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+		if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}
 	}

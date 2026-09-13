@@ -8,7 +8,6 @@ import (
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/parser"
 	"github.com/okneniz/cliche/quantity"
-	"github.com/okneniz/parsec/common"
 	c "github.com/okneniz/parsec/common"
 )
 
@@ -16,7 +15,7 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 	return func(_ ...rune) c.Combinator[rune, int, int] {
 		// TODO : don't ignore except, check it
 
-		parse, err := common.Quantifier(
+		parse, err := c.Quantifier(
 			"expected hex number, for example 12f or 1B",
 			from, to,
 			c.OneOf[rune, int](
@@ -42,10 +41,7 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 			if castErr != nil {
 				return -1, c.NewParseError(
 					pos,
-					fmt.Sprintf(
-						"invalid hex number: %s",
-						castErr.Error(),
-					),
+					"invalid hex number: "+castErr.Error(),
 				)
 			}
 
@@ -56,7 +52,7 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 
 func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 	parseLeftBraces := c.Eq[rune, int](
-		"expected '{' as begining of octal number",
+		"expected '{' as beginning of octal number",
 		'{',
 	)
 
@@ -102,10 +98,7 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 			if castErr != nil {
 				return -1, c.NewParseError(
 					pos,
-					fmt.Sprintf(
-						"invalid octal number: %s",
-						castErr.Error(),
-					),
+					"invalid octal number: "+castErr.Error(),
 				)
 			}
 
@@ -123,7 +116,7 @@ func makeOptionsParser(
 		except...,
 	)
 
-	flags := make([]string, len(opts))
+	flags := make([]string, 0, len(opts))
 	for k := range opts {
 		flags = append(flags, string(k))
 	}
@@ -172,7 +165,7 @@ func parseGroup(
 	))
 
 	optsDict := map[rune]node.ScanOption{
-		'i': node.ScanOptionCaseInsensetive,
+		'i': node.ScanOptionCaseInsensitive,
 		's': node.ScanOptionMultiline,
 	}
 
@@ -190,49 +183,51 @@ func parseGroup(
 		),
 	)
 
-	parseNotCapturedGroupWithOptions := c.Try(func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
-		pos := buf.Position()
+	parseNotCapturedGroupWithOptions := c.Try(
+		func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+			pos := buf.Position()
 
-		_, err := prefix(buf)
-		if err != nil {
-			return nil, err
-		}
+			_, err := prefix(buf)
+			if err != nil {
+				return nil, err
+			}
 
-		enable, enableOptErr := parseOptions(buf)
-		disable, disableOptErr := parseDiableOptions(buf)
+			enable, enableOptErr := parseOptions(buf)
+			disable, disableOptErr := parseDiableOptions(buf)
 
-		if len(enable) == 0 && len(disable) == 0 {
-			return nil, c.NewParseError(
-				pos,
-				"captured group without any options",
-				enableOptErr,
-				disableOptErr,
-			)
-		}
+			if len(enable) == 0 && len(disable) == 0 {
+				return nil, c.NewParseError(
+					pos,
+					"captured group without any options",
+					enableOptErr,
+					disableOptErr,
+				)
+			}
 
-		_, err = comma(buf)
-		if err != nil {
-			return node.NewOptionsSwitcher(enable, disable), nil
-		}
+			_, err = comma(buf)
+			if err != nil {
+				return node.NewOptionsSwitcher(enable, disable), nil
+			}
 
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
+			alt, err := parseAlternation(buf)
+			if err != nil {
+				return nil, err
+			}
 
-		// TODO : move it to unify function
-		//
-		// (?i:foo) -> (?i)(?:foo)(?-i)
+			// TODO : move it to unify function
+			//
+			// (?i:foo) -> (?i)(?:foo)(?-i)
 
-		beforeSwitcher := node.NewOptionsSwitcher(enable, disable)
-		group := node.NewGroup(alt)
-		afterSwitcher := node.NewOptionsSwitcher(disable, enable)
+			beforeSwitcher := node.NewOptionsSwitcher(enable, disable)
+			group := node.NewGroup(alt)
+			afterSwitcher := node.NewOptionsSwitcher(disable, enable)
 
-		beforeSwitcher.GetNestedNodes()[group.GetKey()] = group
-		group.GetNestedNodes()[afterSwitcher.GetKey()] = afterSwitcher
+			beforeSwitcher.GetNestedNodes()[group.GetKey()] = group
+			group.GetNestedNodes()[afterSwitcher.GetKey()] = afterSwitcher
 
-		return beforeSwitcher, nil
-	})
+			return beforeSwitcher, nil
+		},
+	)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
 		pos := buf.Position()

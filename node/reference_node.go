@@ -7,7 +7,7 @@ import (
 	"github.com/okneniz/cliche/span"
 )
 
-// back reference \1, \2 or \9
+// back reference \1, \2 or \9.
 type referenceNode struct {
 	index int
 	*base
@@ -37,7 +37,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, bounds span.Interfac
 
 	if !exists || matchSpan.Empty() {
 		match(n, span.Empty(bounds.From()))
-		n.base.VisitNested(scanner, input, bounds, match)
+		n.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(pos)
 	} else {
 		// TODO : what about empty matches?
@@ -56,7 +56,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, bounds span.Interfac
 
 			matched := false
 
-			if scanner.OptionsInclude(ScanOptionCaseInsensetive) {
+			if scanner.OptionsInclude(ScanOptionCaseInsensitive) {
 				matched = unicode.ToUpper(expected) == unicode.ToUpper(actual)
 			} else {
 				matched = expected == actual
@@ -70,10 +70,13 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, bounds span.Interfac
 			current++
 		}
 
+		fmt.Println("BACK REFERENCES", span.Pair(bounds.From(), current-1))
+
 		// TODO : why -1 ? looks strange
+		// лишняя итерация в цикле?
 		match(n, span.Pair(bounds.From(), current-1))
 		next := span.Pair(current, bounds.To())
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 		scanner.Rewind(pos)
 	}
 }

@@ -1,0 +1,137 @@
+# golangci-lint v2 config — https://golangci-lint.run/config/
+version: "2"
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  default: none
+  enable:
+    # - errcheck
+    # - funcorder
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - canonicalheader
+    - contextcheck
+    - dogsled
+    - durationcheck
+    # - embeddedstructfieldcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - fatcontext
+    - gochecksumtype
+    - gocheckcompilerdirectives
+    - goprintffuncname
+    # - gosec
+    # - gosmopolitan
+    - iotamixing
+    - loggercheck
+    - makezero
+    # - nilerr
+    - nilnesserr
+    # - nilnil
+    - noctx
+    - reassign
+    - recvcheck
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - unconvert
+    - usestdlibvars
+    # - wastedassign
+    - zerologlint
+    - copyloopvar
+    - dupword
+    - exptostd
+    - intrange
+    - misspell
+    - mirror
+    - modernize
+    - nolintlint
+    - prealloc
+    - perfsprint
+    - usetesting
+    - decorder
+    - forcetypeassert
+    - godot
+    # - gocritic
+    # - godox
+    - importas
+    # - inamedparam
+    # - interfacebloat
+    # - predeclared
+    - revive
+    - unparam
+    - gochecknoinits
+    - arangolint
+    - clickhouselint
+    - containedctx
+    - exhaustive
+    - ginkgolinter
+    - gomoddirectives
+    - gomodguard_v2
+    # - musttag
+    - nakedret
+    - nosprintfhostport
+    - promlinter
+    - protogetter
+    - tagalign
+    # - tagliatelle
+    - testableexamples
+    # - thelper
+    - unqueryvet
+    - whitespace
+    - wsl_v5
+  settings:
+    gosec:
+      excludes: []
+    misspell:
+      ignore-words: []
+    exhaustive:
+      default-signifies-exhaustive: true
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+    revive:
+      # The explicit list = revive-defaults (the rules section replaces the
+      # whole set) minus three rules disabled with rationale below.
+      rules: []
+    errcheck:
+      check-blank: true
+      check-type-assertions: true
+    wsl_v5:
+      default: none
+      enable:
+        - after-block
+  exclusions:
+    rules: []
+
+# Formatters are checked by `golangci-lint run` and applied by
+# `golangci-lint fmt` (the make fmt target).
+formatters:
+  enable:
+    - gofmt
+    - goimports
+    - gci
+    - golines
+  settings:
+    gofmt:
+      # gofmt -s: the code is already run through it (make fmt-check);
+      # the same rule here for a single source of truth.
+      simplify: true
+    gci:
+      # Import groups: std / external / own module.
+      sections:
+        - standard
+        - default
+        - prefix(github.com/okneniz/assembly)

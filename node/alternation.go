@@ -46,7 +46,7 @@ func (n *alternation) GetVariants() []Node {
 	return n.variants
 }
 
-// Visit - visit like node
+// Visit - visit like node.
 func (n *alternation) Visit(
 	scanner Scanner,
 	input Input,
@@ -55,13 +55,13 @@ func (n *alternation) Visit(
 ) {
 	for _, sp := range n.VisitAlternation(scanner, input, bounds) {
 		match(n, sp)
-		nextFrom := nextFor(sp.To(), sp.Empty())
+		nextFrom := span.NextFrom(sp.To(), sp.Empty())
 		next := span.Pair(nextFrom, bounds.To())
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 	}
 }
 
-// VisitAlternation - visit like container value (without nested nodes)
+// VisitAlternation - visit like container value (without nested nodes).
 func (n *alternation) VisitAlternation(
 	scanner Scanner,
 	input Input,
@@ -127,7 +127,7 @@ func (n *alternation) Size() (int, bool) {
 		return 0, false
 	}
 
-	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 		return *size + nestedSize, true
 	}
 

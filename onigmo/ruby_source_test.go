@@ -447,8 +447,20 @@ func TestOnigmo(t *testing.T) {
 	// x(/(?:(?<x>)|(?<x>efg))\k<x>/, '', 0, 0)
 	x(t, `(?:(?<x>abc)|(?<x>efg))\k<x>`, `abcefgefg`, 3, 6)
 	n(t, `(?:(?<x>abc)|(?<x>efg))\k<x>`, "abcefg")
-	x(t, `(?:(?<n1>.)|(?<n1>..)|(?<n1>...)|(?<n1>....)|(?<n1>.....)|(?<n1>......)|(?<n1>.......)|(?<n1>........)|(?<n1>.........)|(?<n1>..........)|(?<n1>...........)|(?<n1>............)|(?<n1>.............)|(?<n1>..............))\k<n1>$`, `a-pyumpyum`, 2, 8)
-	x(t, `(?:(?<n1>.)|(?<n1>..)|(?<n1>...)|(?<n1>....)|(?<n1>.....)|(?<n1>......)|(?<n1>.......)|(?<n1>........)|(?<n1>.........)|(?<n1>..........)|(?<n1>...........)|(?<n1>............)|(?<n1>.............)|(?<n1>..............))\k<n1>$`, `xxxxabcdefghijklmnabcdefghijklmn`, 4, 28)
+	x(
+		t,
+		`(?:(?<n1>.)|(?<n1>..)|(?<n1>...)|(?<n1>....)|(?<n1>.....)|(?<n1>......)|(?<n1>.......)|(?<n1>........)|(?<n1>.........)|(?<n1>..........)|(?<n1>...........)|(?<n1>............)|(?<n1>.............)|(?<n1>..............))\k<n1>$`,
+		`a-pyumpyum`,
+		2,
+		8,
+	)
+	x(
+		t,
+		`(?:(?<n1>.)|(?<n1>..)|(?<n1>...)|(?<n1>....)|(?<n1>.....)|(?<n1>......)|(?<n1>.......)|(?<n1>........)|(?<n1>.........)|(?<n1>..........)|(?<n1>...........)|(?<n1>............)|(?<n1>.............)|(?<n1>..............))\k<n1>$`,
+		`xxxxabcdefghijklmnabcdefghijklmn`,
+		4,
+		28,
+	)
 	// x(/(?<name1>)(?<name2>)(?<name3>)(?<name4>)(?<name5>)(?<name6>)(?<name7>)(?<name8>)(?<name9>)(?<name10>)(?<name11>)(?<name12>)(?<name13>)(?<name14>)(?<name15>)(?<name16>aaa)(?<name17>)$/, 'aaa', 0, 3, 16)
 
 	// x(/(?<foo>a|\(\g<foo>\))/, 'a', 0, 1)
@@ -815,15 +827,15 @@ func TestOnigmo(t *testing.T) {
 	// r(/...あいうえおかきくけこさしすせそ/, 'zzzzzあいうえおかきくけこさしすせそ', 2)
 }
 
-func report(t testing.TB, isOk bool, result, reg, str string, ranges ...int) {
-	t.Helper()
+func report(tb testing.TB, isOk bool, result, reg, str string, ranges ...int) {
+	tb.Helper()
 
-	format := t.Logf
+	format := tb.Logf
 	if !isOk {
-		format = t.Errorf
+		format = tb.Errorf
 	}
 
-	t.Logf("%s /%s/ : '%s'", result, reg, str)
+	tb.Logf("%s /%s/ : '%s'", result, reg, str)
 
 	if len(ranges) > 0 {
 		if len(ranges) == 2 {
@@ -834,20 +846,20 @@ func report(t testing.TB, isOk bool, result, reg, str string, ranges ...int) {
 	}
 }
 
-func reportOK(t testing.TB, resultOpt, reg, str string, ranges ...int) {
-	t.Helper()
+func reportOK(tb testing.TB, resultOpt, reg, str string, ranges ...int) {
+	tb.Helper()
 
 	result := "OK" + resultOpt
 	result += strings.Repeat(" ", 7-len(result)) // Pad with spaces
-	report(t, true, result, reg, str, ranges...)
+	report(tb, true, result, reg, str, ranges...)
 }
 
-func reportFail(t testing.TB, resultOpt, reg, str string, ranges ...int) {
-	t.Helper()
+func reportFail(tb testing.TB, resultOpt, reg, str string, ranges ...int) {
+	tb.Helper()
 
 	result := "FAIL" + resultOpt
 	result += strings.Repeat(" ", 7-len(result)) // Pad with spaces
-	report(t, false, result, reg, str, ranges...)
+	report(tb, false, result, reg, str, ranges...)
 }
 
 func n(t *testing.T, expression, str string) {

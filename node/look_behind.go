@@ -1,6 +1,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/okneniz/cliche/span"
@@ -15,7 +16,7 @@ type lookBehind struct {
 func NewLookBehind(alt Alternation) (Node, error) {
 	size, fixedSize := alt.Size()
 	if !fixedSize {
-		return nil, fmt.Errorf("Invalid pattern in look-behind, must be fixed size")
+		return nil, errors.New("invalid pattern in look-behind, must be fixed size")
 	}
 
 	return &lookBehind{
@@ -38,7 +39,7 @@ func (n *lookBehind) Visit(scanner Scanner, input Input, sp span.Interface, matc
 		scanner.Rewind(pos)
 
 		match(n, span.Empty(sp.From())) // TODO : why not span.Empty(sp.To())
-		n.base.VisitNested(scanner, input, sp, match)
+		n.VisitNested(scanner, input, sp, match)
 
 		scanner.Rewind(pos)
 	}

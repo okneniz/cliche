@@ -3,10 +3,9 @@ package parser
 import (
 	"unicode"
 
-	c "github.com/okneniz/parsec/common"
-
 	unicodePkg "github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
+	c "github.com/okneniz/parsec/common"
 )
 
 type ClassScope struct {
@@ -33,7 +32,7 @@ func (scope *ClassScope) makeParser() c.Combinator[rune, int, node.Node] {
 	parseTable := scope.makeTableParser()
 
 	parseLeftSquare := c.Eq[rune, int](
-		"expected left square as begining of character class",
+		"expected left square as beginning of character class",
 		'[',
 	)
 
@@ -130,7 +129,7 @@ func (scope *ClassScope) makeTableParser() c.Combinator[rune, int, node.Table] {
 	)
 
 	parseLeftSquare := c.Try(c.Eq[rune, int](
-		"expected left square as begining of character sub class",
+		"expected left square as beginning of character sub class",
 		'[',
 	))
 

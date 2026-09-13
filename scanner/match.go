@@ -82,6 +82,7 @@ func (m *Match) namedGroupsToString() string {
 	for k, v := range m.namedGroups {
 		pairs = append(pairs, k+": "+v.String())
 	}
+
 	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i] < pairs[j] })
 	return strings.Join(pairs, ", ")
 }

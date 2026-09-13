@@ -39,9 +39,9 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, bounds span.Interface,
 		// throws away all backtracking positions
 		scanner.RewindGroups(groupsPos)
 
-		nextFrom := nextFor(sp.To(), sp.Empty())
+		nextFrom := span.NextFrom(sp.To(), sp.Empty())
 		next := span.Pair(nextFrom, bounds.To())
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 
 		break // stop on first variant
 	}
@@ -49,10 +49,10 @@ func (n *atomicGroup) Visit(scanner Scanner, input Input, bounds span.Interface,
 	scanner.Rewind(pos)
 }
 
-// TODO : move to groupBase
+// TODO : move to groupBase.
 func (n *atomicGroup) Size() (int, bool) {
 	if size, fixedSize := n.value.Size(); fixedSize {
-		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+		if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}
 	}

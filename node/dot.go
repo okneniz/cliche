@@ -31,13 +31,13 @@ func (n *dot) Visit(scanner Scanner, input Input, sp span.Interface, match Callb
 
 		match(n, span.Pair(sp.From(), sp.From()))
 		next := span.Pair(sp.From()+1, sp.To())
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 		scanner.Rewind(pos)
 	}
 }
 
 func (n *dot) Size() (int, bool) {
-	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 		return 1 + nestedSize, true
 	}
 

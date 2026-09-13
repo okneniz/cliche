@@ -58,7 +58,6 @@ func Test_Get(t *testing.T) {
 			require.Equal(t, test.want.String(), actual.String())
 		})
 	}
-
 }
 
 type testList struct {

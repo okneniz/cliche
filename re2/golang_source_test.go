@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -14,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestCase represents a single test case
+// TestCase represents a single test case.
 type TestCase struct {
 	Type     string  // B, E, BE, etc.
 	Pattern  string  // Regular expression pattern
@@ -24,7 +25,7 @@ type TestCase struct {
 	Flags    int     // Computed flags for regex compilation
 }
 
-// Match represents a single match position
+// Match represents a single match position.
 type Match struct {
 	From int
 	To   int
@@ -34,14 +35,14 @@ func (m Match) String() string {
 	return fmt.Sprintf("(%v,%v)", m.From, m.To)
 }
 
-// Constants for regex flags
+// Constants for regex flags.
 const (
 	FLAG_BASIC    = 1 << iota // Basic Regular Expressions
 	FLAG_EXTENDED             // Extended Regular Expressions
 	FLAG_NEWLINE              // REG_NEWLINE behavior
 )
 
-// ParseType parses the type string and returns appropriate flags
+// ParseType parses the type string and returns appropriate flags.
 func ParseType(typeStr string) int {
 	flags := 0
 	for _, char := range typeStr {
@@ -54,10 +55,11 @@ func ParseType(typeStr string) int {
 			flags |= FLAG_NEWLINE
 		}
 	}
+
 	return flags
 }
 
-// ParseTestFile parses the testregex.c format
+// ParseTestFile parses the testregex.c format.
 func ParseTestFile(t *testing.T, filename string) ([]TestCase, error) {
 	t.Helper()
 
@@ -276,10 +278,5 @@ func TestATTPosixRegex(t *testing.T) {
 func shouldSkipType(typeStr string) bool {
 	// Skip types that have significantly different behavior in Go
 	unsupported := []string{"A", "S", "BN", "EN", "BEN"}
-	for _, unsup := range unsupported {
-		if typeStr == unsup {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(unsupported, typeStr)
 }

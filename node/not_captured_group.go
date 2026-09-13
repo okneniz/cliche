@@ -26,15 +26,20 @@ func (n *notCapturedGroup) GetValue() Node {
 	return n.value
 }
 
-func (n *notCapturedGroup) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
+func (n *notCapturedGroup) Visit(
+	scanner Scanner,
+	input Input,
+	bounds span.Interface,
+	match Callback,
+) {
 	for _, sp := range n.value.VisitAlternation(scanner, input, bounds) {
 		pos := scanner.Position()
 
 		match(n, sp)
 
-		nextFrom := nextFor(sp.To(), sp.Empty())
+		nextFrom := span.NextFrom(sp.To(), sp.Empty())
 		next := span.Pair(nextFrom, bounds.To())
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 
 		scanner.Rewind(pos)
 	}
@@ -42,7 +47,7 @@ func (n *notCapturedGroup) Visit(scanner Scanner, input Input, bounds span.Inter
 
 func (n *notCapturedGroup) Size() (int, bool) {
 	if size, fixedSize := n.value.Size(); fixedSize {
-		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+		if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}
 	}

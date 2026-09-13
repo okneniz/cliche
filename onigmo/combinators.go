@@ -35,7 +35,7 @@ func parseNamedReference(
 			)
 		}
 
-		return node.NewForNameReference(string(name)), nil
+		return node.NewForNameReference(name), nil
 	}
 }
 
@@ -118,10 +118,7 @@ func parseIndexedReferences(
 		if castErr != nil {
 			return -1, c.NewParseError(
 				pos,
-				fmt.Sprintf(
-					"invalid index for backreference: %s",
-					castErr.Error(),
-				),
+				"invalid index for backreference: "+castErr.Error(),
 			)
 		}
 
@@ -133,7 +130,7 @@ func parseNameOfNamedReferences(
 	except ...rune,
 ) c.Combinator[rune, int, string] {
 	parseLeftAngle := c.Eq[rune, int](
-		"expected '<' as begining of name",
+		"expected '<' as beginning of name",
 		'<',
 	)
 
@@ -209,7 +206,7 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 
 func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 	parseLeftBraces := c.Eq[rune, int](
-		"expected '{' as begining of octal number",
+		"expected '{' as beginning of octal number",
 		'{',
 	)
 
@@ -260,7 +257,7 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 				return -1, rightErr
 			}
 
-			return int(num), nil
+			return num, nil
 		}
 	}
 }
@@ -274,7 +271,7 @@ func makeOptionsParser(
 		except...,
 	)
 
-	flags := make([]string, len(opts))
+	flags := make([]string, 0, len(opts))
 	for k := range opts {
 		flags = append(flags, string(k))
 	}
@@ -323,7 +320,7 @@ func parseGroup(
 	))
 
 	optsDict := map[rune]node.ScanOption{
-		'i': node.ScanOptionCaseInsensetive,
+		'i': node.ScanOptionCaseInsensitive,
 		'm': node.ScanOptionMultiline,
 	}
 
@@ -341,49 +338,51 @@ func parseGroup(
 		),
 	)
 
-	parseNotCapturedGroupWithOptions := c.Try(func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
-		pos := buf.Position()
+	parseNotCapturedGroupWithOptions := c.Try(
+		func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+			pos := buf.Position()
 
-		_, err := prefix(buf)
-		if err != nil {
-			return nil, err
-		}
+			_, err := prefix(buf)
+			if err != nil {
+				return nil, err
+			}
 
-		enable, enableOptErr := parseOptions(buf)
-		disable, disableOptErr := parseDiableOptions(buf)
+			enable, enableOptErr := parseOptions(buf)
+			disable, disableOptErr := parseDiableOptions(buf)
 
-		if len(enable) == 0 && len(disable) == 0 {
-			return nil, c.NewParseError(
-				pos,
-				"captured group without any options",
-				enableOptErr,
-				disableOptErr,
-			)
-		}
+			if len(enable) == 0 && len(disable) == 0 {
+				return nil, c.NewParseError(
+					pos,
+					"captured group without any options",
+					enableOptErr,
+					disableOptErr,
+				)
+			}
 
-		_, err = comma(buf)
-		if err != nil {
-			return node.NewOptionsSwitcher(enable, disable), nil
-		}
+			_, err = comma(buf)
+			if err != nil {
+				return node.NewOptionsSwitcher(enable, disable), nil
+			}
 
-		alt, err := parseAlternation(buf)
-		if err != nil {
-			return nil, err
-		}
+			alt, err := parseAlternation(buf)
+			if err != nil {
+				return nil, err
+			}
 
-		// TODO : move it to unify function
-		//
-		// (?i:foo) -> (?i)(?:foo)(?-i)
+			// TODO : move it to unify function
+			//
+			// (?i:foo) -> (?i)(?:foo)(?-i)
 
-		beforeSwitcher := node.NewOptionsSwitcher(enable, disable)
-		group := node.NewGroup(alt)
-		afterSwitcher := node.NewOptionsSwitcher(disable, enable)
+			beforeSwitcher := node.NewOptionsSwitcher(enable, disable)
+			group := node.NewGroup(alt)
+			afterSwitcher := node.NewOptionsSwitcher(disable, enable)
 
-		beforeSwitcher.GetNestedNodes()[group.GetKey()] = group
-		group.GetNestedNodes()[afterSwitcher.GetKey()] = afterSwitcher
+			beforeSwitcher.GetNestedNodes()[group.GetKey()] = group
+			group.GetNestedNodes()[afterSwitcher.GetKey()] = afterSwitcher
 
-		return beforeSwitcher, nil
-	})
+			return beforeSwitcher, nil
+		},
+	)
 
 	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
 		pos := buf.Position()
@@ -549,7 +548,7 @@ func parseLookBehind(
 			)
 		}
 
-		// TODO : move validation to specail step
+		// TODO : move validation to special step
 		n, validationErr := node.NewLookBehind(alt)
 		if validationErr != nil {
 			return nil, c.NewParseError(
@@ -582,7 +581,7 @@ func parseNegativeLookBehind(
 			)
 		}
 
-		// TODO : move validation to specail step
+		// TODO : move validation to special step
 		n, validationErr := node.NewNegativeLookBehind(alt)
 		if validationErr != nil {
 			return nil, c.NewParseError(
@@ -643,16 +642,13 @@ func parseCondition(
 			)
 		}
 
-		str := string(name)
-
 		return node.NewPredicate(
-			str,
+			name,
 			func(s node.Scanner) bool {
-				_, matched := s.GetNamedGroup(str)
+				_, matched := s.GetNamedGroup(name)
 				return matched
 			},
 		), nil
-
 	})
 
 	parseReference := func(

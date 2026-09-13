@@ -1,10 +1,10 @@
 package unicode
 
 import (
+	"slices"
 	"unicode"
 
 	"github.com/okneniz/cliche/node" // how to remove it from deps?
-	"golang.org/x/exp/slices"
 	"golang.org/x/text/unicode/rangetable"
 )
 

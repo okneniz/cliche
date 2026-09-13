@@ -5,9 +5,9 @@ type TruncatedList[T any] struct {
 	size int
 }
 
-func NewTruncatedList[T any](cap int) *TruncatedList[T] {
+func NewTruncatedList[T any](c int) *TruncatedList[T] {
 	return &TruncatedList[T]{
-		data: make([]T, 0, cap),
+		data: make([]T, 0, c),
 		size: 0,
 	}
 }
@@ -59,8 +59,9 @@ func (l *TruncatedList[T]) Last() (T, bool) {
 
 func (l *TruncatedList[T]) Slice() []T {
 	s := make([]T, l.size)
-	for i := 0; i < l.size; i++ {
+	for i := range l.size {
 		s[i] = l.data[i]
 	}
+
 	return s
 }

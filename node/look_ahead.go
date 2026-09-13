@@ -37,7 +37,7 @@ func (n *lookAhead) Visit(scanner Scanner, input Input, bounds span.Interface, m
 		match(n, span.Empty(sp.From()))
 		scanner.RewindHoles(holesPos)
 
-		n.base.VisitNested(scanner, input, bounds, match)
+		n.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(pos)
 	}
 }

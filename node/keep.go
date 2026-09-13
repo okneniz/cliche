@@ -16,7 +16,7 @@ func (n *keep) Visit(scanner Scanner, input Input, sp span.Interface, match Call
 	pos := scanner.Position()
 
 	if sp.From() == 0 {
-		n.base.VisitNested(scanner, input, sp, match)
+		n.VisitNested(scanner, input, sp, match)
 		scanner.Rewind(pos)
 		return
 	}
@@ -26,7 +26,7 @@ func (n *keep) Visit(scanner Scanner, input Input, sp span.Interface, match Call
 	scanner.MarkAsHole(span.Pair(0, sp.From()-1))
 	match(n, span.Empty(sp.From()))
 
-	n.base.VisitNested(scanner, input, sp, match)
+	n.VisitNested(scanner, input, sp, match)
 
 	scanner.RewindHoles(holesPos)
 	scanner.Rewind(pos)

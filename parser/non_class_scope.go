@@ -3,7 +3,6 @@ package parser
 import (
 	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
-
 	c "github.com/okneniz/parsec/common"
 )
 

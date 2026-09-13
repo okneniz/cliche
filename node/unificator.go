@@ -2,8 +2,8 @@ package node
 
 import (
 	"fmt"
-
-	"golang.org/x/exp/maps"
+	"maps"
+	"slices"
 )
 
 func Unify(start Node) []Node {
@@ -64,23 +64,22 @@ func unify(node Node) ([]Node, bool) {
 		return removeComments(n)
 	case *alternation:
 		x, y := simplifyAlternation(n)
-		// fmt.Println("wtf", x[0].GetKey(), y)
 		return x, y
+	// case *quantifier:
 	// TODO : пока пораждает лишние метчи
 	// нужно придумать способ группировки результата получше
 	//
-	// case *quantifier:
 	// 	return stretchQuantificator(n)
 	default:
 		return nil, false
 	}
 }
 
-// TODO : добавить удаление комментариев в хвосте тоже
+// TODO : добавить удаление комментариев в хвосте тоже.
 func removeComments(c *comment) ([]Node, bool) {
 	nested := c.GetNestedNodes()
 	if len(nested) != 0 {
-		return maps.Values(nested), true
+		return slices.Collect(maps.Values(nested)), true
 	}
 
 	// transform to empty? or just remove from tree?
@@ -114,9 +113,7 @@ func moveExpressions(from, to Node) {
 }
 
 func moveNested(from, to Node) {
-	for key, nested := range from.GetNestedNodes() {
-		to.GetNestedNodes()[key] = nested
-	}
+	maps.Copy(to.GetNestedNodes(), from.GetNestedNodes())
 }
 
 // для этого нужен специальный случай quantity который не имеет From
@@ -132,7 +129,6 @@ func moveNested(from, to Node) {
 //
 //nolint:unused // it's ok
 func stretchQuantificator(q *quantifier) ([]Node, bool) {
-	// fmt.Println("stretch quantifier", q.quantity.Optional())
 	if q.quantity.Optional() {
 		return nil, false
 	}

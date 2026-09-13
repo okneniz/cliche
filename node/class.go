@@ -26,7 +26,7 @@ func (n *class) Visit(scanner Scanner, input Input, sp span.Interface, match Cal
 	x := input.ReadAt(sp.From())
 	matched := false
 
-	if scanner.OptionsInclude(ScanOptionCaseInsensetive) {
+	if scanner.OptionsInclude(ScanOptionCaseInsensitive) {
 		matched = n.table.Include(unicode.ToUpper(x)) || n.table.Include(unicode.ToLower(x))
 	} else {
 		matched = n.table.Include(x)
@@ -43,13 +43,13 @@ func (n *class) Visit(scanner Scanner, input Input, sp span.Interface, match Cal
 		}
 
 		next := span.Pair(nextFrom, nextTo)
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 		scanner.Rewind(pos)
 	}
 }
 
 func (n *class) Size() (int, bool) {
-	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 		return 1 + nestedSize, true
 	}
 

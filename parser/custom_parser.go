@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"golang.org/x/exp/slices"
+	"slices"
 
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
@@ -52,7 +52,7 @@ func (p *CustomParser) makeAlternationParser(
 	except ...rune,
 ) c.Combinator[rune, int, node.Alternation] {
 	parseBar := c.Eq[rune, int]("expected '|' as alternation separator", '|')
-	parseLeftParens := c.Eq[rune, int]("expected left parens as begining of group", '(')
+	parseLeftParens := c.Eq[rune, int]("expected left parens as beginning of group", '(')
 	parseRightParens := c.Eq[rune, int]("expected right parent as ending of group", ')')
 
 	parseClass := c.Try(p.config.class.makeParser())

@@ -17,17 +17,29 @@ import (
 // - https://en.wikipedia.org/wiki/ReDoS
 
 var (
-	asciiAlnum  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) })
-	asciiAlpha  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) })
-	ascii       = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, isAscii)
-	asciiBlank  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, func(x rune) bool { return x == ' ' || x == '\t' })
-	asciiDigit  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsDigit)
-	asciiLower  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsLower)
-	asciiUpper  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsUpper)
-	asciiSpace  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsSpace)
-	asciiCntrl  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsControl)
-	asciiPrint  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsPrint)
-	asciiGraph  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, func(x rune) bool { return unicode.IsGraphic(x) && !unicode.IsSpace(x) })
+	asciiAlnum = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxASCII,
+		func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) || unicode.IsDigit(x) },
+	)
+	asciiAlpha = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxASCII,
+		func(x rune) bool { return unicode.IsLetter(x) || unicode.IsMark(x) },
+	)
+	ascii      = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, isAscii)
+	asciiBlank = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxASCII,
+		func(x rune) bool { return x == ' ' || x == '\t' },
+	)
+	asciiDigit = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsDigit)
+	asciiLower = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsLower)
+	asciiUpper = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsUpper)
+	asciiSpace = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsSpace)
+	asciiCntrl = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsControl)
+	asciiPrint = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsPrint)
+	asciiGraph = unicodeEncoding.NewTableByPredicate(
+		unicode.MaxASCII,
+		func(x rune) bool { return unicode.IsGraphic(x) && !unicode.IsSpace(x) },
+	)
 	asciiPunct  = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, unicode.IsPunct)
 	asciiXdigit = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, isHex)
 	asciiWord   = unicodeEncoding.NewTableByPredicate(unicode.MaxASCII, isWord)
@@ -42,7 +54,7 @@ var (
 	// result := re.FindAllStringSubmatch("foo é Bar\n1\t2", -1)
 	// fmt.Println("RESULT", result)
 	//
-	// => RESULT [[foo é Bar] [1] [2]]
+	// => RESULT [[foo é Bar] [1] [2]].
 
 	notAsciiAlnum  = asciiAlnum.Invert(unicode.MaxRune)
 	notAsciiAlpha  = asciiAlpha.Invert(unicode.MaxRune)
@@ -96,7 +108,7 @@ var (
 	parseRightBraces  = parser.TableAsClass(parser.Const(rightBraces))
 	parseBar          = parser.TableAsClass(parser.Const(bar))
 
-	// TODO : check size in different docs
+	// TODO : check size in different docs.
 	parseHexChar      = parser.NumberAsRune(parseHexNumber(2, 2))
 	parseHexCharTable = parser.RuneAsTable(parseHexChar)
 	parseHexCharNode  = parser.TableAsClass(parseHexCharTable)

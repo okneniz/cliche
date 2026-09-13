@@ -8,7 +8,7 @@ import (
 	ohsnap "github.com/okneniz/oh-snap"
 )
 
-// Simplest regexp generator
+// Simplest regexp generator.
 type TestRegexp struct {
 	Expression    string
 	MatchedString string
@@ -47,7 +47,7 @@ func (a *arbitraryRegexp) Generate() TestRegexp {
 
 	reg := TestRegexp{}
 
-	for i := 0; i < size; i++ {
+	for range size {
 		subExp := a.generateExp(1)
 
 		reg.Expression += subExp.Expression
@@ -140,7 +140,7 @@ func (a *arbitraryRegexp) generateString() TestRegexp {
 	size := a.arbSize.Generate()
 
 	runes := make([]rune, size)
-	for i := 0; i < size; i++ {
+	for i := range size {
 		runes[i] = a.generateChar()
 	}
 
@@ -160,7 +160,7 @@ func (a *arbitraryRegexp) generateAlt(deep int) TestRegexp {
 	matchedString := ""
 
 	variants := make([]string, size)
-	for i := 0; i < size; i++ {
+	for i := range size {
 		exp := a.generateExp(deep)
 		variants[i] = exp.Expression
 
@@ -193,7 +193,7 @@ func (a *arbitraryRegexp) generateClass() TestRegexp {
 	matchedIndex := rand.IntN(size)
 
 	expression := make([]string, size)
-	for i := 0; i < size; i++ {
+	for i := range size {
 		item := a.generateClassItem()
 		expression[i] = item.Expression
 

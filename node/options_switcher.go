@@ -25,12 +25,12 @@ func NewOptionsSwitcher(enable []ScanOption, disable []ScanOption) Node {
 		return disable[i] < disable[j]
 	})
 
-	enableStrings := make([]string, 0)
+	enableStrings := make([]string, 0, len(enable))
 	for _, x := range enable {
 		enableStrings = append(enableStrings, fmt.Sprintf("%v", x))
 	}
 
-	disableStrings := make([]string, 0)
+	disableStrings := make([]string, 0, len(disable))
 	for _, x := range disable {
 		disableStrings = append(disableStrings, fmt.Sprintf("%v", x))
 	}
@@ -75,14 +75,14 @@ func (n *optionsSwitcher) Visit(
 	pos := scanner.Position()
 
 	match(n, span.Empty(sp.From()))
-	n.base.VisitNested(scanner, input, sp, match)
+	n.VisitNested(scanner, input, sp, match)
 
 	scanner.RewindOptions(optsPos)
 	scanner.Rewind(pos)
 }
 
 func (n *optionsSwitcher) Size() (int, bool) {
-	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 		return nestedSize, true
 	}
 

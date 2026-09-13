@@ -49,13 +49,13 @@ func (t *rangeTable) String() string {
 		b.WriteString("R16(")
 
 		for i, r := range t.tbl.R16 {
-			b.WriteString(fmt.Sprintf("%d", r.Lo))
+			fmt.Fprintf(b, "%d", r.Lo)
 			b.WriteString("-")
-			b.WriteString(fmt.Sprintf("%d", r.Hi))
+			fmt.Fprintf(b, "%d", r.Hi)
 
 			if r.Stride != 1 {
 				b.WriteString("-")
-				b.WriteString(fmt.Sprintf("%d", r.Stride))
+				fmt.Fprintf(b, "%d", r.Stride)
 			}
 
 			if i != len(t.tbl.R16)-1 {
@@ -75,13 +75,13 @@ func (t *rangeTable) String() string {
 		b.WriteString("R32(")
 
 		for i, r := range t.tbl.R32 {
-			b.WriteString(fmt.Sprintf("%d", r.Lo))
+			fmt.Fprintf(b, "%d", r.Lo)
 			b.WriteString("-")
-			b.WriteString(fmt.Sprintf("%d", r.Hi))
+			fmt.Fprintf(b, "%d", r.Hi)
 
 			if r.Stride != 1 {
 				b.WriteString("-")
-				b.WriteString(fmt.Sprintf("%d", r.Stride))
+				fmt.Fprintf(b, "%d", r.Stride)
 			}
 
 			if i != len(t.tbl.R32)-1 {

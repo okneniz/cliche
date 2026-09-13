@@ -12,11 +12,16 @@ func NewEndOfStringAndNewLine() Node {
 	}
 }
 
-func (n *endOfStringAndNewLine) Visit(scanner Scanner, input Input, sp span.Interface, match Callback) {
+func (n *endOfStringAndNewLine) Visit(
+	scanner Scanner,
+	input Input,
+	sp span.Interface,
+	match Callback,
+) {
 	if n.isEnd(input, sp.From()) || n.isEndAndNewLine(input, sp.From()) {
 		pos := scanner.Position()
 		match(n, span.Empty(sp.From()))
-		n.base.VisitNested(scanner, input, sp, match)
+		n.VisitNested(scanner, input, sp, match)
 		scanner.Rewind(pos)
 	}
 }
@@ -35,7 +40,7 @@ func (n *endOfStringAndNewLine) isEndAndNewLine(input Input, from int) bool {
 }
 
 func (n *endOfStringAndNewLine) Size() (int, bool) {
-	if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+	if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 		return nestedSize, true
 	}
 

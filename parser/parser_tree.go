@@ -1,23 +1,20 @@
 package parser
 
 import (
-	"fmt"
+	"maps"
+	"slices"
 	"strings"
 
 	"github.com/okneniz/cliche/node"
 	c "github.com/okneniz/parsec/common"
-	"golang.org/x/exp/maps"
 )
 
 func makeParserTree[T any](
 	builders map[string]ParserBuilder[T],
 	except ...rune,
 ) c.Combinator[rune, int, T] {
-	prefixes := maps.Keys(builders)
-	errMessage := fmt.Sprintf(
-		"one of %s",
-		strings.Join(prefixes, ", "),
-	)
+	prefixes := slices.Collect(maps.Keys(builders))
+	errMessage := "one of " + strings.Join(prefixes, ", ")
 
 	cases := make(map[string]c.Combinator[rune, int, T])
 	for key, makeParser := range builders {
@@ -35,11 +32,8 @@ func makeGroupsParserTree(
 	builders map[string]GroupParserBuilder[node.Node],
 	except ...rune,
 ) c.Combinator[rune, int, node.Node] {
-	prefixes := maps.Keys(builders)
-	errMessage := fmt.Sprintf(
-		"one of %s",
-		strings.Join(prefixes, ", "),
-	)
+	prefixes := slices.Collect(maps.Keys(builders))
+	errMessage := "one of " + strings.Join(prefixes, ", ")
 
 	cases := make(map[string]c.Combinator[rune, int, node.Node])
 	for key, makeParser := range builders {

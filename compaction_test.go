@@ -1,7 +1,6 @@
 package cliche
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -86,10 +85,7 @@ func TestTreeCompaction(t *testing.T) {
 	for _, expressions := range examples {
 		example := expressions
 
-		name := fmt.Sprintf(
-			"compact expressions to one : %s",
-			strings.Join(example, ", "),
-		)
+		name := "compact expressions to one : " + strings.Join(example, ", ")
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()

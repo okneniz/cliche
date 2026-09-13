@@ -6,7 +6,7 @@ import (
 )
 
 // TODO : это не тоже самое что range / span
-// почему - не может быть количества, нельзя сделать empty Quantity
+// почему - не может быть количества, нельзя сделать empty Quantity.
 type Quantity struct {
 	from int
 	to   *int
@@ -31,7 +31,7 @@ func New(from int, to int) *Quantity {
 	}
 }
 
-// TODO : add special struct
+// TODO : add special struct.
 func NewEndlessQuantity(from int) *Quantity {
 	return &Quantity{
 		from: from,
@@ -100,13 +100,13 @@ func (n *Quantity) String() string {
 	var b strings.Builder
 
 	b.WriteRune('{')
-	b.WriteString(fmt.Sprintf("%d", n.from))
+	fmt.Fprintf(&b, "%d", n.from)
 
 	if n.more {
 		b.WriteRune(',')
 	} else if n.to != nil && n.from != *n.to {
 		b.WriteRune(',')
-		b.WriteString(fmt.Sprintf("%d", *n.to))
+		fmt.Fprintf(&b, "%d", *n.to)
 	}
 
 	b.WriteRune('}')

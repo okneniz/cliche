@@ -20,7 +20,12 @@ func NewForNameReference(name string) Node {
 	}
 }
 
-func (n *nameReferenceNode) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
+func (n *nameReferenceNode) Visit(
+	scanner Scanner,
+	input Input,
+	bounds span.Interface,
+	match Callback,
+) {
 	if bounds.From() >= input.Size() {
 		return
 	}
@@ -37,7 +42,7 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, bounds span.Inte
 
 	if !exists || matchSpan.Empty() {
 		match(n, span.Empty(bounds.From()))
-		n.base.VisitNested(scanner, input, bounds, match)
+		n.VisitNested(scanner, input, bounds, match)
 
 		scanner.Rewind(pos)
 	} else {
@@ -68,7 +73,7 @@ func (n *nameReferenceNode) Visit(scanner Scanner, input Input, bounds span.Inte
 		match(n, span.New(bounds.From(), current-1, empty))
 		next := span.Pair(current, bounds.To())
 
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 		scanner.Rewind(pos)
 	}
 }

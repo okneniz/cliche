@@ -132,7 +132,6 @@ func (s *FullScanner) Position() int {
 }
 
 func (s *FullScanner) Rewind(pos int) {
-	// fmt.Println("rewind", pos)
 	s.expression.Truncate(pos)
 }
 
@@ -144,12 +143,20 @@ func (s *FullScanner) Scan(from, to int) {
 			lastFrom := nextFrom
 			next := span.Pair(nextFrom, to)
 
-			root.Visit(s, s.input, next, func(x node.Node, sp span.Interface) {
-				// fmt.Println("before", s)
-				// fmt.Println("scanner match", fmt.Sprintf("%T", n), n.GetKey(), from, to, empty, n.GetExpressions().Slice())
-				s.Match(x, sp)
-				// fmt.Println("after", s)
-				// fmt.Println("")
+			root.Visit(s, s.input, next, func(n node.Node, sp span.Interface) {
+				fmt.Println("before", s.expression)
+
+				fmt.Println(
+					"scanner match",
+					fmt.Sprintf("%T", n),
+					sp,
+					// n.GetKey(), sp,
+					n.GetExpressions().Slice(),
+				)
+
+				s.Match(n, sp)
+				fmt.Println("after", s.expression)
+				fmt.Println("")
 			})
 
 			if pos, ok := s.output.LastPosOf(root); ok && pos >= nextFrom {

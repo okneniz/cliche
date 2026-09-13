@@ -30,7 +30,7 @@ func (n *wordBoundary) Visit(scanner Scanner, input Input, sp span.Interface, ma
 		pos := scanner.Position()
 
 		match(n, span.Empty(sp.From()))
-		n.base.VisitNested(scanner, input, sp, match)
+		n.VisitNested(scanner, input, sp, match)
 		scanner.Rewind(pos)
 	}
 }

@@ -1,6 +1,7 @@
 package node
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/okneniz/cliche/span"
@@ -15,7 +16,7 @@ type negativeLookBehind struct {
 func NewNegativeLookBehind(alt Alternation) (Node, error) {
 	size, fixedSize := alt.Size()
 	if !fixedSize {
-		return nil, fmt.Errorf("Invalid pattern in negative look-behind, must be fixed size")
+		return nil, errors.New("invalid pattern in negative look-behind, must be fixed size")
 	}
 
 	return &negativeLookBehind{
@@ -25,13 +26,18 @@ func NewNegativeLookBehind(alt Alternation) (Node, error) {
 	}, nil
 }
 
-func (n *negativeLookBehind) Visit(scanner Scanner, input Input, bounds span.Interface, match Callback) {
+func (n *negativeLookBehind) Visit(
+	scanner Scanner,
+	input Input,
+	bounds span.Interface,
+	match Callback,
+) {
 	// TODO : what about anchors?
 	pos := scanner.Position()
 
 	if bounds.From() < n.subExpressionSize {
 		match(n, span.Empty(bounds.From()))
-		n.base.VisitNested(scanner, input, bounds, match)
+		n.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(pos)
 		return
 	}
@@ -50,7 +56,7 @@ func (n *negativeLookBehind) Visit(scanner Scanner, input Input, bounds span.Int
 	// TODO : move to loop
 	if !matched {
 		match(n, span.Empty(bounds.From()))
-		n.base.VisitNested(scanner, input, bounds, match)
+		n.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(pos)
 	}
 }

@@ -31,6 +31,7 @@ type (
 
 	Group struct {
 		Span
+
 		OutOfString bool
 	}
 
@@ -83,6 +84,7 @@ func (m *Expectation) namedGroupsToString() string {
 	for _, v := range m.NamedGroups {
 		pairs = append(pairs, v.Name+": "+v.String())
 	}
+
 	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i] < pairs[j] })
 	return strings.Join(pairs, ", ")
 }
@@ -246,8 +248,8 @@ func ToScanOptions(xs ...string) ([]node.ScanOption, error) {
 
 func ToScanOption(x string) (node.ScanOption, error) {
 	switch x {
-	case "case insensetive":
-		return node.ScanOptionCaseInsensetive, nil
+	case "case insensitive":
+		return node.ScanOptionCaseInsensitive, nil
 	case "multiline":
 		return node.ScanOptionMultiline, nil
 	default:

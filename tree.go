@@ -3,8 +3,8 @@ package cliche
 import (
 	"bytes"
 	"encoding/json"
-
-	"golang.org/x/exp/maps"
+	"maps"
+	"slices"
 
 	"github.com/okneniz/cliche/buf"
 	"github.com/okneniz/cliche/node"
@@ -36,7 +36,7 @@ type tree struct {
 	parser Parser
 }
 
-// New - return Tree
+// New - return Tree.
 func New(parser Parser) Tree {
 	tr := new(tree)
 	tr.nodes = make(map[string]node.Node)
@@ -44,7 +44,7 @@ func New(parser Parser) Tree {
 	return tr
 }
 
-// Add - add regular expressions to tree
+// Add - add regular expressions to tree.
 func (t *tree) Add(expressions ...string) error {
 	for _, expression := range expressions {
 		raw, err := t.parser.Parse(expression)
@@ -83,7 +83,7 @@ func (t *tree) merge(oldNode, newNode node.Node) {
 	newNode.GetExpressions().AddTo(oldNode.GetExpressions())
 }
 
-// Size - return count of nodes in tree
+// Size - return count of nodes in tree.
 func (t *tree) Size() int {
 	size := 0
 
@@ -97,7 +97,7 @@ func (t *tree) Size() int {
 	return size
 }
 
-// Match - scan text and return matches
+// Match - scan text and return matches.
 func (t *tree) Match(text string, options ...node.ScanOption) []*scanner.Match {
 	input := buf.NewRunesBuffer(text)
 	output := scanner.NewOutput()
@@ -115,7 +115,7 @@ func (t *tree) marshalJSON() ([]byte, error) {
 	encoder.SetEscapeHTML(false)
 	encoder.SetIndent("", " ")
 
-	x := newViewsList(maps.Values(t.nodes))
+	x := newViewsList(slices.Collect(maps.Values(t.nodes)))
 
 	if err := encoder.Encode(x); err != nil {
 		return nil, err
@@ -124,7 +124,7 @@ func (t *tree) marshalJSON() ([]byte, error) {
 	return data.Bytes(), nil
 }
 
-// String - dump tree to string
+// String - dump tree to string.
 func (t *tree) String() string {
 	data, err := t.marshalJSON()
 	if err != nil {

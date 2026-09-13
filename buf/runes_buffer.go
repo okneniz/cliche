@@ -17,7 +17,7 @@ type RunesBuffer struct {
 	// positions []int (stack of last positions)
 }
 
-// newBuffer - make buffer which can read text on input
+// newBuffer - make buffer which can read text on input.
 func NewRunesBuffer(str string) *RunesBuffer {
 	b := new(RunesBuffer)
 	b.data = []rune(str)
@@ -26,7 +26,7 @@ func NewRunesBuffer(str string) *RunesBuffer {
 }
 
 // Read - read next item, if greedy buffer keep position after reading.
-// only for parsec
+// only for parsec.
 func (b *RunesBuffer) Read(greedy bool) (rune, error) {
 	if b.IsEOF() {
 		return 0, c.ErrEndOfFile
@@ -52,7 +52,7 @@ func (b *RunesBuffer) String() string {
 	return fmt.Sprintf("RunesBuffer(%s, %v, %d)", string(b.data), b.data, b.position)
 }
 
-// Seek - change buffer position
+// Seek - change buffer position.
 func (b *RunesBuffer) Seek(index int) error {
 	if index < 0 {
 		return c.ErrOutOfBounds
@@ -66,12 +66,12 @@ func (b *RunesBuffer) Seek(index int) error {
 	return nil
 }
 
-// Position - return current buffer position
+// Position - return current buffer position.
 func (b *RunesBuffer) Position() int {
 	return b.position
 }
 
-// IsEOF - true if buffer ended
+// IsEOF - true if buffer ended.
 func (b *RunesBuffer) IsEOF() bool {
 	return b.position >= len(b.data)
 }

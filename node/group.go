@@ -32,10 +32,10 @@ func (n *group) Visit(scanner Scanner, input Input, bounds span.Interface, match
 		scanner.MatchGroup(sp)
 		match(n, sp)
 
-		nextFrom := nextFor(sp.To(), sp.Empty())
+		nextFrom := span.NextFrom(sp.To(), sp.Empty())
 		next := span.Pair(nextFrom, bounds.To())
 
-		n.base.VisitNested(scanner, input, next, match)
+		n.VisitNested(scanner, input, next, match)
 
 		scanner.Rewind(pos)
 		scanner.RewindGroups(groupsPos)
@@ -44,7 +44,7 @@ func (n *group) Visit(scanner Scanner, input Input, bounds span.Interface, match
 
 func (n *group) Size() (int, bool) {
 	if size, fixedSize := n.value.Size(); fixedSize {
-		if nestedSize, fixedSize := n.base.NestedSize(); fixedSize {
+		if nestedSize, fixedSize := n.NestedSize(); fixedSize {
 			return size + nestedSize, true
 		}
 	}
