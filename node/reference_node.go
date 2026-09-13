@@ -70,7 +70,7 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, bounds span.Interfac
 			current++
 		}
 
-		fmt.Println("BACK REFERENCES", span.Pair(bounds.From(), current-1))
+		// fmt.Println("BACK REFERENCES", span.Pair(bounds.From(), current-1))
 
 		// TODO : why -1 ? looks strange
 		// лишняя итерация в цикле?

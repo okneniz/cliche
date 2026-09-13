@@ -391,7 +391,7 @@ func TestOnigmo(t *testing.T) {
 	// x(t, `a(b*)\1`, `ab`, 0, 2) // TODO : important
 	x(t, `(a*)(b*)\1\2`, `aaabbaaabb`, 0, 10)
 	x(t, `(a*)(b*)\2`, `aaabbbb`, 0, 7)
-	// x(/(((((((a*)b))))))c\7/, 'aaabcaaa', 0, 8)
+	// x(t, `/(((((((a*)b))))))c\7`, `aaabcaaa`, 0, 8)
 	// x(/(((((((a*)b))))))c\7/, 'aaabcaaa', 0, 3, 7)
 	x(t, `(a)(b)(c)\2\1\3`, `abcbac`, 0, 6)
 	x(t, `([a-d])\1`, `cc`, 0, 2)

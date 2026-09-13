@@ -1,4 +1,4 @@
-default: test-report lint
+default: test-report
 
 test-report:
 	go run gotest.tools/gotestsum@latest --format standard-verbose

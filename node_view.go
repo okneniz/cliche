@@ -2,10 +2,10 @@ package cliche
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 
 	"github.com/okneniz/cliche/node"
-	// pp "github.com/okneniz/cliche/parser"
-	"golang.org/x/exp/maps"
 )
 
 type nodeView struct {
@@ -20,9 +20,14 @@ type nodeView struct {
 
 func newView(n node.Node) *nodeView {
 	v := &nodeView{
-		Key:         n.GetKey(),
-		NodeType:    fmt.Sprintf("%T", n),
-		Address:     fmt.Sprintf("node=%p nested=%p expressions=%p", n, n.GetNestedNodes(), n.GetExpressions()),
+		Key:      n.GetKey(),
+		NodeType: fmt.Sprintf("%T", n),
+		Address: fmt.Sprintf(
+			"node=%p nested=%p expressions=%p",
+			n,
+			n.GetNestedNodes(),
+			n.GetExpressions(),
+		),
 		Expressions: n.GetExpressions().Slice(),
 	}
 
@@ -35,7 +40,9 @@ func newView(n node.Node) *nodeView {
 	}
 
 	if len(n.GetNestedNodes()) > 0 {
-		v.Nested = newViewsList(maps.Values(n.GetNestedNodes()))
+		v.Nested = newViewsList(
+			slices.Collect(maps.Values(n.GetNestedNodes())),
+		)
 	}
 
 	return v

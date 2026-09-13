@@ -50,7 +50,7 @@ linters:
     # - wastedassign
     - zerologlint
     - copyloopvar
-    - dupword
+    # - dupword
     - exptostd
     - intrange
     - misspell

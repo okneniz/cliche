@@ -144,19 +144,19 @@ func (s *FullScanner) Scan(from, to int) {
 			next := span.Pair(nextFrom, to)
 
 			root.Visit(s, s.input, next, func(n node.Node, sp span.Interface) {
-				fmt.Println("before", s.expression)
+				// fmt.Println("before", s.expression)
 
-				fmt.Println(
-					"scanner match",
-					fmt.Sprintf("%T", n),
-					sp,
-					// n.GetKey(), sp,
-					n.GetExpressions().Slice(),
-				)
+				// fmt.Println(
+				// 	"scanner match",
+				// 	fmt.Sprintf("%T", n),
+				// 	sp,
+				// 	// n.GetKey(), sp,
+				// 	n.GetExpressions().Slice(),
+				// )
 
 				s.Match(n, sp)
-				fmt.Println("after", s.expression)
-				fmt.Println("")
+				// fmt.Println("after", s.expression)
+				// fmt.Println("")
 			})
 
 			if pos, ok := s.output.LastPosOf(root); ok && pos >= nextFrom {
