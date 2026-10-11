@@ -3,14 +3,14 @@ package parser
 import (
 	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
-	c "github.com/okneniz/parsec/common"
+	"github.com/okneniz/parsec"
 )
 
-type ParserBuilder[S any] func(except ...rune) c.Combinator[rune, int, S]
+type ParserBuilder[T any] func(except ...rune) parsec.Combinator[rune, int, T, State]
 
 func Const[T any](value T) ParserBuilder[T] {
-	return func(_ ...rune) c.Combinator[rune, int, T] {
-		return func(_ c.Buffer[rune, int]) (T, c.Error[int]) {
+	return func(_ ...rune) parsec.Combinator[rune, int, T, State] {
+		return func(_ State, _ parsec.Buffer[rune, int]) (T, parsec.Error[int]) {
 			return value, nil
 		}
 	}
@@ -19,11 +19,11 @@ func Const[T any](value T) ParserBuilder[T] {
 func TableAsClass(
 	makeParser ParserBuilder[node.Table],
 ) ParserBuilder[node.Node] {
-	return func(except ...rune) c.Combinator[rune, int, node.Node] {
+	return func(except ...rune) parsec.Combinator[rune, int, node.Node, State] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
-			table, err := parse(buf)
+		return func(state State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
+			table, err := parse(state, buf)
 			if err != nil {
 				return nil, err
 			}
@@ -36,11 +36,11 @@ func TableAsClass(
 func RuneAsTable(
 	makeParser ParserBuilder[rune],
 ) ParserBuilder[node.Table] {
-	return func(except ...rune) c.Combinator[rune, int, node.Table] {
+	return func(except ...rune) parsec.Combinator[rune, int, node.Table, State] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (node.Table, c.Error[int]) {
-			r, err := parse(buf)
+		return func(state State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
+			r, err := parse(state, buf)
 			if err != nil {
 				return nil, err
 			}
@@ -53,11 +53,11 @@ func RuneAsTable(
 func NumberAsRune(
 	makeParser ParserBuilder[int],
 ) ParserBuilder[rune] {
-	return func(except ...rune) c.Combinator[rune, int, rune] {
+	return func(except ...rune) parsec.Combinator[rune, int, rune, State] {
 		parse := makeParser(except...)
 
-		return func(buf c.Buffer[rune, int]) (rune, c.Error[int]) {
-			x, err := parse(buf)
+		return func(state State, buf parsec.Buffer[rune, int]) (rune, parsec.Error[int]) {
+			x, err := parse(state, buf)
 			if err != nil {
 				return -1, err
 			}

@@ -3,7 +3,7 @@ package parser
 import (
 	"github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
-	c "github.com/okneniz/parsec/common"
+	"github.com/okneniz/parsec"
 )
 
 type NonClassScope struct {
@@ -17,11 +17,11 @@ func (scope *NonClassScope) Items() *Scope[node.Node] {
 func (scope *NonClassScope) makeParser(
 	errMessage string,
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
+) parsec.Combinator[rune, int, node.Node, State] {
 	parseItem := scope.items.makeParser(errMessage, except...)
 
-	parseRune := c.Cast(
-		c.NoneOf[rune, int](
+	parseRune := parsec.Cast(
+		parsec.NoneOf[rune, int, State](
 			errMessage,
 			except...,
 		),
@@ -30,9 +30,9 @@ func (scope *NonClassScope) makeParser(
 		},
 	)
 
-	return c.Choice(
+	return parsec.Choice(
 		errMessage,
-		c.Try(parseItem),
-		c.Try(parseRune),
+		parsec.Try(parseItem),
+		parsec.Try(parseRune),
 	)
 }

@@ -3,7 +3,7 @@ package buf
 import (
 	"fmt"
 
-	c "github.com/okneniz/parsec/common"
+	c "github.com/okneniz/parsec"
 )
 
 // TODO : use for parsing another buffer?

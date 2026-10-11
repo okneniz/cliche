@@ -1,7 +1,7 @@
 package parser
 
 import (
-	c "github.com/okneniz/parsec/common"
+	"github.com/okneniz/parsec"
 )
 
 type Scope[T any] struct {
@@ -42,8 +42,8 @@ func (scope *Scope[T]) StringAsValue(
 func (scope *Scope[T]) StringAsFunc(
 	prefix string, nodeBuilder func() T,
 ) *Scope[T] {
-	return scope.WithPrefix(prefix, func(_ ...rune) c.Combinator[rune, int, T] {
-		return func(_ c.Buffer[rune, int]) (T, c.Error[int]) {
+	return scope.WithPrefix(prefix, func(_ ...rune) parsec.Combinator[rune, int, T, State] {
+		return func(_ State, _ parsec.Buffer[rune, int]) (T, parsec.Error[int]) {
 			return nodeBuilder(), nil
 		}
 	},
@@ -53,21 +53,21 @@ func (scope *Scope[T]) StringAsFunc(
 func (scope *Scope[T]) makeParser(
 	errMessage string,
 	except ...rune,
-) c.Combinator[rune, int, T] {
+) parsec.Combinator[rune, int, T, State] {
 	parseByPrefix := makeParserTree(
 		scope.prefixes,
 		except...,
 	)
 
-	parsers := make([]c.Combinator[rune, int, T], 0, len(scope.parsers)+1)
-	parsers = append(parsers, c.Try(parseByPrefix))
+	parsers := make([]parsec.Combinator[rune, int, T, State], 0, len(scope.parsers)+1)
+	parsers = append(parsers, parsec.Try(parseByPrefix))
 
 	for _, buildParser := range scope.parsers {
 		parser := buildParser(except...)
-		parsers = append(parsers, c.Try(parser))
+		parsers = append(parsers, parsec.Try(parser))
 	}
 
-	return c.Choice(
+	return parsec.Choice(
 		errMessage,
 		parsers...,
 	)

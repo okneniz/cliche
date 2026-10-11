@@ -2,7 +2,7 @@ package parser
 
 import (
 	"github.com/okneniz/cliche/quantity"
-	c "github.com/okneniz/parsec/common"
+	"github.com/okneniz/parsec"
 )
 
 type QuantityScope struct {
@@ -16,7 +16,7 @@ func (cfg *QuantityScope) Items() *Scope[*quantity.Quantity] {
 func (scope *QuantityScope) makeParser(
 	errMessage string,
 	except ...rune,
-) c.Combinator[rune, int, *quantity.Quantity] {
+) parsec.Combinator[rune, int, *quantity.Quantity, State] {
 	return scope.items.makeParser(
 		errMessage,
 		except...,

@@ -8,11 +8,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/okneniz/parsec"
+	parsecStrings "github.com/okneniz/parsec/strings"
+	"github.com/stretchr/testify/require"
+
 	"github.com/okneniz/cliche"
 	"github.com/okneniz/cliche/re2"
-	"github.com/okneniz/parsec/common"
-	parse "github.com/okneniz/parsec/strings"
-	"github.com/stretchr/testify/require"
 )
 
 // TestCase represents a single test case.
@@ -144,24 +145,27 @@ func parseLine(line string, lineNum int) (*TestCase, error) {
 }
 
 func parseMatches(matchStrs []string) ([]Match, error) {
-	parseNumber := parse.Unsigned[int]()
-	parseComma := parse.Comma()
+	parseNumber := parsecStrings.Unsigned[int, parsec.Stateless]()
+	parseComma := parsecStrings.Comma[parsec.Stateless]()
 
 	null := Match{}
 
-	parseMatch := parse.Parens[Match](
-		func(buf common.Buffer[rune, parse.Position]) (Match, common.Error[parse.Position]) {
-			from, err := parseNumber(buf)
+	parseMatch := parsecStrings.Parens[Match, parsec.Stateless](
+		func(
+			state parsec.Stateless,
+			buf parsec.Buffer[rune, parsecStrings.Position],
+		) (Match, parsec.Error[parsecStrings.Position]) {
+			from, err := parseNumber(state, buf)
 			if err != nil {
 				return null, err
 			}
 
-			_, err = parseComma(buf)
+			_, err = parseComma(state, buf)
 			if err != nil {
 				return null, err
 			}
 
-			to, err := parseNumber(buf)
+			to, err := parseNumber(state, buf)
 			if err != nil {
 				return null, err
 			}
@@ -173,7 +177,11 @@ func parseMatches(matchStrs []string) ([]Match, error) {
 	matches := make([]Match, 0, len(matchStrs))
 
 	for _, x := range matchStrs {
-		ms, err := parse.ParseString(x, parse.Many(0, parseMatch))
+		ms, err := parsecStrings.ParseString(
+			parsec.Stateless{},
+			x,
+			parsecStrings.Many(0, parseMatch),
+		)
 		if err != nil {
 			return nil, err
 		}

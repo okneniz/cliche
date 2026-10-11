@@ -8,17 +8,17 @@ import (
 	"github.com/okneniz/cliche/node"
 	"github.com/okneniz/cliche/parser"
 	"github.com/okneniz/cliche/quantity"
-	c "github.com/okneniz/parsec/common"
+	"github.com/okneniz/parsec"
 )
 
 func parseHexNumber(from, to int) parser.ParserBuilder[int] {
-	return func(_ ...rune) c.Combinator[rune, int, int] {
+	return func(_ ...rune) parsec.Combinator[rune, int, int, parser.State] {
 		// TODO : don't ignore except, check it
 
-		parse, err := c.Quantifier(
+		parse, err := parsec.Quantifier(
 			"expected hex number, for example 12f or 1B",
 			from, to,
-			c.OneOf[rune, int](
+			parsec.OneOf[rune, int, parser.State](
 				"expected at least one symbol of hex number, for example '0123456789abcdefABCDEF'",
 				[]rune("0123456789abcdefABCDEF")...,
 			),
@@ -27,10 +27,10 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 			panic(err.Error()) // TODO : remove panic
 		}
 
-		return func(buf c.Buffer[rune, int]) (int, c.Error[int]) {
+		return func(state parser.State, buf parsec.Buffer[rune, int]) (int, parsec.Error[int]) {
 			pos := buf.Position()
 
-			runes, err := parse(buf)
+			runes, err := parse(state, buf)
 			if err != nil {
 				return -1, err
 			}
@@ -39,7 +39,7 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 
 			num, castErr := strconv.ParseInt(str, 16, 64)
 			if castErr != nil {
-				return -1, c.NewParseError(
+				return -1, parsec.NewParseError(
 					pos,
 					"invalid hex number: "+castErr.Error(),
 				)
@@ -51,43 +51,43 @@ func parseHexNumber(from, to int) parser.ParserBuilder[int] {
 }
 
 func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
-	parseLeftBraces := c.Eq[rune, int](
+	parseLeftBraces := parsec.Eq[rune, int, parser.State](
 		"expected '{' as beginning of octal number",
 		'{',
 	)
 
-	parseRightBraces := c.Eq[rune, int](
+	parseRightBraces := parsec.Eq[rune, int, parser.State](
 		"expected '}' as ending of octal number",
 		'}',
 	)
 
-	return func(_ ...rune) c.Combinator[rune, int, int] {
+	return func(_ ...rune) parsec.Combinator[rune, int, int, parser.State] {
 		// TODO : don't ignore except
 
 		allowed := []rune("01234567")
-		parse := c.Count(
+		parse := parsec.Count(
 			size,
 			"expected at least one digit between 0 and 7 as octal number",
-			c.OneOf[rune, int](
+			parsec.OneOf[rune, int, parser.State](
 				"expecte digit between 0 and 7",
 				allowed...,
 			),
 		)
 
-		return func(buf c.Buffer[rune, int]) (int, c.Error[int]) {
+		return func(state parser.State, buf parsec.Buffer[rune, int]) (int, parsec.Error[int]) {
 			pos := buf.Position()
 
-			_, leftErr := parseLeftBraces(buf)
+			_, leftErr := parseLeftBraces(state, buf)
 			if leftErr != nil {
 				return -1, leftErr
 			}
 
-			runes, runesErr := parse(buf)
+			runes, runesErr := parse(state, buf)
 			if runesErr != nil {
 				return -1, runesErr
 			}
 
-			_, rightErr := parseRightBraces(buf)
+			_, rightErr := parseRightBraces(state, buf)
 			if rightErr != nil {
 				return -1, rightErr
 			}
@@ -96,7 +96,7 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 
 			num, castErr := strconv.ParseInt(str, 8, 64)
 			if castErr != nil {
-				return -1, c.NewParseError(
+				return -1, parsec.NewParseError(
 					pos,
 					"invalid octal number: "+castErr.Error(),
 				)
@@ -110,8 +110,8 @@ func parseOctalCharNumber(size int) parser.ParserBuilder[int] {
 func makeOptionsParser(
 	opts map[rune]node.ScanOption,
 	except ...rune,
-) c.Combinator[rune, int, []node.ScanOption] {
-	parseRune := c.NoneOf[rune, int](
+) parsec.Combinator[rune, int, []node.ScanOption, parser.State] {
+	parseRune := parsec.NoneOf[rune, int, parser.State](
 		"expected option flag",
 		except...,
 	)
@@ -126,40 +126,45 @@ func makeOptionsParser(
 		strings.Join(flags, ", "),
 	)
 
-	parse := c.Many(
+	parse := parsec.Many(
 		1,
-		c.Try(c.Map(errMessage, opts, parseRune)),
+		parsec.Try(parsec.Map(errMessage, opts, parseRune)),
 	)
 
 	return parse
 }
 
 func parseGroup(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, parser.State],
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	parseCapturedGroup := c.Try(func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+) parsec.Combinator[rune, int, node.Node, parser.State] {
+	parseCapturedGroup := func(
+		state parser.State,
+		buf parsec.Buffer[rune, int],
+	) (node.Node, parsec.Error[int]) {
 		pos := buf.Position()
 
-		alt, altErr := parseAlternation(buf)
+		alt, altErr := parseAlternation(state, buf)
 		if altErr != nil {
-			return nil, c.NewParseError(
+			return nil, parsec.NewParseError(
 				pos,
 				"expected alternation expression in non captured group",
 				altErr,
 			)
 		}
 
-		return node.NewGroup(alt), nil
-	})
+		return node.NewGroup(alt, state.GroupIndex), nil
+	}
 
-	prefix := c.Try(c.Eq[rune, int](
+	parseCapturedGroup = parsec.Try(parseCapturedGroup)
+
+	prefix := parsec.Try(parsec.Eq[rune, int, parser.State](
 		"expected '?' as prefix of options for non captured group",
 		'?',
 	))
 
 	// TODO : add prefix parseSomething
-	comma := c.Try(c.Eq[rune, int](
+	comma := parsec.Try(parsec.Eq[rune, int, parser.State](
 		"expected ':' as suffix of options for non captured group",
 		':',
 	))
@@ -169,13 +174,13 @@ func parseGroup(
 		's': node.ScanOptionMultiline,
 	}
 
-	parseOptions := c.Try(
+	parseOptions := parsec.Try(
 		makeOptionsParser(optsDict, append(except, '-', ':')...),
 	)
 
-	parseDiableOptions := c.Try(
-		c.Skip(
-			c.Eq[rune, int](
+	parseDiableOptions := parsec.Try(
+		parsec.Skip(
+			parsec.Eq[rune, int, parser.State](
 				"expected '-' as prefix for disabled options",
 				'-',
 			),
@@ -183,20 +188,20 @@ func parseGroup(
 		),
 	)
 
-	parseNotCapturedGroupWithOptions := c.Try(
-		func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+	parseNotCapturedGroupWithOptions := parsec.Try(
+		func(state parser.State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 			pos := buf.Position()
 
-			_, err := prefix(buf)
+			_, err := prefix(state, buf)
 			if err != nil {
 				return nil, err
 			}
 
-			enable, enableOptErr := parseOptions(buf)
-			disable, disableOptErr := parseDiableOptions(buf)
+			enable, enableOptErr := parseOptions(state, buf)
+			disable, disableOptErr := parseDiableOptions(state, buf)
 
 			if len(enable) == 0 && len(disable) == 0 {
-				return nil, c.NewParseError(
+				return nil, parsec.NewParseError(
 					pos,
 					"captured group without any options",
 					enableOptErr,
@@ -204,12 +209,12 @@ func parseGroup(
 				)
 			}
 
-			_, err = comma(buf)
+			_, err = comma(state, buf)
 			if err != nil {
 				return node.NewOptionsSwitcher(enable, disable), nil
 			}
 
-			alt, err := parseAlternation(buf)
+			alt, err := parseAlternation(state, buf)
 			if err != nil {
 				return nil, err
 			}
@@ -219,7 +224,7 @@ func parseGroup(
 			// (?i:foo) -> (?i)(?:foo)(?-i)
 
 			beforeSwitcher := node.NewOptionsSwitcher(enable, disable)
-			group := node.NewGroup(alt)
+			group := node.NewGroup(alt, state.GroupIndex)
 			afterSwitcher := node.NewOptionsSwitcher(disable, enable)
 
 			beforeSwitcher.GetNestedNodes()[group.GetKey()] = group
@@ -229,20 +234,20 @@ func parseGroup(
 		},
 	)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+	return func(state parser.State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 		pos := buf.Position()
 
-		groupWithOptions, withOptsErr := parseNotCapturedGroupWithOptions(buf)
+		groupWithOptions, withOptsErr := parseNotCapturedGroupWithOptions(state, buf)
 		if withOptsErr == nil {
 			return groupWithOptions, nil
 		}
 
-		group, groupErr := parseCapturedGroup(buf)
+		group, groupErr := parseCapturedGroup(state, buf)
 		if groupErr == nil {
 			return group, nil
 		}
 
-		return nil, c.NewParseError(
+		return nil, parsec.NewParseError(
 			pos,
 			"expected not captured group",
 			withOptsErr,
@@ -252,15 +257,15 @@ func parseGroup(
 }
 
 func parseNotCapturedGroup(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, parser.State],
 	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+) parsec.Combinator[rune, int, node.Node, parser.State] {
+	return func(state parser.State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 		pos := buf.Position()
 
-		alt, err := parseAlternation(buf)
+		alt, err := parseAlternation(state, buf)
 		if err != nil {
-			return nil, c.NewParseError(
+			return nil, parsec.NewParseError(
 				pos,
 				"expected non captured group",
 				err,
@@ -272,41 +277,41 @@ func parseNotCapturedGroup(
 }
 
 func parseNamedGroup(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, parser.State],
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
+) parsec.Combinator[rune, int, node.Node, parser.State] {
 	except = append(except, '>')
 
-	parseAllowedForNameSymbols := c.NoneOf[rune, int](
+	parseAllowedForNameSymbols := parsec.NoneOf[rune, int, parser.State](
 		fmt.Sprintf("expected any char exclude %v", except),
 		except...,
 	)
 
-	parseEndOfName := c.Eq[rune, int](
+	parseEndOfName := parsec.Eq[rune, int, parser.State](
 		"expected '>' as ending of name of named group",
 		'>',
 	)
 
-	parseGroupName := c.SkipAfter(
+	parseGroupName := parsec.SkipAfter(
 		parseEndOfName,
-		c.Some(
+		parsec.Some(
 			10,
 			"expected name of group",
-			c.Try(parseAllowedForNameSymbols),
+			parsec.Try(parseAllowedForNameSymbols),
 		),
 	)
 
-	return c.Try(func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+	return parsec.Try(func(state parser.State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 		pos := buf.Position()
 
-		name, err := parseGroupName(buf)
+		name, err := parseGroupName(state, buf)
 		if err != nil {
 			return nil, err
 		}
 
-		alt, err := parseAlternation(buf)
+		alt, err := parseAlternation(state, buf)
 		if err != nil {
-			return nil, c.NewParseError(
+			return nil, parsec.NewParseError(
 				pos,
 				"expected named group",
 				err,
@@ -318,15 +323,15 @@ func parseNamedGroup(
 }
 
 func parseAtomicGroup(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, parser.State],
 	_ ...rune,
-) c.Combinator[rune, int, node.Node] {
-	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+) parsec.Combinator[rune, int, node.Node, parser.State] {
+	return func(state parser.State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 		pos := buf.Position()
 
-		alt, err := parseAlternation(buf)
+		alt, err := parseAlternation(state, buf)
 		if err != nil {
-			return nil, c.NewParseError(
+			return nil, parsec.NewParseError(
 				pos,
 				"expected atomic group",
 				err,
@@ -338,98 +343,104 @@ func parseAtomicGroup(
 }
 
 func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
-	return func(except ...rune) c.Combinator[rune, int, *quantity.Quantity] {
+	return func(except ...rune) parsec.Combinator[rune, int, *quantity.Quantity, parser.State] {
 		number := parseNumber(except...)
 
-		comma := c.Eq[rune, int](
+		comma := parsec.Eq[rune, int, parser.State](
 			"expected ',' as separator in quantifier",
 			',',
 		)
 
-		rightBrace := c.Eq[rune, int](
+		rightBrace := parsec.Eq[rune, int, parser.State](
 			"expected '}' as ending of quantifier",
 			'}',
 		)
 
-		full := c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, c.Error[int]) { // {1,1}
+		full := func(state parser.State, buf parsec.Buffer[rune, int]) (*quantity.Quantity, parsec.Error[int]) { // {1,1}
 			pos := buf.Position()
 
-			from, err := number(buf)
+			from, err := number(state, buf)
 			if err != nil {
 				return nil, err
 			}
 
-			_, err = comma(buf)
+			_, err = comma(state, buf)
 			if err != nil {
 				return nil, err
 			}
 
-			to, err := number(buf)
+			to, err := number(state, buf)
 			if err != nil {
 				return nil, err
 			}
 
-			_, err = rightBrace(buf)
+			_, err = rightBrace(state, buf)
 			if err != nil {
 				return nil, err
 			}
 
 			if from > to {
 				// TODO : move to validation?
-				return nil, c.NewParseError(
+				return nil, parsec.NewParseError(
 					pos,
 					"invalid quantifier",
 				)
 			}
 
 			return quantity.New(from, to), nil
-		})
+		}
 
-		fromZero := c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, c.Error[int]) { // {,1}
-			_, commaErr := comma(buf)
+		full = parsec.Try(full)
+
+		fromZero := func(state parser.State, buf parsec.Buffer[rune, int]) (*quantity.Quantity, parsec.Error[int]) { // {,1}
+			_, commaErr := comma(state, buf)
 			if commaErr != nil {
 				return nil, commaErr
 			}
 
-			to, numErr := number(buf)
+			to, numErr := number(state, buf)
 			if numErr != nil {
 				return nil, numErr
 			}
 
-			_, braceErr := rightBrace(buf)
+			_, braceErr := rightBrace(state, buf)
 			if braceErr != nil {
 				return nil, braceErr
 			}
 
 			return quantity.New(0, to), nil
-		})
+		}
 
-		endless := c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, c.Error[int]) { // {1,}
-			from, numErr := number(buf)
+		fromZero = parsec.Try(fromZero)
+
+		endless := func(state parser.State, buf parsec.Buffer[rune, int]) (*quantity.Quantity, parsec.Error[int]) { // {1,}
+			from, numErr := number(state, buf)
 			if numErr != nil {
 				return nil, numErr
 			}
 
-			_, commaErr := comma(buf)
+			_, commaErr := comma(state, buf)
 			if commaErr != nil {
 				return nil, commaErr
 			}
 
-			_, braceErr := rightBrace(buf)
+			_, braceErr := rightBrace(state, buf)
 			if braceErr != nil {
 				return nil, braceErr
 			}
 
 			return quantity.NewEndlessQuantity(from), nil
-		})
+		}
 
-		fixed := c.Try(func(buf c.Buffer[rune, int]) (*quantity.Quantity, c.Error[int]) { // {1}
-			from, err := number(buf)
+		endless = parsec.Try(endless)
+
+		fixed := parsec.Try(func(state parser.State, buf parsec.Buffer[rune, int]) (*quantity.Quantity, parsec.Error[int]) { // {1}
+			from, err := number(state, buf)
 			if err != nil {
 				return nil, err
 			}
 
-			_, err = rightBrace(buf)
+			_, err = rightBrace(state, buf)
 			if err != nil {
 				return nil, err
 			}
@@ -437,30 +448,30 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
 			return quantity.New(from, from), nil
 		})
 
-		return func(buf c.Buffer[rune, int]) (*quantity.Quantity, c.Error[int]) {
+		return func(state parser.State, buf parsec.Buffer[rune, int]) (*quantity.Quantity, parsec.Error[int]) {
 			pos := buf.Position()
 
-			q, fullErr := full(buf)
+			q, fullErr := full(state, buf)
 			if fullErr == nil {
 				return q, nil
 			}
 
-			q, fromZeroErr := fromZero(buf)
+			q, fromZeroErr := fromZero(state, buf)
 			if fromZeroErr == nil {
 				return q, nil
 			}
 
-			q, endlessErr := endless(buf)
+			q, endlessErr := endless(state, buf)
 			if endlessErr == nil {
 				return q, nil
 			}
 
-			q, fixedErr := fixed(buf)
+			q, fixedErr := fixed(state, buf)
 			if fixedErr == nil {
 				return q, nil
 			}
 
-			return nil, c.NewParseError(
+			return nil, parsec.NewParseError(
 				pos,
 				"expected quantifier",
 				fullErr,
@@ -473,21 +484,21 @@ func parseQuantity() parser.ParserBuilder[*quantity.Quantity] {
 }
 
 func parseComment(
-	_ c.Combinator[rune, int, node.Alternation],
+	_ parsec.Combinator[rune, int, node.Alternation, parser.State],
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
-	parse := c.Many(
+) parsec.Combinator[rune, int, node.Node, parser.State] {
+	parse := parsec.Many(
 		10,
-		c.Try(
-			c.NoneOf[rune, int](
+		parsec.Try(
+			parsec.NoneOf[rune, int, parser.State](
 				"expected comment",
 				except...,
 			),
 		),
 	)
 
-	return func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
-		runes, err := parse(buf)
+	return func(state parser.State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
+		runes, err := parse(state, buf)
 		if err != nil {
 			return nil, err
 		}
@@ -496,18 +507,18 @@ func parseComment(
 	}
 }
 
-func parseNumber(_ ...rune) c.Combinator[rune, int, int] {
+func parseNumber(_ ...rune) parsec.Combinator[rune, int, int, parser.State] {
 	const zero = rune('0')
 
 	// TODO : don't ignore except param
 
-	digit := c.Try(c.OneOf[rune, int](
+	digit := parsec.Try(parsec.OneOf[rune, int, parser.State](
 		"expected digit",
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 	))
 
-	return func(buf c.Buffer[rune, int]) (int, c.Error[int]) {
-		token, err := digit(buf)
+	return func(state parser.State, buf parsec.Buffer[rune, int]) (int, parsec.Error[int]) {
+		token, err := digit(state, buf)
 		if err != nil {
 			return 0, err
 		}
@@ -515,7 +526,7 @@ func parseNumber(_ ...rune) c.Combinator[rune, int, int] {
 		number := int(token - zero)
 
 		for {
-			token, err := digit(buf)
+			token, err := digit(state, buf)
 			if err != nil {
 				break
 			}

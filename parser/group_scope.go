@@ -2,13 +2,13 @@ package parser
 
 import (
 	"github.com/okneniz/cliche/node"
-	c "github.com/okneniz/parsec/common"
+	"github.com/okneniz/parsec"
 )
 
 type GroupParserBuilder[T any] func(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, State],
 	except ...rune,
-) c.Combinator[rune, int, T]
+) parsec.Combinator[rune, int, T, State]
 
 type GroupScope struct {
 	prefixes map[string]GroupParserBuilder[node.Node]
@@ -30,24 +30,48 @@ func (cfg *GroupScope) ParsePrefix(
 }
 
 func (cfg *GroupScope) makeParser(
-	parseAlternation c.Combinator[rune, int, node.Alternation],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, State],
 	except ...rune,
-) c.Combinator[rune, int, node.Node] {
+) parsec.Combinator[rune, int, node.Node, State] {
 	parseScopeByPrefix := makeGroupsParserTree(
 		parseAlternation,
 		cfg.prefixes,
 		except...,
 	)
 
-	parsers := make([]c.Combinator[rune, int, node.Node], 0, len(cfg.parsers)+1)
-	parsers = append(parsers, c.Try(parseScopeByPrefix))
+	// TODO : вот где-то тут получается должен быть counter для груп
+	// сейчас непонятно стоит ли заморачиваться с thread safe и прочим
+	//
+	// если состояние каждый раз новое при вызове Parse то наверно невозможно его как-то
+	// вообще разделить между потоками
+	//
+	// пользовательские комбинаторы будут получаеть счетчик как параметр
+	// без возможности что-то сделать еще
+
+	// получается при парсинге нужно запоминать состояние на случай если c.Try не смог распарсить
+	// чтобы счетчик не рос на каждую попытку
+
+	// архитектурыный вопрос - стоит ли делать состояние только тут или оно понадобится еще и
+	// в других местах
+
+	// стоит ли давать пользователю возможность делать statefull комбинаторы
+
+	// еще вопрос - стоит ли усложнять состояние
+	// что-то кроме груп вообще будет?
+	//
+	// достаточно одной цифры?
+	//
+	// или нужна структура с интерфейсом и тд
+
+	parsers := make([]parsec.Combinator[rune, int, node.Node, State], 0, len(cfg.parsers)+1)
+	parsers = append(parsers, parsec.Try(parseScopeByPrefix))
 
 	for _, buildParser := range cfg.parsers {
 		parser := buildParser(parseAlternation, except...)
-		parsers = append(parsers, c.Try(parser))
+		parsers = append(parsers, parsec.Try(parser))
 	}
 
-	return c.Choice(
+	return parsec.Choice(
 		"expected group",
 		parsers...,
 	)

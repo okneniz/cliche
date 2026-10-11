@@ -2,6 +2,7 @@ package testing
 
 import (
 	"fmt"
+	"iter"
 	"math/rand/v2"
 	"strings"
 
@@ -27,10 +28,8 @@ type arbitraryRegexp struct {
 func ArbitraryRegexp(rnd *rand.Rand, maxDeep, maxSize int) ohsnap.Arbitrary[TestRegexp] {
 	arbRune := ohsnap.OneOf(
 		rnd,
-		[]ohsnap.Arbitrary[rune]{
-			ohsnap.OneOfValue(rnd, []rune("abcdefghijklmnopqrstuvwxyz")...),
-			ohsnap.OneOfValue(rnd, []rune("01234567890")...),
-		},
+		ohsnap.OneOfValue(rnd, []rune("abcdefghijklmnopqrstuvwxyz")...),
+		ohsnap.OneOfValue(rnd, []rune("01234567890")...),
 	)
 
 	return &arbitraryRegexp{
@@ -247,6 +246,8 @@ func (a *arbitraryRegexp) generateRange() TestRegexp {
 	}
 }
 
-func (*arbitraryRegexp) Shrink(value TestRegexp) []TestRegexp {
-	return nil
+func (*arbitraryRegexp) Shrink(value TestRegexp) iter.Seq[TestRegexp] {
+	return func(yield func(TestRegexp) bool) {
+		return
+	}
 }

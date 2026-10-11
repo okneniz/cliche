@@ -5,7 +5,7 @@ import (
 
 	unicodePkg "github.com/okneniz/cliche/encoding/unicode"
 	"github.com/okneniz/cliche/node"
-	c "github.com/okneniz/parsec/common"
+	"github.com/okneniz/parsec"
 )
 
 type ClassScope struct {
@@ -14,7 +14,7 @@ type ClassScope struct {
 }
 
 var (
-	parseNegativePrefix = c.Try(c.Eq[rune, int](
+	parseNegativePrefix = parsec.Try(parsec.Eq[rune, int, State](
 		"expected '^' as prefix for negative class",
 		'^',
 	))
@@ -28,38 +28,38 @@ func (scope *ClassScope) Items() *Scope[node.Table] {
 	return scope.items
 }
 
-func (scope *ClassScope) makeParser() c.Combinator[rune, int, node.Node] {
+func (scope *ClassScope) makeParser() parsec.Combinator[rune, int, node.Node, State] {
 	parseTable := scope.makeTableParser()
 
-	parseLeftSquare := c.Eq[rune, int](
+	parseLeftSquare := parsec.Eq[rune, int, State](
 		"expected left square as beginning of character class",
 		'[',
 	)
 
-	parseRightSquare := c.Eq[rune, int](
+	parseRightSquare := parsec.Eq[rune, int, State](
 		"expected right square as ending of character class",
 		']',
 	)
 
-	return c.Try(func(buf c.Buffer[rune, int]) (node.Node, c.Error[int]) {
+	return parsec.Try(func(state State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 		isNegative := true
 
-		_, err := parseLeftSquare(buf)
+		_, err := parseLeftSquare(state, buf)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = parseNegativePrefix(buf)
+		_, err = parseNegativePrefix(state, buf)
 		if err != nil {
 			isNegative = false
 		}
 
-		table, err := parseTable(buf)
+		table, err := parseTable(state, buf)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = parseRightSquare(buf)
+		_, err = parseRightSquare(state, buf)
 		if err != nil {
 			return nil, err
 		}
@@ -72,13 +72,13 @@ func (scope *ClassScope) makeParser() c.Combinator[rune, int, node.Node] {
 	})
 }
 
-func (scope *ClassScope) makeTableParser() c.Combinator[rune, int, node.Table] {
+func (scope *ClassScope) makeTableParser() parsec.Combinator[rune, int, node.Table, State] {
 	var (
-		parseClass    c.Combinator[rune, int, node.Table]
-		parseSubClass c.Combinator[rune, int, node.Table]
+		parseClass    parsec.Combinator[rune, int, node.Table, State]
+		parseSubClass parsec.Combinator[rune, int, node.Table, State]
 	)
 
-	parseItem := c.Try(scope.items.makeParser(
+	parseItem := parsec.Try(scope.items.makeParser(
 		"expected character class item",
 		']',
 	))
@@ -88,29 +88,30 @@ func (scope *ClassScope) makeTableParser() c.Combinator[rune, int, node.Table] {
 		']',
 	)
 
-	// can't use common.Choice because parseClass is var
+	// can't use parsec.Choice because parseClass is var
 	// and not initiated at this moment to pass as function param
 	parseTable := func(
-		buf c.Buffer[rune, int],
-	) (node.Table, c.Error[int]) {
+		state State,
+		buf parsec.Buffer[rune, int],
+	) (node.Table, parsec.Error[int]) {
 		pos := buf.Position()
 
-		item, itemErr := parseItem(buf)
+		item, itemErr := parseItem(state, buf)
 		if itemErr == nil {
 			return item, nil
 		}
 
-		subClass, subClassErr := parseSubClass(buf)
+		subClass, subClassErr := parseSubClass(state, buf)
 		if subClassErr == nil {
 			return subClass, nil
 		}
 
-		charOrRange, charErr := parseCharOrRange(buf)
+		charOrRange, charErr := parseCharOrRange(state, buf)
 		if charErr == nil {
 			return charOrRange, nil
 		}
 
-		return nil, c.NewParseError(
+		return nil, parsec.NewParseError(
 			pos,
 			"expected character class",
 			itemErr,
@@ -119,44 +120,44 @@ func (scope *ClassScope) makeTableParser() c.Combinator[rune, int, node.Table] {
 		)
 	}
 
-	parseSequenceOfTables := c.Try(c.Many(0, c.Try(parseTable)))
+	parseSequenceOfTables := parsec.Try(parsec.Many(0, parsec.Try(parseTable)))
 
-	parseClass = c.Cast(
+	parseClass = parsec.Cast(
 		parseSequenceOfTables,
 		func(tables []node.Table) (node.Table, error) {
 			return unicodePkg.MergeTables(tables...), nil
 		},
 	)
 
-	parseLeftSquare := c.Try(c.Eq[rune, int](
+	parseLeftSquare := parsec.Try(parsec.Eq[rune, int, State](
 		"expected left square as beginning of character sub class",
 		'[',
 	))
 
-	parseRightSquare := c.Try(c.Eq[rune, int](
+	parseRightSquare := parsec.Try(parsec.Eq[rune, int, State](
 		"expected right square as ending of character sub class",
 		']',
 	))
 
-	parseSubClass = c.Try(func(buf c.Buffer[rune, int]) (node.Table, c.Error[int]) {
+	parseSubClass = parsec.Try(func(state State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
 		isNegative := true
 
-		_, err := parseLeftSquare(buf)
+		_, err := parseLeftSquare(state, buf)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = parseNegativePrefix(buf)
+		_, err = parseNegativePrefix(state, buf)
 		if err != nil {
 			isNegative = false
 		}
 
-		tables, err := parseSequenceOfTables(buf)
+		tables, err := parseSequenceOfTables(state, buf)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = parseRightSquare(buf)
+		_, err = parseRightSquare(state, buf)
 		if err != nil {
 			return nil, err
 		}
@@ -176,8 +177,8 @@ func (scope *ClassScope) makeTableParser() c.Combinator[rune, int, node.Table] {
 func (scope *ClassScope) makeRangeOrCharParser(
 	errMessage string,
 	except ...rune,
-) c.Combinator[rune, int, node.Table] {
-	parseMinus := c.Eq[rune, int](
+) parsec.Combinator[rune, int, node.Table, State] {
+	parseMinus := parsec.Eq[rune, int, State](
 		"expected '-' as separator for range of characters",
 		'-',
 	)
@@ -187,20 +188,20 @@ func (scope *ClassScope) makeRangeOrCharParser(
 		except...,
 	)
 
-	parseAnyRune := c.Try(c.NoneOf[rune, int](errMessage, except...))
+	parseAnyRune := parsec.Try(parsec.NoneOf[rune, int, State](errMessage, except...))
 
-	parseRune := c.Choice(
+	parseRune := parsec.Choice(
 		errMessage,
 		parsePredefinedRune,
 		parseAnyRune,
 	)
 
-	return func(buf c.Buffer[rune, int]) (node.Table, c.Error[int]) {
+	return func(state State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
 		pos := buf.Position()
 
-		from, err := parseRune(buf)
+		from, err := parseRune(state, buf)
 		if err != nil {
-			return nil, c.NewParseError(
+			return nil, parsec.NewParseError(
 				pos,
 				"expected char or range of chars",
 				err,
@@ -209,10 +210,10 @@ func (scope *ClassScope) makeRangeOrCharParser(
 
 		pos = buf.Position()
 
-		_, err = parseMinus(buf)
+		_, err = parseMinus(state, buf)
 		if err != nil {
 			if seekErr := buf.Seek(pos); seekErr != nil {
-				return nil, c.NewParseError(
+				return nil, parsec.NewParseError(
 					buf.Position(),
 					seekErr.Error(),
 				)
@@ -221,10 +222,10 @@ func (scope *ClassScope) makeRangeOrCharParser(
 			return unicodePkg.NewTable(from), nil
 		}
 
-		to, err := parseRune(buf)
+		to, err := parseRune(state, buf)
 		if err != nil {
 			if seekErr := buf.Seek(pos); seekErr != nil {
-				return nil, c.NewParseError(
+				return nil, parsec.NewParseError(
 					buf.Position(),
 					seekErr.Error(),
 				)
@@ -235,16 +236,16 @@ func (scope *ClassScope) makeRangeOrCharParser(
 
 		// if from > to {
 		// 	if seekErr := buf.Seek(pos); seekErr != nil {
-		// 		return nil, c.NewParseError(
+		// 		return nil, parsec.NewParseError(
 		// 			buf.Position(),
 		// 			seekErr.Error(),
 		// 		)
 		// 	}
 
 		// 	// TODO : validate tree after?
-		// 	validationErr := c.NewParseError(pos, "invalid bounds of range")
+		// 	validationErr := parsec.NewParseError(pos, "invalid bounds of range")
 
-		// 	return nil, c.NewParseError(
+		// 	return nil, parsec.NewParseError(
 		// 		pos,
 		// 		errMessage,
 		// 		validationErr,

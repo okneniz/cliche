@@ -8,14 +8,16 @@ import (
 
 type group struct {
 	value Alternation
+	index int
 	*base
 }
 
 var _ Container = new(group)
 
-func NewGroup(alt Alternation) Node {
+func NewGroup(alt Alternation, index int) Node {
 	return &group{
 		value: alt,
+		index: index,
 		base:  newBase(fmt.Sprintf("(%s)", alt.GetKey())),
 	}
 }
@@ -53,5 +55,5 @@ func (n *group) Size() (int, bool) {
 }
 
 func (n *group) Copy() Node {
-	return NewGroup(n.value.CopyAlternation())
+	return NewGroup(n.value.CopyAlternation(), n.index)
 }
