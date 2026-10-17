@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	ohsnap "github.com/okneniz/oh-snap"
+	"github.com/okneniz/oh-snap/arbitrary"
 )
 
 // Simplest regexp generator.
@@ -35,8 +36,8 @@ func ArbitraryRegexp(rnd *rand.Rand, maxDeep, maxSize int) ohsnap.Arbitrary[Test
 	return &arbitraryRegexp{
 		rand:    rnd,
 		maxDeep: maxDeep,
-		arbType: ohsnap.ArbitraryInt(rnd, 1, 1000),
-		arbSize: ohsnap.ArbitraryInt(rnd, 1, maxSize),
+		arbType: arbitrary.Int(rnd, 1, 1000),
+		arbSize: arbitrary.Int(rnd, 1, maxSize),
 		arbRune: arbRune,
 	}
 }

@@ -313,6 +313,8 @@ func parseGroup(
 			)
 		}
 
+		state.GroupIndex++
+
 		return node.NewGroup(alt, state.GroupIndex), nil
 	}
 
@@ -384,6 +386,7 @@ func parseGroup(
 			// (?i:foo) -> (?i)(?:foo)(?-i)
 
 			beforeSwitcher := node.NewOptionsSwitcher(enable, disable)
+			state.GroupIndex++
 			group := node.NewGroup(alt, state.GroupIndex)
 			afterSwitcher := node.NewOptionsSwitcher(disable, enable)
 

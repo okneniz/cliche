@@ -9,6 +9,7 @@ import (
 	"github.com/okneniz/cliche/onigmo"
 	tests "github.com/okneniz/cliche/testing"
 	ohsnap "github.com/okneniz/oh-snap"
+	"github.com/okneniz/oh-snap/arbitrary"
 )
 
 func TestOnigmoProperties(t *testing.T) {
@@ -59,7 +60,7 @@ func TestOnigmoProperties(t *testing.T) {
 
 		rnd := rand.New(rand.NewPCG(0, uint64(seed)))
 		arbExp := tests.ArbitraryRegexp(rnd, 3, 7)
-		arb := ohsnap.ArbitrarySlice(rnd, arbExp, 10, 50)
+		arb := arbitrary.Slice(rnd, arbExp, 10, 50)
 
 		ohsnap.Check(t, iterations, arb, func(regs []tests.TestRegexp) bool {
 			tr := cliche.New(onigmo.Parser)
