@@ -14,7 +14,7 @@ type ClassScope struct {
 }
 
 var (
-	parseNegativePrefix = parsec.Try(parsec.Eq[rune, int, State](
+	parseNegativePrefix = parsec.Try(parsec.Eq[rune, int, *State](
 		"expected '^' as prefix for negative class",
 		'^',
 	))
@@ -28,20 +28,20 @@ func (scope *ClassScope) Items() *Scope[node.Table] {
 	return scope.items
 }
 
-func (scope *ClassScope) makeParser() parsec.Combinator[rune, int, node.Node, State] {
+func (scope *ClassScope) makeParser() parsec.Combinator[rune, int, node.Node, *State] {
 	parseTable := scope.makeTableParser()
 
-	parseLeftSquare := parsec.Eq[rune, int, State](
+	parseLeftSquare := parsec.Eq[rune, int, *State](
 		"expected left square as beginning of character class",
 		'[',
 	)
 
-	parseRightSquare := parsec.Eq[rune, int, State](
+	parseRightSquare := parsec.Eq[rune, int, *State](
 		"expected right square as ending of character class",
 		']',
 	)
 
-	return parsec.Try(func(state State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
+	return parsec.Try(func(state *State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 		isNegative := true
 
 		_, err := parseLeftSquare(state, buf)
@@ -72,10 +72,10 @@ func (scope *ClassScope) makeParser() parsec.Combinator[rune, int, node.Node, St
 	})
 }
 
-func (scope *ClassScope) makeTableParser() parsec.Combinator[rune, int, node.Table, State] {
+func (scope *ClassScope) makeTableParser() parsec.Combinator[rune, int, node.Table, *State] {
 	var (
-		parseClass    parsec.Combinator[rune, int, node.Table, State]
-		parseSubClass parsec.Combinator[rune, int, node.Table, State]
+		parseClass    parsec.Combinator[rune, int, node.Table, *State]
+		parseSubClass parsec.Combinator[rune, int, node.Table, *State]
 	)
 
 	parseItem := parsec.Try(scope.items.makeParser(
@@ -91,7 +91,7 @@ func (scope *ClassScope) makeTableParser() parsec.Combinator[rune, int, node.Tab
 	// can't use parsec.Choice because parseClass is var
 	// and not initiated at this moment to pass as function param
 	parseTable := func(
-		state State,
+		state *State,
 		buf parsec.Buffer[rune, int],
 	) (node.Table, parsec.Error[int]) {
 		pos := buf.Position()
@@ -129,17 +129,17 @@ func (scope *ClassScope) makeTableParser() parsec.Combinator[rune, int, node.Tab
 		},
 	)
 
-	parseLeftSquare := parsec.Try(parsec.Eq[rune, int, State](
+	parseLeftSquare := parsec.Try(parsec.Eq[rune, int, *State](
 		"expected left square as beginning of character sub class",
 		'[',
 	))
 
-	parseRightSquare := parsec.Try(parsec.Eq[rune, int, State](
+	parseRightSquare := parsec.Try(parsec.Eq[rune, int, *State](
 		"expected right square as ending of character sub class",
 		']',
 	))
 
-	parseSubClass = parsec.Try(func(state State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
+	parseSubClass = parsec.Try(func(state *State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
 		isNegative := true
 
 		_, err := parseLeftSquare(state, buf)
@@ -177,8 +177,8 @@ func (scope *ClassScope) makeTableParser() parsec.Combinator[rune, int, node.Tab
 func (scope *ClassScope) makeRangeOrCharParser(
 	errMessage string,
 	except ...rune,
-) parsec.Combinator[rune, int, node.Table, State] {
-	parseMinus := parsec.Eq[rune, int, State](
+) parsec.Combinator[rune, int, node.Table, *State] {
+	parseMinus := parsec.Eq[rune, int, *State](
 		"expected '-' as separator for range of characters",
 		'-',
 	)
@@ -188,7 +188,7 @@ func (scope *ClassScope) makeRangeOrCharParser(
 		except...,
 	)
 
-	parseAnyRune := parsec.Try(parsec.NoneOf[rune, int, State](errMessage, except...))
+	parseAnyRune := parsec.Try(parsec.NoneOf[rune, int, *State](errMessage, except...))
 
 	parseRune := parsec.Choice(
 		errMessage,
@@ -196,7 +196,7 @@ func (scope *ClassScope) makeRangeOrCharParser(
 		parseAnyRune,
 	)
 
-	return func(state State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
+	return func(state *State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
 		pos := buf.Position()
 
 		from, err := parseRune(state, buf)

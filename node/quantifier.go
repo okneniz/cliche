@@ -36,12 +36,12 @@ func (n *quantifier) Visit(scanner Scanner, input Input, bounds span.Interface, 
 	n.recursiveVisit(1, scanner, input, bounds, func(value Node, sp span.Interface) {
 		pos := scanner.Position()
 
-		if startGroup != scanner.GroupsPosition() {
-			if lastGroupSpan, ok := scanner.GetGroup(scanner.GroupsPosition()); ok {
-				scanner.RewindGroups(startGroup)
-				scanner.MatchGroup(lastGroupSpan)
-			}
-		}
+		// if startGroup != scanner.GroupsPosition() {
+		// 	if lastGroupSpan, ok := scanner.GetGroupByIndex(scanner.GroupsPosition()); ok {
+		// 		scanner.RewindGroups(startGroup)
+		// 		scanner.MatchGroup(scanner.GroupsPosition(), lastGroupSpan) // TODO : idx == size?
+		// 	}
+		// }
 
 		match(n, span.New(bounds.From(), sp.To(), sp.Empty()))
 		nextFrom := span.NextFrom(sp.To(), sp.Empty())

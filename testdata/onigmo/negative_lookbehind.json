@@ -128,6 +128,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 2,
               "Empty": false
@@ -146,6 +147,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 11,
               "To": 13,
               "Empty": false
@@ -164,6 +166,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 14,
               "To": 16,
               "Empty": false

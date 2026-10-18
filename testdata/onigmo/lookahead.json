@@ -73,11 +73,13 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 2,
               "Empty": false
             },
             {
+              "Index": 2,
               "From": 3,
               "To": 3,
               "Empty": false,
@@ -97,11 +99,13 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 10,
               "To": 12,
               "Empty": false
             },
             {
+              "Index": 2,
               "From": 13,
               "To": 13,
               "Empty": false,
@@ -121,6 +125,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 3,
               "To": 3,
               "Empty": false,
@@ -140,6 +145,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 13,
               "To": 13,
               "Empty": false,
@@ -206,6 +212,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 1,
               "To": 2,
               "Empty": false
@@ -234,20 +241,18 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 2,
               "Empty": false
-            }
-          ],
-          "NamedGroups": [
+            },
             {
+              "Index": 2,
               "Name": "currency",
               "OutOfString": true,
-              "Span": {
-                "From": 3,
-                "To": 3,
-                "Empty": false
-              }
+              "From": 3,
+              "To": 3,
+              "Empty": false
             }
           ]
         },
@@ -261,15 +266,14 @@
           "Expressions": [
             "\\d+(?=(?<currency>\\$|₽))"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "currency",
               "OutOfString": true,
-              "Span": {
-                "From": 3,
-                "To": 3,
-                "Empty": false
-              }
+              "From": 3,
+              "To": 3,
+              "Empty": false
             }
           ]
         },
@@ -285,20 +289,18 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 10,
               "To": 12,
               "Empty": false
-            }
-          ],
-          "NamedGroups": [
+            },
             {
+              "Index": 2,
               "Name": "currency",
               "OutOfString": true,
-              "Span": {
-                "From": 13,
-                "To": 13,
-                "Empty": false
-              }
+              "From": 13,
+              "To": 13,
+              "Empty": false
             }
           ]
         },
@@ -312,15 +314,14 @@
           "Expressions": [
             "\\d+(?=(?<currency>\\$|₽))"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "currency",
               "OutOfString": true,
-              "Span": {
-                "From": 13,
-                "To": 13,
-                "Empty": false
-              }
+              "From": 13,
+              "To": 13,
+              "Empty": false
             }
           ]
         }

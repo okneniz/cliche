@@ -26,6 +26,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 0,
               "Empty": false
@@ -53,11 +54,13 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 6,
               "To": 6,
               "Empty": false
             },
             {
+              "Index": 2,
               "From": 7,
               "To": 9,
               "Empty": false
@@ -93,6 +96,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 4,
               "To": 6,
               "Empty": false
@@ -120,6 +124,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 2,
               "Empty": false
@@ -147,11 +152,13 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 28,
               "To": 29,
               "Empty": false
             },
             {
+              "Index": 2,
               "From": 31,
               "To": 46,
               "Empty": false
@@ -170,11 +177,13 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 53,
               "To": 53,
               "Empty": false
             },
             {
+              "Index": 2,
               "From": 55,
               "To": 73,
               "Empty": false
@@ -182,6 +191,40 @@
           ]
         }
       ]
-    }
+    },
+    {
+      "Name": "case 6",
+      "Expressions": [
+        "((a)|(b)|(c))\\4"
+      ],
+      "Input": "abcccd",
+      "Want": [
+        {
+          "SubString": "cc",
+          "Span": {
+            "From": 2,
+            "To": 3,
+            "Empty": false
+          },
+          "Expressions": [
+            "((a)|(b)|(c))\\4"
+          ],
+          "Groups": [
+            {
+              "Index": 1,
+              "From": 2,
+              "To": 2,
+              "Empty": false
+            },
+            {
+              "Index": 4,
+              "From": 2,
+              "To": 2,
+              "Empty": false
+            }
+          ]
+        }
+      ]
+    }    
   ]
 }

@@ -42,8 +42,8 @@ func (scope *Scope[T]) StringAsValue(
 func (scope *Scope[T]) StringAsFunc(
 	prefix string, nodeBuilder func() T,
 ) *Scope[T] {
-	return scope.WithPrefix(prefix, func(_ ...rune) parsec.Combinator[rune, int, T, State] {
-		return func(_ State, _ parsec.Buffer[rune, int]) (T, parsec.Error[int]) {
+	return scope.WithPrefix(prefix, func(_ ...rune) parsec.Combinator[rune, int, T, *State] {
+		return func(_ *State, _ parsec.Buffer[rune, int]) (T, parsec.Error[int]) {
 			return nodeBuilder(), nil
 		}
 	},
@@ -53,13 +53,13 @@ func (scope *Scope[T]) StringAsFunc(
 func (scope *Scope[T]) makeParser(
 	errMessage string,
 	except ...rune,
-) parsec.Combinator[rune, int, T, State] {
+) parsec.Combinator[rune, int, T, *State] {
 	parseByPrefix := makeParserTree(
 		scope.prefixes,
 		except...,
 	)
 
-	parsers := make([]parsec.Combinator[rune, int, T, State], 0, len(scope.parsers)+1)
+	parsers := make([]parsec.Combinator[rune, int, T, *State], 0, len(scope.parsers)+1)
 	parsers = append(parsers, parsec.Try(parseByPrefix))
 
 	for _, buildParser := range scope.parsers {

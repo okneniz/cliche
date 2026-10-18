@@ -88,3 +88,16 @@ func (c *OrderedMap[K, V]) Map() map[K]V {
 
 	return m
 }
+
+func (c *OrderedMap[K, V]) Slice() []V {
+	m := make([]V, 0, len(c.data))
+
+	for _, values := range c.data {
+		value, ok := values.Last()
+		if ok {
+			m = append(m, value)
+		}
+	}
+
+	return m
+}

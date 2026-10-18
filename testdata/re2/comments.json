@@ -24,6 +24,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 4,
               "To": 7,
               "Empty": false
@@ -44,6 +45,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 16,
               "To": 20,
               "Empty": false

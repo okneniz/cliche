@@ -22,14 +22,13 @@
           "Expressions": [
             "fo(?<name>o|b)"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "name",
-              "Span": {
-                "From": 2,
-                "To": 2,
-                "Empty": false
-              }
+              "From": 2,
+              "To": 2,
+              "Empty": false
             }
           ]
         },
@@ -43,14 +42,13 @@
           "Expressions": [
             "f(?<name>o|b)o"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "name",
-              "Span": {
-                "From": 1,
-                "To": 1,
-                "Empty": false
-              }
+              "From": 1,
+              "To": 1,
+              "Empty": false
             }
           ]
         },
@@ -66,30 +64,27 @@
             "(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)",
             "(?<first>f)(?<second>o)(?<third>o)"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "first",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
+              "From": 0,
+              "To": 0,
+              "Empty": false
             },
             {
+              "Index": 2,
               "Name": "second",
-              "Span": {
-                "From": 1,
-                "To": 1,
-                "Empty": false
-              }
+              "From": 1,
+              "To": 1,
+              "Empty": false
             },
             {
+              "Index": 3,
               "Name": "third",
-              "Span": {
-                "From": 2,
-                "To": 2,
-                "Empty": false
-              }
+              "From": 2,
+              "To": 2,
+              "Empty": false
             }
           ]
         },
@@ -104,30 +99,27 @@
             "(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
             "(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "first",
-              "Span": {
-                "From": 4,
-                "To": 4,
-                "Empty": false
-              }
+              "From": 4,
+              "To": 4,
+              "Empty": false
             },
             {
+              "Index": 2,
               "Name": "second",
-              "Span": {
-                "From": 5,
-                "To": 5,
-                "Empty": false
-              }
+              "From": 5,
+              "To": 5,
+              "Empty": false
             },
             {
+              "Index": 3,
               "Name": "third",
-              "Span": {
-                "From": 6,
-                "To": 6,
-                "Empty": false
-              }
+              "From": 6,
+              "To": 6,
+              "Empty": false
             }
           ]
         },
@@ -142,30 +134,27 @@
             "(?<first>f|b)(?<second>o|a)(?<third>o|r|z)",
             "(?<first>f|b)(?<second>o|a)(?<third>o|\\w|\\D)"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "first",
-              "Span": {
-                "From": 8,
-                "To": 8,
-                "Empty": false
-              }
+              "From": 8,
+              "To": 8,
+              "Empty": false
             },
             {
+              "Index": 2,
               "Name": "second",
-              "Span": {
-                "From": 9,
-                "To": 9,
-                "Empty": false
-              }
+              "From": 9,
+              "To": 9,
+              "Empty": false
             },
             {
+              "Index": 3,
               "Name": "third",
-              "Span": {
-                "From": 10,
-                "To": 10,
-                "Empty": false
-              }
+              "From": 10,
+              "To": 10,
+              "Empty": false
             }
           ]
         }
@@ -190,22 +179,20 @@
           "Expressions": [
             "f(?<first>o(?<second>o))"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "first",
-              "Span": {
-                "From": 1,
-                "To": 2,
-                "Empty": false
-              }
+              "From": 1,
+              "To": 2,
+              "Empty": false
             },
             {
+              "Index": 2,
               "Name": "second",
-              "Span": {
-                "From": 2,
-                "To": 2,
-                "Empty": false
-              }
+              "From": 2,
+              "To": 2,
+              "Empty": false
             }
           ]
         },
@@ -219,30 +206,27 @@
           "Expressions": [
             "(?<first>b(?<second>a(?<third>r)))"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
-              "Name": "second",
-              "Span": {
-                "From": 5,
-                "To": 6,
-                "Empty": false
-              }
-            },
-            {
-              "Name": "third",
-              "Span": {
-                "From": 6,
-                "To": 6,
-                "Empty": false
-              }
-            },
-            {
+              "Index": 1,
               "Name": "first",
-              "Span": {
-                "From": 4,
-                "To": 6,
-                "Empty": false
-              }
+              "From": 4,
+              "To": 6,
+              "Empty": false
+            },            
+            {
+              "Index": 2,
+              "Name": "second",
+              "From": 5,
+              "To": 6,
+              "Empty": false
+            },
+            {
+              "Index": 3,
+              "Name": "third",
+              "From": 6,
+              "To": 6,
+              "Empty": false
             }
           ]
         },
@@ -256,22 +240,20 @@
           "Expressions": [
             "(?<first>(?<second>b)az)"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
-              "Name": "second",
-              "Span": {
-                "From": 8,
-                "To": 8,
-                "Empty": false
-              }
-            },
-            {
+              "Index": 1,
               "Name": "first",
-              "Span": {
-                "From": 8,
-                "To": 10,
-                "Empty": false
-              }
+              "From": 8,
+              "To": 10,
+              "Empty": false
+            },            
+            {
+              "Index": 2,
+              "Name": "second",
+              "From": 8,
+              "To": 8,
+              "Empty": false
             }
           ]
         }

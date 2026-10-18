@@ -25,7 +25,9 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, bounds span.Interfac
 		return
 	}
 
-	matchSpan, exists := scanner.GetGroup(n.index)
+	// fmt.Println("in reference pos=", input.Position(), "bounds=", bounds)
+	matchSpan, exists := scanner.GetGroupByIndex(n.index)
+	// fmt.Println("get group", n.index, "return", matchSpan, exists)
 
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Backreference
 	//
@@ -36,12 +38,11 @@ func (n *referenceNode) Visit(scanner Scanner, input Input, bounds span.Interfac
 	pos := scanner.Position()
 
 	if !exists || matchSpan.Empty() {
-		match(n, span.Empty(bounds.From()))
-		n.VisitNested(scanner, input, bounds, match)
+		// TODO
+		// match(n, span.Empty(bounds.From()))
+		// n.VisitNested(scanner, input, bounds, match)
 		scanner.Rewind(pos)
 	} else {
-		// TODO : what about empty matches?
-
 		current := bounds.From()
 
 		// match the same string

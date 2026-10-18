@@ -30,14 +30,9 @@ type (
 	}
 
 	Group struct {
+		Index int
+		Name  string `json:",omitempty"`
 		Span
-
-		OutOfString bool
-	}
-
-	NamedGroup struct {
-		Name        string
-		Span        Span
 		OutOfString bool
 	}
 
@@ -45,8 +40,7 @@ type (
 		SubString   string
 		Span        Span
 		Expressions []string
-		Groups      []Group      `json:",omitempty"`
-		NamedGroups []NamedGroup `json:",omitempty"`
+		Groups      []Group `json:",omitempty"`
 	}
 
 	Span struct {
@@ -56,37 +50,26 @@ type (
 	}
 )
 
-func (g NamedGroup) String() string {
-	return fmt.Sprintf("[%s, %s]", g.Name, g.Span)
-}
-
 func (ex *Expectation) String() string {
 	s := ex.Span.String()
 	s += "-"
 	s += ex.groupsToString()
-	s += "-"
-	s += ex.namedGroupsToString()
 	return s
 }
 
 func (m *Expectation) groupsToString() string {
-	s := make([]string, len(m.Groups))
-	for i, x := range m.Groups {
-		s[i] = x.String()
+	s := make([]string, 0, len(m.Groups))
+
+	for _, v := range m.Groups {
+		if v.Name != "" {
+			s = append(s, fmt.Sprintf("%d (%s): %s", v.Index, v.Name, v.Span.String()))
+		} else {
+			s = append(s, fmt.Sprintf("%d: %s", v.Index, v.Span.String()))
+		}
 	}
 
 	sort.SliceStable(s, func(i, j int) bool { return s[i] < s[j] })
 	return strings.Join(s, ", ")
-}
-
-func (m *Expectation) namedGroupsToString() string {
-	pairs := make([]string, 0, len(m.NamedGroups))
-	for _, v := range m.NamedGroups {
-		pairs = append(pairs, v.Name+": "+v.String())
-	}
-
-	sort.SliceStable(pairs, func(i, j int) bool { return pairs[i] < pairs[j] })
-	return strings.Join(pairs, ", ")
 }
 
 func (ex *Expectation) Normalize() {
@@ -95,11 +78,7 @@ func (ex *Expectation) Normalize() {
 	})
 
 	sort.SliceStable(ex.Groups, func(i, j int) bool {
-		return ex.Groups[i].String() < ex.Groups[j].String()
-	})
-
-	sort.SliceStable(ex.NamedGroups, func(i, j int) bool {
-		return ex.NamedGroups[i].String() < ex.NamedGroups[j].String()
+		return ex.Groups[i].Index < ex.Groups[j].Index
 	})
 }
 
@@ -152,16 +131,6 @@ func LoadAllTestFiles(t testing.TB, dir string) ([]*TestFile, error) {
 			}
 
 			files = append(files, testFile)
-
-			for _, test := range testFile.Tests {
-				for _, w := range test.Want {
-					w.Normalize()
-				}
-
-				sort.Slice(test.Want, func(i, j int) bool {
-					return test.Want[i].String() < test.Want[j].String()
-				})
-			}
 		}
 
 		return nil
@@ -187,11 +156,15 @@ func TestMatchesToExpectations(xs ...*scanner.Match) []*Expectation {
 		if len(x.Groups()) > 0 {
 			groups := make([]Group, 0, len(x.Groups()))
 
-			for _, g := range x.Groups() {
+			for _, gr := range x.Groups() {
+				g := gr.Span
+
 				outOfString := ((g.From() < x.Span().From() && g.To() < x.Span().To()) ||
 					(g.From() > x.Span().From() && g.From() > x.Span().To()))
 
 				groups = append(groups, Group{
+					Index:       gr.Index,
+					Name:        gr.Name,
 					OutOfString: outOfString,
 					Span: Span{
 						From:  g.From(),
@@ -204,31 +177,26 @@ func TestMatchesToExpectations(xs ...*scanner.Match) []*Expectation {
 			ex.Groups = groups
 		}
 
-		if len(x.NamedGroups()) > 0 {
-			named := make([]NamedGroup, 0, len(x.NamedGroups()))
-
-			for k, g := range x.NamedGroups() {
-				outOfString := ((g.From() < x.Span().From() && g.To() < x.Span().To()) ||
-					(g.From() > x.Span().From() && g.From() > x.Span().To()))
-
-				named = append(named, NamedGroup{
-					Name: k,
-					Span: Span{
-						From:  g.From(),
-						To:    g.To(),
-						Empty: g.Empty(),
-					},
-					OutOfString: outOfString,
-				})
-			}
-
-			ex.NamedGroups = named
-		}
-
 		exs = append(exs, ex)
 	}
 
 	return exs
+}
+
+func NormalizeExpectations(exps []*Expectation) {
+	for _, exp := range exps {
+		sort.Slice(exp.Expressions, func(i, j int) bool {
+			return strings.Compare(exp.Expressions[i], exp.Expressions[j]) < 1
+		})
+
+		sort.Slice(exp.Groups, func(i, j int) bool {
+			return exp.Groups[i].Index < exp.Groups[j].Index
+		})
+	}
+
+	sort.Slice(exps, func(i, j int) bool {
+		return exps[i].String() < exps[j].String()
+	})
 }
 
 func ToScanOptions(xs ...string) ([]node.ScanOption, error) {

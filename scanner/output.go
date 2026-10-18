@@ -14,8 +14,6 @@ type Output struct {
 	matches map[node.Node]*matchesList
 }
 
-var _ node.Output = NewOutput()
-
 func NewOutput() *Output {
 	out := new(Output)
 	out.matches = make(map[node.Node]*matchesList)
@@ -39,8 +37,7 @@ func (out *Output) Yield(
 	n node.Node,
 	subString string,
 	sp span.Interface,
-	groups []span.Interface,
-	namedGroups map[string]span.Interface,
+	groups []Group,
 ) {
 	m := &Match{
 		subString: subString,
@@ -51,7 +48,6 @@ func (out *Output) Yield(
 		// when new expressions add (or any other mutations)?
 		expressions: n.GetExpressions().Clone(),
 		groups:      groups,
-		namedGroups: namedGroups,
 	}
 
 	list, exists := out.matches[n]

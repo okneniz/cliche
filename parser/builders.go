@@ -6,11 +6,11 @@ import (
 	"github.com/okneniz/parsec"
 )
 
-type ParserBuilder[T any] func(except ...rune) parsec.Combinator[rune, int, T, State]
+type ParserBuilder[T any] func(except ...rune) parsec.Combinator[rune, int, T, *State]
 
 func Const[T any](value T) ParserBuilder[T] {
-	return func(_ ...rune) parsec.Combinator[rune, int, T, State] {
-		return func(_ State, _ parsec.Buffer[rune, int]) (T, parsec.Error[int]) {
+	return func(_ ...rune) parsec.Combinator[rune, int, T, *State] {
+		return func(_ *State, _ parsec.Buffer[rune, int]) (T, parsec.Error[int]) {
 			return value, nil
 		}
 	}
@@ -19,10 +19,10 @@ func Const[T any](value T) ParserBuilder[T] {
 func TableAsClass(
 	makeParser ParserBuilder[node.Table],
 ) ParserBuilder[node.Node] {
-	return func(except ...rune) parsec.Combinator[rune, int, node.Node, State] {
+	return func(except ...rune) parsec.Combinator[rune, int, node.Node, *State] {
 		parse := makeParser(except...)
 
-		return func(state State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
+		return func(state *State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 			table, err := parse(state, buf)
 			if err != nil {
 				return nil, err
@@ -36,10 +36,10 @@ func TableAsClass(
 func RuneAsTable(
 	makeParser ParserBuilder[rune],
 ) ParserBuilder[node.Table] {
-	return func(except ...rune) parsec.Combinator[rune, int, node.Table, State] {
+	return func(except ...rune) parsec.Combinator[rune, int, node.Table, *State] {
 		parse := makeParser(except...)
 
-		return func(state State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
+		return func(state *State, buf parsec.Buffer[rune, int]) (node.Table, parsec.Error[int]) {
 			r, err := parse(state, buf)
 			if err != nil {
 				return nil, err
@@ -53,10 +53,10 @@ func RuneAsTable(
 func NumberAsRune(
 	makeParser ParserBuilder[int],
 ) ParserBuilder[rune] {
-	return func(except ...rune) parsec.Combinator[rune, int, rune, State] {
+	return func(except ...rune) parsec.Combinator[rune, int, rune, *State] {
 		parse := makeParser(except...)
 
-		return func(state State, buf parsec.Buffer[rune, int]) (rune, parsec.Error[int]) {
+		return func(state *State, buf parsec.Buffer[rune, int]) (rune, parsec.Error[int]) {
 			x, err := parse(state, buf)
 			if err != nil {
 				return -1, err

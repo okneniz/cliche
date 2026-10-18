@@ -20,6 +20,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 2,
               "Empty": false
@@ -38,6 +39,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 4,
               "To": 6,
               "Empty": false
@@ -56,6 +58,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 8,
               "To": 10,
               "Empty": false
@@ -83,6 +86,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 2,
               "Empty": false
@@ -101,6 +105,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 4,
               "To": 6,
               "Empty": false
@@ -119,6 +124,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 8,
               "To": 10,
               "Empty": false
@@ -137,6 +143,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 12,
               "To": 13,
               "Empty": false
@@ -155,6 +162,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 14,
               "To": 14,
               "Empty": false
@@ -173,6 +181,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 16,
               "To": 16,
               "Empty": false
@@ -191,6 +200,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 18,
               "To": 19,
               "Empty": false
@@ -209,6 +219,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 21,
               "To": 23,
               "Empty": false
@@ -236,6 +247,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 2,
               "Empty": false
@@ -254,6 +266,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 4,
               "To": 6,
               "Empty": false
@@ -272,6 +285,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 8,
               "To": 10,
               "Empty": false
@@ -290,6 +304,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 12,
               "To": 13,
               "Empty": false
@@ -308,6 +323,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 14,
               "To": 14,
               "Empty": false
@@ -326,6 +342,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 16,
               "To": 16,
               "Empty": false
@@ -344,6 +361,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 18,
               "To": 19,
               "Empty": false
@@ -362,6 +380,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 21,
               "To": 23,
               "Empty": false
@@ -486,11 +505,13 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 10,
               "To": 13,
               "Empty": false
             },
             {
+              "Index": 2,
               "From": 15,
               "To": 21,
               "Empty": false
@@ -509,11 +530,13 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 30,
               "To": 32,
               "Empty": false
             },
             {
+              "Index": 2,
               "From": 34,
               "To": 39,
               "Empty": false
@@ -530,22 +553,20 @@
           "Expressions": [
             "(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "name",
-              "Span": {
-                "From": 10,
-                "To": 13,
-                "Empty": false
-              }
+              "From": 10,
+              "To": 13,
+              "Empty": false
             },
             {
+              "Index": 2,
               "Name": "domain",
-              "Span": {
-                "From": 15,
-                "To": 21,
-                "Empty": false
-              }
+              "From": 15,
+              "To": 21,
+              "Empty": false
             }
           ]
         },
@@ -559,22 +580,20 @@
           "Expressions": [
             "(?<name>[a-z0-9._%+-]+)@(?<domain>[a-z0-9.-]+\\.[a-z]{2,})"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "name",
-              "Span": {
-                "From": 30,
-                "To": 32,
-                "Empty": false
-              }
+              "From": 30,
+              "To": 32,
+              "Empty": false
             },
             {
+              "Index": 2,
               "Name": "domain",
-              "Span": {
-                "From": 34,
-                "To": 39,
-                "Empty": false
-              }
+              "From": 34,
+              "To": 39,
+              "Empty": false
             }
           ]
         }
@@ -700,6 +719,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 73,
               "Empty": false
@@ -727,6 +747,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 18,
               "To": 34,
               "Empty": false

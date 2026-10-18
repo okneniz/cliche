@@ -11,34 +11,14 @@ import (
 
 type (
 	FullScanner struct {
-		input       node.Input
-		output      node.Output
-		expression  *structs.TruncatedList[nodeMatch]
-		groups      Captures
-		namedGroups NamedCaptures
-		holes       *structs.TruncatedList[span.Interface]
-		roots       map[string]node.Node
-		options     ScanOptionsHistory
-	}
-
-	Captures interface {
-		Append(...span.Interface)
-		Truncate(int)
-		Size() int
-		At(int) (span.Interface, bool)
-		First() (span.Interface, bool)
-		Last() (span.Interface, bool)
-		Slice() []span.Interface
-	}
-
-	NamedCaptures interface {
-		Get(string) (span.Interface, bool)
-		Put(string, span.Interface)
-		Truncate(int)
-		Empty() bool
-		Size() int
-		Map() map[string]span.Interface
-		String() string // TODO : remove and use map when it needed
+		input      node.Input
+		output     *Output
+		expression *structs.TruncatedList[nodeMatch]
+		groups     *structs.OrderedMap[int, Group]
+		groupNames *structs.OrderedMap[string, int]
+		holes      *structs.TruncatedList[span.Interface]
+		roots      map[string]node.Node
+		options    ScanOptionsHistory
 	}
 
 	ScanOptionsHistory interface {
@@ -55,15 +35,12 @@ type (
 var (
 	_ node.Scanner       = new(FullScanner)
 	_ node.Input         = buf.NewRunesBuffer("")
-	_ node.Output        = NewOutput()
-	_ Captures           = structs.NewTruncatedList[span.Interface](0)
-	_ NamedCaptures      = structs.NewOrderedMap[string, span.Interface](0)
 	_ ScanOptionsHistory = structs.NewOrderedMap[node.ScanOption, bool](0)
 )
 
 func NewFullScanner(
 	input node.Input,
-	output node.Output,
+	output *Output,
 	roots map[string]node.Node, // add traverse method for tree
 	options ...node.ScanOption,
 ) *FullScanner {
@@ -72,9 +49,12 @@ func NewFullScanner(
 	s.output = output
 	s.roots = roots
 
+	// groups     structs.OrderedMap[int, capture]
+	// groupNames structs.OrderedMap[string, int]
+
 	// TODO : capacity = max count of captured groups in expression
-	s.groups = structs.NewTruncatedList[span.Interface](10)
-	s.namedGroups = structs.NewOrderedMap[string, span.Interface](10)
+	s.groups = structs.NewOrderedMap[int, Group](10) // TODO : rename abstraction?
+	s.groupNames = structs.NewOrderedMap[string, int](10)
 
 	// TODO : capacity = height of tree (but what about quantifier)
 	s.expression = structs.NewTruncatedList[nodeMatch](50)
@@ -97,7 +77,7 @@ func (s *FullScanner) String() string {
 		"Scanner(\n\toutput=%s,\n\texpression=%v,\n\tgroups=%v,\n\tholes=%v\n)",
 		s.output.String(),
 		s.expression.Slice(),
-		s.groups.Slice(),
+		s.groups.Map(),
 		s.holes.Slice(),
 	)
 }
@@ -149,8 +129,7 @@ func (s *FullScanner) Scan(from, to int) {
 				// fmt.Println(
 				// 	"scanner match",
 				// 	fmt.Sprintf("%T", n),
-				// 	sp,
-				// 	// n.GetKey(), sp,
+				// 	n.GetKey(), sp,
 				// 	n.GetExpressions().Slice(),
 				// )
 
@@ -197,7 +176,6 @@ func (s *FullScanner) Match(n node.Node, sp span.Interface) {
 		subString,
 		sp,
 		s.groups.Slice(),
-		s.namedGroups.Map(),
 	)
 }
 
@@ -267,38 +245,43 @@ func (s *FullScanner) lastNotEmptySpan() (span.Interface, bool) {
 	return nil, false
 }
 
-func (s *FullScanner) MatchGroup(sp span.Interface) {
-	g := span.Get(sp, s.holes)
-	s.groups.Append(g)
+func (s *FullScanner) MatchGroup(idx int, name string, sp span.Interface) {
+	g := Group{
+		Index: idx,
+		Name:  name,
+		Span:  span.Get(sp, s.holes),
+	}
+
+	s.groups.Put(idx, g)
+
+	if name != "" {
+		s.groupNames.Put(name, idx)
+	}
 }
 
 func (s *FullScanner) GroupsPosition() int {
 	return s.groups.Size()
 }
 
-func (s *FullScanner) GetGroup(idx int) (span.Interface, bool) {
-	return s.groups.At(idx - 1)
+func (s *FullScanner) GetGroupByIndex(idx int) (span.Interface, bool) {
+	if group, ok := s.groups.Get(idx); ok {
+		return group.Span, true
+	}
+
+	return nil, false
+}
+
+func (s *FullScanner) GetGroupByName(name string) (span.Interface, bool) {
+	if idx, ok := s.groupNames.Get(name); ok {
+		return s.GetGroupByIndex(idx)
+	}
+
+	return nil, false
 }
 
 func (s *FullScanner) RewindGroups(pos int) {
 	s.groups.Truncate(pos)
-}
-
-func (s *FullScanner) MatchNamedGroup(name string, sp span.Interface) {
-	g := span.Get(sp, s.holes)
-	s.namedGroups.Put(name, g)
-}
-
-func (s *FullScanner) NamedGroupsPosition() int {
-	return s.namedGroups.Size()
-}
-
-func (s *FullScanner) GetNamedGroup(name string) (span.Interface, bool) {
-	return s.namedGroups.Get(name)
-}
-
-func (s *FullScanner) RewindNamedGroups(pos int) {
-	s.namedGroups.Truncate(pos)
+	s.groupNames.Truncate(pos)
 }
 
 func (s *FullScanner) MarkAsHole(sp span.Interface) {

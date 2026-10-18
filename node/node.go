@@ -70,15 +70,11 @@ type Scanner interface {
 	Position() int
 	Rewind(pos int)
 
-	MatchGroup(sp span.Interface)
+	MatchGroup(idx int, name string, sp span.Interface)
 	GroupsPosition() int
-	GetGroup(idx int) (span.Interface, bool)
+	GetGroupByIndex(idx int) (span.Interface, bool)
+	GetGroupByName(name string) (span.Interface, bool)
 	RewindGroups(pos int)
-
-	MatchNamedGroup(name string, sp span.Interface)
-	NamedGroupsPosition() int
-	GetNamedGroup(name string) (span.Interface, bool)
-	RewindNamedGroups(pos int)
 
 	MarkAsHole(sp span.Interface)
 	HolesPosition() int
@@ -103,19 +99,6 @@ type Input interface {
 	ReadAt(int) rune
 	Size() int
 	Position() int
-}
-
-type Output interface {
-	Yield(
-		n Node,
-		subString string,
-		sp span.Interface,
-		groups []span.Interface,
-		namedGroups map[string]span.Interface,
-	)
-
-	LastPosOf(n Node) (int, bool)
-	String() string
 }
 
 func Traverse(n Node, f func(Node) bool) {

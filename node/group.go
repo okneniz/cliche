@@ -9,16 +9,24 @@ import (
 type group struct {
 	value Alternation
 	index int
+	name  string
 	*base
 }
 
 var _ Container = new(group)
 
-func NewGroup(alt Alternation, index int) Node {
+func NewGroup(alt Alternation, index int, name string) Node {
+	key := fmt.Sprintf("(alt=%s)", alt.GetKey())
+
+	if name != "" {
+		key = fmt.Sprintf("(name=%q, alt=%s)", name, alt.GetKey())
+	}
+
 	return &group{
 		value: alt,
 		index: index,
-		base:  newBase(fmt.Sprintf("(%s)", alt.GetKey())),
+		name:  name,
+		base:  newBase(key),
 	}
 }
 
@@ -31,7 +39,7 @@ func (n *group) Visit(scanner Scanner, input Input, bounds span.Interface, match
 		pos := scanner.Position()
 		groupsPos := scanner.GroupsPosition()
 
-		scanner.MatchGroup(sp)
+		scanner.MatchGroup(n.index, n.name, sp)
 		match(n, sp)
 
 		nextFrom := span.NextFrom(sp.To(), sp.Empty())
@@ -55,5 +63,5 @@ func (n *group) Size() (int, bool) {
 }
 
 func (n *group) Copy() Node {
-	return NewGroup(n.value.CopyAlternation(), n.index)
+	return NewGroup(n.value.CopyAlternation(), n.index, n.name)
 }

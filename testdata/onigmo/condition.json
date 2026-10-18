@@ -20,6 +20,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 2,
               "Empty": false
@@ -47,6 +48,7 @@
           ],
           "Groups": [
             {
+              "Index": 2,
               "From": 3,
               "To": 5,
               "Empty": false,
@@ -75,6 +77,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 0,
               "Empty": false
@@ -117,7 +120,19 @@
         "(a)?b(?(1)c|d)"
       ],
       "Input": "abd",
-      "Want": []
+      "Want": [
+        {
+          "SubString": "bd",
+          "Span": {
+            "From": 1,
+            "To": 2,
+            "Empty": false
+          },
+          "Expressions": [
+            "(a)?b(?(1)c|d)"
+          ]
+        }        
+      ]
     },
     {
       "Name": "case 7",
@@ -136,14 +151,13 @@
           "Expressions": [
             "(?<test>USD)(?(<test>)\\d+)"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "test",
-              "Span": {
-                "From": 0,
-                "To": 2,
-                "Empty": false
-              }
+              "From": 0,
+              "To": 2,
+              "Empty": false
             }
           ]
         }
@@ -166,14 +180,13 @@
           "Expressions": [
             "(?<test>a)?b(?(<test>)c|d)"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "test",
-              "Span": {
-                "From": 0,
-                "To": 0,
-                "Empty": false
-              }
+              "From": 0,
+              "To": 0,
+              "Empty": false
             }
           ]
         }

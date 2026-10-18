@@ -48,11 +48,13 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 4,
               "Empty": false
             },
             {
+              "Index": 2,
               "From": 1,
               "To": 4,
               "Empty": false

@@ -6,9 +6,9 @@ import (
 )
 
 type GroupParserBuilder[T any] func(
-	parseAlternation parsec.Combinator[rune, int, node.Alternation, State],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, *State],
 	except ...rune,
-) parsec.Combinator[rune, int, T, State]
+) parsec.Combinator[rune, int, T, *State]
 
 type GroupScope struct {
 	prefixes map[string]GroupParserBuilder[node.Node]
@@ -30,9 +30,9 @@ func (cfg *GroupScope) ParsePrefix(
 }
 
 func (cfg *GroupScope) makeParser(
-	parseAlternation parsec.Combinator[rune, int, node.Alternation, State],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, *State],
 	except ...rune,
-) parsec.Combinator[rune, int, node.Node, State] {
+) parsec.Combinator[rune, int, node.Node, *State] {
 	parseScopeByPrefix := makeGroupsParserTree(
 		parseAlternation,
 		cfg.prefixes,
@@ -63,7 +63,7 @@ func (cfg *GroupScope) makeParser(
 	//
 	// или нужна структура с интерфейсом и тд
 
-	parsers := make([]parsec.Combinator[rune, int, node.Node, State], 0, len(cfg.parsers)+1)
+	parsers := make([]parsec.Combinator[rune, int, node.Node, *State], 0, len(cfg.parsers)+1)
 	parsers = append(parsers, parsec.Try(parseScopeByPrefix))
 
 	for _, buildParser := range cfg.parsers {

@@ -28,14 +28,13 @@
             "(?<name>\\d+)\\k<name>*",
             "(?<name>[[:alnum:]]+)\\k<name>+"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "name",
-              "Span": {
-                "From": 0,
-                "To": 2,
-                "Empty": false
-              }
+              "From": 0,
+              "To": 2,
+              "Empty": false
             }
           ]
         }
@@ -60,20 +59,18 @@
           ],
           "Groups": [
             {
+              "Index": 1,
+              "Name": "tag",
+              "From": 28,
+              "To": 29,
+              "Empty": false
+            },
+            {
+              "Index": 2,
               "From": 31,
               "To": 46,
               "Empty": false
-            }
-          ],
-          "NamedGroups": [
-            {
-              "Name": "tag",
-              "Span": {
-                "From": 28,
-                "To": 29,
-                "Empty": false
-              }
-            }
+            }            
           ]
         },
         {
@@ -88,19 +85,17 @@
           ],
           "Groups": [
             {
+              "Index": 1,
+              "Name": "tag",
+              "From": 53,
+              "To": 53,
+              "Empty": false
+            },
+            {
+              "Index": 2,
               "From": 55,
               "To": 73,
               "Empty": false
-            }
-          ],
-          "NamedGroups": [
-            {
-              "Name": "tag",
-              "Span": {
-                "From": 53,
-                "To": 53,
-                "Empty": false
-              }
             }
           ]
         }
@@ -123,22 +118,20 @@
           "Expressions": [
             "title=(?<quot>[\"'])(?<text>.*)\\k<quot>"
           ],
-          "NamedGroups": [
+          "Groups": [
             {
+              "Index": 1,
               "Name": "quot",
-              "Span": {
-                "From": 6,
-                "To": 6,
-                "Empty": false
-              }
+              "From": 6,
+              "To": 6,
+              "Empty": false
             },
             {
+              "Index": 2,
               "Name": "text",
-              "Span": {
-                "From": 7,
-                "To": 9,
-                "Empty": false
-              }
+              "From": 7,
+              "To": 9,
+              "Empty": false
             }
           ]
         }

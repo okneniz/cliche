@@ -3,7 +3,6 @@ package cliche
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
 	"testing"
 
 	"github.com/okneniz/cliche/onigmo"
@@ -76,9 +75,8 @@ func TestTree_Match(t *testing.T) {
 								w.Normalize()
 							}
 
-							sort.Slice(actual, func(i, j int) bool {
-								return actual[i].String() < actual[j].String()
-							})
+							tableTests.NormalizeExpectations(example.Want)
+							tableTests.NormalizeExpectations(actual)
 
 							actualStr, err := json.MarshalIndent(actual, "", "  ")
 							require.NoError(t, err)
@@ -91,33 +89,13 @@ func TestTree_Match(t *testing.T) {
 							for _, expectation := range actual {
 								for _, group := range expectation.Groups {
 									if group.OutOfString {
-										outOf := (group.From > expectation.Span.From && group.To > expectation.Span.From) ||
-											(group.From < expectation.Span.From && group.To < expectation.Span.From)
-
-										require.True(t, outOf)
-									} else {
-										require.LessOrEqual(t, expectation.Span.From, group.From)
-										require.GreaterOrEqual(t, expectation.Span.To, group.To)
-									}
-								}
-
-								for _, group := range expectation.NamedGroups {
-									if group.OutOfString {
 										outOf := (group.Span.From > expectation.Span.From && group.Span.To > expectation.Span.From) ||
 											(group.Span.From < expectation.Span.From && group.Span.To < expectation.Span.From)
 
 										require.True(t, outOf)
 									} else {
-										require.LessOrEqual(
-											t,
-											expectation.Span.From,
-											group.Span.From,
-										)
-										require.GreaterOrEqual(
-											t,
-											expectation.Span.To,
-											group.Span.To,
-										)
+										require.LessOrEqual(t, expectation.Span.From, group.Span.From)
+										require.GreaterOrEqual(t, expectation.Span.To, group.Span.To)
 									}
 								}
 							}

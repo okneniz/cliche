@@ -30,7 +30,7 @@ func (n *nameReferenceNode) Visit(
 		return
 	}
 
-	matchSpan, exists := scanner.GetNamedGroup(n.name)
+	matchSpan, exists := scanner.GetGroupByName(n.name)
 
 	// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Backreference
 	//

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"sort"
 	"strings"
 	"testing"
 
@@ -258,14 +259,15 @@ func TestATTPosixRegex(t *testing.T) {
 				}
 
 				for _, g := range x.Groups() {
-					t.Log("group match", g, g.Empty())
-					if g.Empty() {
+					t.Log("group match", g, g.Span.Empty())
+
+					if g.Span.Empty() {
 						continue
 					}
 
 					mathes = append(mathes, Match{
-						From: g.From(),
-						To:   g.To() + 1,
+						From: g.Span.From(),
+						To:   g.Span.To() + 1,
 					})
 				}
 
@@ -273,6 +275,9 @@ func TestATTPosixRegex(t *testing.T) {
 			}
 
 			t.Log("matches", mathes, test.Expected == nil)
+
+			NormalizeMatches(test.Expected)
+			NormalizeMatches(mathes)
 
 			// re := regexp.MustCompile(test.Pattern)
 			// res := re.FindAllStringSubmatchIndex(test.String, -1)
@@ -287,4 +292,10 @@ func shouldSkipType(typeStr string) bool {
 	// Skip types that have significantly different behavior in Go
 	unsupported := []string{"A", "S", "BN", "EN", "BEN"}
 	return slices.Contains(unsupported, typeStr)
+}
+
+func NormalizeMatches(exps []Match) {
+	sort.Slice(exps, func(i, j int) bool {
+		return exps[i].String() < exps[j].String()
+	})
 }

@@ -21,6 +21,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 1,
               "To": 2,
               "Empty": false
@@ -60,6 +61,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 1,
               "To": 1,
               "Empty": false

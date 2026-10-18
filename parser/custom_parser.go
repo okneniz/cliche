@@ -8,13 +8,9 @@ import (
 	"github.com/okneniz/parsec"
 )
 
-type State struct {
-	GroupIndex int
-}
-
 type CustomParser struct {
 	config *Config
-	parse  parsec.Combinator[rune, int, node.Alternation, State]
+	parse  parsec.Combinator[rune, int, node.Alternation, *State]
 }
 
 type Option[T any] func(T)
@@ -35,7 +31,10 @@ func New(opts ...Option[*Config]) *CustomParser {
 
 func (p *CustomParser) Parse(str string) (node.Alternation, error) {
 	buffer := buf.NewRunesBuffer(str)
-	state := State{}
+
+	state := &State{
+		GroupIndex: 1,
+	}
 
 	alt, err := p.parse(state, buffer)
 	if err != nil {
@@ -56,10 +55,10 @@ func (p *CustomParser) Parse(str string) (node.Alternation, error) {
 
 func (p *CustomParser) makeAlternationParser(
 	except ...rune,
-) parsec.Combinator[rune, int, node.Alternation, State] {
-	parseBar := parsec.Eq[rune, int, State]("expected '|' as alternation separator", '|')
-	parseLeftParens := parsec.Eq[rune, int, State]("expected left parens as beginning of group", '(')
-	parseRightParens := parsec.Eq[rune, int, State]("expected right parent as ending of group", ')')
+) parsec.Combinator[rune, int, node.Alternation, *State] {
+	parseBar := parsec.Eq[rune, int, *State]("expected '|' as alternation separator", '|')
+	parseLeftParens := parsec.Eq[rune, int, *State]("expected left parens as beginning of group", '(')
+	parseRightParens := parsec.Eq[rune, int, *State]("expected right parent as ending of group", ')')
 
 	parseClass := parsec.Try(p.config.class.makeParser())
 	parseNonClass := parsec.Try(p.config.nonClass.makeParser(
@@ -68,13 +67,13 @@ func (p *CustomParser) makeAlternationParser(
 	))
 
 	var (
-		parseGroup parsec.Combinator[rune, int, node.Node, State]
+		parseGroup parsec.Combinator[rune, int, node.Node, *State]
 	)
 
 	// can't use parsec.Choice because parseGroup is var
 	// and not initiated at this moment to pass as function param
 	parseNode := p.makeOptionalQuantifierParser(
-		func(state State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
+		func(state *State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 			start := buf.Position()
 
 			group, groupErr := parseGroup(state, buf)
@@ -113,7 +112,7 @@ func (p *CustomParser) makeAlternationParser(
 	)
 
 	parseAlternation := func(
-		state State,
+		state *State,
 		buf parsec.Buffer[rune, int],
 	) (node.Alternation, parsec.Error[int]) {
 		variants, err := parseVariants(state, buf)
@@ -146,15 +145,15 @@ func (p *CustomParser) makeAlternationParser(
 }
 
 func (p *CustomParser) makeOptionalQuantifierParser(
-	parseExpression parsec.Combinator[rune, int, node.Node, State],
+	parseExpression parsec.Combinator[rune, int, node.Node, *State],
 	except ...rune,
-) parsec.Combinator[rune, int, node.Node, State] {
+) parsec.Combinator[rune, int, node.Node, *State] {
 	parseQuantity := parsec.Try(p.config.quantity.makeParser(
 		"expected quantifier",
 		except...,
 	))
 
-	return func(state State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
+	return func(state *State, buf parsec.Buffer[rune, int]) (node.Node, parsec.Error[int]) {
 		expression, err := parseExpression(state, buf)
 		if err != nil {
 			return nil, err
@@ -170,9 +169,9 @@ func (p *CustomParser) makeOptionalQuantifierParser(
 }
 
 func (p *CustomParser) makeChainParser(
-	parse parsec.Combinator[rune, int, node.Node, State],
-) parsec.Combinator[rune, int, node.Node, State] {
-	makeChain := parsec.Const[rune, int, parsec.BinaryOp[node.Node], State](
+	parse parsec.Combinator[rune, int, node.Node, *State],
+) parsec.Combinator[rune, int, node.Node, *State] {
+	makeChain := parsec.Const[rune, int, parsec.BinaryOp[node.Node], *State](
 		func(current, next node.Node) node.Node {
 			current.GetNestedNodes()[next.GetKey()] = next
 			return current

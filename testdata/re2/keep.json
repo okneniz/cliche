@@ -60,6 +60,7 @@
           ],
           "Groups": [
             {
+              "Index": 1,
               "From": 0,
               "To": 0,
               "Empty": false,
@@ -91,6 +92,71 @@
     },
     {
       "Name": "case 5",
+      "Expressions": [
+        "(?:1)\\K(2)"
+      ],
+      "Input": "123",
+      "Want": [
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?:1)\\K(2)"
+          ],
+          "Groups": [
+            {
+              "Index": 1,
+              "From": 1,
+              "To": 1,
+              "Empty": false,
+              "OutOfString": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 6",
+      "Expressions": [
+        "(?:(1))\\K(2)"
+      ],
+      "Input": "123",
+      "Want": [
+        {
+          "SubString": "2",
+          "Span": {
+            "From": 1,
+            "To": 1,
+            "Empty": false
+          },
+          "Expressions": [
+            "(?:(1))\\K(2)"
+          ],
+          "Groups": [
+            {
+              "Index": 1,
+              "From": 0,
+              "To": 0,
+              "Empty": false,
+              "OutOfString": true
+            },
+            {
+              "Index": 2,
+              "From": 1,
+              "To": 1,
+              "Empty": false,
+              "OutOfString": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Name": "case 7",
       "Expressions": [
         "^(?:1)\\K2.*$"
       ],

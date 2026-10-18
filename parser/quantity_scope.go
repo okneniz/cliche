@@ -16,7 +16,7 @@ func (cfg *QuantityScope) Items() *Scope[*quantity.Quantity] {
 func (scope *QuantityScope) makeParser(
 	errMessage string,
 	except ...rune,
-) parsec.Combinator[rune, int, *quantity.Quantity, State] {
+) parsec.Combinator[rune, int, *quantity.Quantity, *State] {
 	return scope.items.makeParser(
 		errMessage,
 		except...,

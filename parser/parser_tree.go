@@ -12,11 +12,11 @@ import (
 func makeParserTree[T any](
 	builders map[string]ParserBuilder[T],
 	except ...rune,
-) parsec.Combinator[rune, int, T, State] {
+) parsec.Combinator[rune, int, T, *State] {
 	prefixes := slices.Collect(maps.Keys(builders))
 	errMessage := "one of " + strings.Join(prefixes, ", ")
 
-	cases := make(map[string]parsec.Combinator[rune, int, T, State])
+	cases := make(map[string]parsec.Combinator[rune, int, T, *State])
 	for key, makeParser := range builders {
 		parser := makeParser(except...)
 		cases[key] = parser
@@ -28,14 +28,14 @@ func makeParserTree[T any](
 }
 
 func makeGroupsParserTree(
-	parseAlternation parsec.Combinator[rune, int, node.Alternation, State],
+	parseAlternation parsec.Combinator[rune, int, node.Alternation, *State],
 	builders map[string]GroupParserBuilder[node.Node],
 	except ...rune,
-) parsec.Combinator[rune, int, node.Node, State] {
+) parsec.Combinator[rune, int, node.Node, *State] {
 	prefixes := slices.Collect(maps.Keys(builders))
 	errMessage := "one of " + strings.Join(prefixes, ", ")
 
-	cases := make(map[string]parsec.Combinator[rune, int, node.Node, State])
+	cases := make(map[string]parsec.Combinator[rune, int, node.Node, *State])
 	for key, makeParser := range builders {
 		parser := makeParser(parseAlternation, except...)
 		cases[key] = parser

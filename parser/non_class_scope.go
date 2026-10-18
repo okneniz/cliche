@@ -17,11 +17,11 @@ func (scope *NonClassScope) Items() *Scope[node.Node] {
 func (scope *NonClassScope) makeParser(
 	errMessage string,
 	except ...rune,
-) parsec.Combinator[rune, int, node.Node, State] {
+) parsec.Combinator[rune, int, node.Node, *State] {
 	parseItem := scope.items.makeParser(errMessage, except...)
 
 	parseRune := parsec.Cast(
-		parsec.NoneOf[rune, int, State](
+		parsec.NoneOf[rune, int, *State](
 			errMessage,
 			except...,
 		),
