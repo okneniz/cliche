@@ -11,74 +11,9 @@ Regular expressions engine for batch processing.
 
 Main features:
 
-- [store expressions in trie like data structure and match few expressions by one comparison](#trie-like-data-structure)
-- [bring several expressions into a unified form](#compaction--unification)
+- store expressions as tree and match few of them by one comparison
+- [unified several expressions to one form](#compaction--unification)
 - [custom expression parsing](#parsing-and-predefined-engines)
-
-## Trie like data structure
-
-Cliche compile expressions to chain of nodes and than add this chain to tree.
-Every node have they own key.
-When adding a new chain to the tree and finding the same key,
-a new node isn't created, the new expression is simply added to it.
-This way, the tree tries to be as minimally branched as possible,
-which is beneficial when scanning text.
-
-## Compaction / Unification
-
-Cliche unify expression by few methods.
-
-Character classes stored as [range table](https://pkg.go.dev/unicode#RangeTable).
-All expression bellow the same and have the same node in tree:
-- `[a-z1-2]`
-- `[1-2a-z]`
-- `[12a-z]`
-- `[1a-z2]`
-- `[1-2[a-z]]`
-- `[[1-2][a-z]]`
-- `[12[a-z]]`
-- `[12a[b-z]]`
-
-Single character stored as character class too.
-All expression bellow the same and have them same node in tree:
-
-- `a`
-- `[a]`
-- `[aaaa]`
-- `[a-a]`
-- `[a-aa]`
-
-Quantificators unified too:
-
-- `x+` equal `x{1,}`
-- `x*` equal `x{0,}`
-- `x?` equal `x{0,1}` and `x{,1}`
-
-Comments removed in simple cases.
-
-For example `x` equal `(?#123)x` and stored the same.
-
-Group options unified too.
-All expression bellow the same and have them same topology in tree:
-
-- `(?i:y)` eqaul `(?i)(?:y)(?-i)`
-- `(?i-m:test)` equal `(?i-m)(test)(?m-i)`
-
-Non-unique variants within an alternation are removed from it.
-All expression bellow the same and have them same node in tree:
-
-- `(a|b|c)`
-- `(a|b|c|c)`
-- `(a|b|b|c)`
-- `(a|a|b|c)`
-- `(a|[a]|b|c)`
-- `(a|[a]|[b]|[c])`
-
-You can see more examples [here](https://github.com/okneniz/cliche/blob/master/compaction_test.go).
-
-Result of unification - reusing one path or branch by more than one expressions.
-Scanner can match multiple expressions at once.
-Of course unification not change behaviour of tree or scanner results.
 
 ## Installation
 
@@ -158,6 +93,63 @@ regexps:
 ## Documentation
 
 [GoDoc documentation](https://pkg.go.dev/github.com/okneniz/cliche).
+
+
+## Compaction / Unification
+
+Cliche unify expression by few methods.
+
+Character classes stored as [range table](https://pkg.go.dev/unicode#RangeTable).
+All expression bellow the same:
+- `[a-z1-2]`
+- `[1-2a-z]`
+- `[12a-z]`
+- `[1a-z2]`
+- `[1-2[a-z]]`
+- `[[1-2][a-z]]`
+- `[12[a-z]]`
+- `[12a[b-z]]`
+
+Single character stored as character class too.
+All expression bellow the same:
+
+- `a`
+- `[a]`
+- `[aaaa]`
+- `[a-a]`
+- `[a-aa]`
+
+Quantificators unified too:
+
+- `x+` equal `x{1,}`
+- `x*` equal `x{0,}`
+- `x?` equal `x{0,1}` and `x{,1}`
+
+Comments removed in simple cases.
+
+For example `x` equal `(?#123)x` and stored the same.
+
+Group options unified too.
+All expression bellow the same:
+
+- `(?i:y)` eqaul `(?i)(?:y)(?-i)`
+- `(?i-m:test)` equal `(?i-m)(test)(?m-i)`
+
+Non-unique variants within an alternation are removed from it.
+All expression bellow the same:
+
+- `(a|b|c)`
+- `(a|b|c|c)`
+- `(a|b|b|c)`
+- `(a|a|b|c)`
+- `(a|[a]|b|c)`
+- `(a|[a]|[b]|[c])`
+
+You can see more examples [here](https://github.com/okneniz/cliche/blob/master/compaction_test.go).
+
+Result of unification - reusing one path or branch by more than one expressions.
+Scanner can match multiple expressions at once.
+Of course unification not change behaviour of tree or scanner results.
 
 ## Parsing and predefined engines
 
